@@ -3,7 +3,8 @@
     package="itg8.com.meetingapp">
 
     <application
-        android:allowBackup="true"
+        android:name=".common.MyApplication"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -26,7 +27,25 @@
         <activity
             android:name=".meeting.MeetingActivity"
             android:label="@string/title_activity_meeting"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <service
+            android:name=".service.NotificationService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <receiver
+            android:name=".service.NotificationBroadcast"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="itg8.com.meetingapp.ACTION_START_NOTIFICATION" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".service.MeetingStartNotificationBroadcast"
+            android:enabled="true"
+            android:exported="true"></receiver>
     </application>
 
 </manifest>
