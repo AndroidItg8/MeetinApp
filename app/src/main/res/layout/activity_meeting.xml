@@ -12,6 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/app_bar_height"
         android:fitsSystemWindows="true"
+        android:layout_marginBottom="16dp"
+        app:expandedTitleTextAppearance="@android:color/transparent"
         android:theme="@style/AppTheme.AppBarOverlay">
 
         <android.support.design.widget.CollapsingToolbarLayout
@@ -20,7 +22,8 @@
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
             app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+            app:expandedTitleTextAppearance="@style/CollapsingToolbarLayoutExpandedTextStyle"
             app:toolbarId="@+id/toolbar">
 
             <android.support.v7.widget.Toolbar
@@ -28,8 +31,35 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"
-
                 app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginTop="?android:attr/actionBarSize"
+                android:layout_marginBottom="16dp"
+                android:layout_marginRight="16dp">
+
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/colorWhite"
+                    android:textAllCaps="true"
+                    android:textSize="22sp"
+                    android:textStyle="normal"
+                    android:hint="@string/ajenda"
+                    android:paddingBottom="32dp"
+                    android:layout_alignParentBottom="true"
+                    android:textColorHint="@color/colorGray"
+                    android:text="Agenda"/>
+
+
+
+            </RelativeLayout>
 
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
