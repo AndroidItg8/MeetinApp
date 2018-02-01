@@ -28,6 +28,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -312,6 +313,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         super.onActivityResult(requestCode, resultCode, data);
 
         // Check that the result was from the autocomplete widget.
+
         if (requestCode == REQUEST_CODE_AUTOCOMPLETE) {
             if (resultCode == RESULT_OK) {
                 // Get the user's selected place from the Intent.
@@ -339,6 +341,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             }
         }
     }
+
+    private void showFailToGetAddress() {
+        Toast.makeText(this, "Fail to get Map Result", Toast.LENGTH_SHORT).show();
+    }
+
     /**
      * Helper method to format information about a place nicely.
      */

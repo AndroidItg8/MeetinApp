@@ -39,7 +39,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginLeft="16dp"
-                android:layout_marginTop="?android:attr/actionBarSize"
+                android:layout_marginTop="?attr/actionBarSize"
                 android:layout_marginBottom="16dp"
                 android:layout_marginRight="16dp">
 
@@ -48,12 +48,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorWhite"
+                    android:inputType="textCapCharacters"
                     android:textSize="22sp"
-                    android:textStyle="normal"
+                    android:lines="2"
+                    android:gravity="top"
                     android:hint="@string/ajenda"
-                    android:paddingBottom="32dp"
-                    android:layout_alignParentBottom="true"
-                    android:textColorHint="@color/colorGray" />
+                    android:textColorHint="@color/colorGray"
+                    />
+
+
 
             </RelativeLayout>
 

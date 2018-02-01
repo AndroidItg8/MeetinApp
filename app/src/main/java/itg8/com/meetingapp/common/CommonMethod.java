@@ -22,5 +22,32 @@ public class CommonMethod {
     public static final int PRIORITY_INT_HIGH=1;
     public static final int PRIORITY_INT_MEDIUM=2;
     public static final int PRIORITY_INT_LOW=3;
-}
+    public static final String EXTRA_MEETING = "fromMeeting";
+    public static final String EXTRA_MEETING_TIME_DIFF = "meeting_time_diff";
+    public static final String ACTION_MEETING_NOTIFICATION_START = "actionMeetingStarts";
+    public static final String EXTRA_MEETING_STOPPED = "meetingHasBeenStopped";
+    public static final String ACTION_MEETING_NOTIFICATION_STOP = "meetingNotificationStopped";
 
+    public static long getDifferenceFromPriority(int priority, long timeDifference) {
+        int priorityDiff=getPriorityDifferenceFromSetting(priority);
+
+        return priorityDiff/timeDifference;
+    }
+
+    public static int getPriorityDifferenceFromSetting(int priority) {
+        int priorityDiff=0;
+        switch (priority){
+            case PRIORITY_INT_HIGH:
+                priorityDiff=Prefs.getInt(PRIORITY_HIGH,3);
+                break;
+            case PRIORITY_INT_MEDIUM:
+                priorityDiff=Prefs.getInt(PRIORITY_MEDIUM,2);
+                break;
+            case PRIORITY_INT_LOW:
+                priorityDiff=Prefs.getInt(PRIORITY_LOW,1);
+                break;
+        }
+        return priorityDiff;
+    }
+
+}

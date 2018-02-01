@@ -59,6 +59,16 @@
         <receiver
             android:name=".service.MeetingStartNotificationBroadcast"
             android:enabled="true"
+            android:exported="true" />
+        <receiver
+            android:name=".service.NotificationReminderBroadcast"
+            android:enabled="true"
+            android:exported="true" />
+
+        <service
+            android:name=".service.PostMeetingService"
+            android:enabled="true"
+            android:exported="true"></service>
             android:exported="true"/>
 
             <activity android:name=".meeting.NearByLocationActivity"
