@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <android.support.v7.preference.PreferenceCategory
+        android:title="@string/preferences_category_meeting">
+
+        <!--<android.support.v7.preference.SwitchPreferenceCompat-->
+            <!--android:key="@string/pref_meeting"-->
+            <!--android:summary="@string/pref_meeting_switch_summ"-->
+            <!--android:title="@string/meeting"/>-->
+
+        <android.support.v7.preference.SwitchPreferenceCompat
+            android:key="@string/pref_do_not_disturb"
+            android:summary="@string/pref_do_not_disturb_meeting_switch_summ"
+            android:title="@string/meeting"/>
+
+        <CheckBoxPreference
+            android:key="@string/pref_do_not_vibrate"
+            android:summary="@string/pref_vibrate_meeting_switch_summ"
+            android:title="@string/pref_do_not_vibrate"/>
+
+        <Preference
+            android:key="@string/pref_meeting_sound"
+            android:summary="@string/pref_meeting_ringtone_switch_summ"
+            android:title="@string/ringtone"/>
+
+
+    </android.support.v7.preference.PreferenceCategory>
+
+    <android.support.v7.preference.PreferenceCategory
+        android:title="@string/preferences_category_notification">
+
+    <Preference
+            android:key="@string/pref_notification_sound"
+            android:summary="@string/pref_notification_sound_switch_summ"
+            android:title="@string/notification_sound"/>
+        <android.support.v7.preference.SwitchPreferenceCompat
+            android:key="@string/pref_notification_toggle"
+            android:summary="@string/pref_notification_toggle_switch_summ"
+            android:title="@string/notification_toggle"/>
+        <CheckBoxPreference
+            android:key="@string/pref_notification_vibrate"
+            android:summary="@string/preferences_notification_vibrate_summ"
+            android:title="@string/notification_vibrate"/>
+    </android.support.v7.preference.PreferenceCategory>
+
+    <android.support.v7.preference.PreferenceCategory
+        android:title="@string/preferences_category_priorities">
+
+    <!--<Preference-->
+            <!--android:key="@string/pref_reminder_priories"-->
+            <!--android:summary="@string/pref_reminder_priorities_switch_summ"-->
+            <!--android:title="@string/reminder_priorities"/>-->
+
+        <Preference
+            android:key="@string/pref_high_priories"
+            android:summary="@string/pref_high_priorities_switch_summ"
+            android:title="@string/high_priorities"/>
+        <Preference
+            android:key="@string/pref_medium_priories"
+            android:summary="@string/pref_medium_priorities_switch_summ"
+            android:title="@string/medium_priorities"/>
+
+        <Preference
+            android:key="@string/pref_low_priories"
+            android:summary="@string/pref_low_priorities_switch_summ"
+            android:title="@string/low_priorities"/>
+
+
+    </android.support.v7.preference.PreferenceCategory>
+
+
+
+</PreferenceScreen>

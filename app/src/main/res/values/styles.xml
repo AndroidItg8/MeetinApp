@@ -22,4 +22,8 @@
         <item name="android:textSize">0.1sp</item>
     </style>
 
+    <style name="AppTheme.SettingsTheme" parent="AppTheme.NoActionBar">
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
+    </style>
+
 </resources>

@@ -24,7 +24,13 @@
         <activity
             android:name=".home.HomeActivity"
             android:label="@string/title_activity_home"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <meta-data
         android:name="com.google.android.geo.API_KEY"
         android:value="@string/google_place_key"/>
@@ -33,20 +39,9 @@
             android:label="@string/title_activity_meeting"
             android:theme="@style/AppTheme.NoActionBar">
 
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
-        <activity
-            android:name=".home.HomeActivity"
-            android:label="@string/title_activity_home"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".meeting.MeetingActivity"
-            android:label="@string/title_activity_meeting"
-            android:theme="@style/AppTheme.NoActionBar" />
+
 
         <service
             android:name=".service.NotificationService"
@@ -64,10 +59,21 @@
         <receiver
             android:name=".service.MeetingStartNotificationBroadcast"
             android:enabled="true"
-            android:exported="true"></receiver>
-            android:name=".meeting.NearByLocationActivity"
+            android:exported="true"/>
+
+            <activity android:name=".meeting.NearByLocationActivity"
             android:label="@string/title_activity_near_by_location"
             android:theme="@style/AppTheme.NoActionBar"/>
+
+
+        <activity
+            android:name=".setting.SettingActivity"
+            android:label="@string/title_activity_setting"
+            android:theme="@style/AppTheme.SettingsTheme">
+
+
+        </activity>
+
     </application>
 
 </manifest>

@@ -116,4 +116,87 @@
     ]]>
     </string>
     <string name="rationale_no_permission">Please Provide Permission</string>
+
+
+
+
+    <string name="preferences_meeting">Meeting</string>
+    <string name="preferences_category_notification">Notification</string>
+    <string name="preferences_category_meeting">Meeting</string>
+    <string name="preferences_category_priorities">Priorities </string>
+    <string name="pref_meeting">Meeting</string>
+    <string name="meeting">Meeting </string>
+    <string name="ringtone">Ringtone</string>
+    <string name="notification_sound">Notification Ringtone</string>
+    <string name="notification_vibrate">Notification Vibrate</string>
+    <string name="reminder_priorities">Reminder Priorities</string>
+    <string name="pref_do_not_disturb">Meetings</string>
+    <string name="pref_do_not_vibrate">Vibrate</string>
+    <string name="pref_meeting_sound">Sound</string>
+    <string name="pref_notification_sound">Sounds</string>
+    <string name="pref_reminder_priories">priority</string>
+    <string name="pref_reminder_priorities_switch_summ">Set Reminder Priorities</string>
+    <!--Switching for accept  NoticeBoard  Notification </string>-->
+    <string name="preferences_notification_vibrate_summ">Check vibrating at notification </string>
+    <string name="pref_notification_sound_switch_summ">Set Ringtone for Notification </string>
+    <string name="pref_meeting_ringtone_switch_summ">Set Ringtone For Meeting   </string>
+    <string name="pref_vibrate_meeting_switch_summ">Check for Vibration In Meeting Mode . </string>
+    <string name="pref_do_not_disturb_meeting_switch_summ">Switching For Accept  "Do Not Disturb " At Meeting Mode . </string>
+    <string name="pref_meeting_switch_summ">Switching For Accept Meeting Mode . </string>
+    <string name="pref_notification_vibrate">Vibrate</string>
+    <string name="title_activity_setting">settingActivity</string>
+    <string name="pririoties">Priorities</string>
+    <string name="select_ringtone">Select Ringtone</string>
+    <string name="notificatin_ringtone">Select Ringtone</string>
+    <string name="notification_toggle">Notification Toggle</string>
+    <string name="pref_high_priories">High Priority</string>
+    <string name="pref_high_priorities_switch_summ">Set High Priority Level</string>
+    <string name="pref_medium_priorities_switch_summ">Set Medium Priority Level</string>
+    <string name="pref_low_priorities_switch_summ">Set Low Priority Level</string>
+    <string name="pref_medium_priories">Medium Priority</string>
+    <string name="pref_low_priories">Low Priority</string>
+    <string name="pref_notification_toggle_switch_summ">Switching For Notification Toggle</string>
+    <string name="pref_notification_toggle">Notification Toggle</string>
+    <string name="high_priorities">High Priority</string>
+    <string name="medium_priorities">Medium Priority</string>
+    <string name="low_priorities">Low Priority</string>
+
+
+    <string-array name="dialog_single_choice_array">
+        <item>Local ring tone</item>
+        <item>None</item>
+        <item>Brisk</item>
+        <item>Cloud</item>
+        <item>Drum</item>
+        <item>Echo</item>
+    </string-array>
+
+
+    <string-array name="dialog_single_choice_array_priorities">
+        <item>HIGH</item>
+        <item>MEDIUM</item>
+        <item>LOW</item>
+    </string-array>
+
+    <string-array name="dialog_single_choice_array_high_priorities">
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+
+    </string-array>
+    <string-array name="dialog_single_choice_array_medium_priorities">
+        <item>2</item>
+        <item>3</item>
+
+
+    </string-array>
+    <string-array name="dialog_single_choice_array_low_priorities">
+        <item>1</item>
+        <item>2</item>
+
+
+
+    </string-array>
+
+
 </resources>
