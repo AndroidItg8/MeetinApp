@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.import_meeting.ImportMeetingActivity;
 import itg8.com.meetingapp.meeting.MeetingActivity;
 import itg8.com.meetingapp.setting.SettingActivity;
 
@@ -89,6 +90,10 @@ public class HomeActivity extends AppCompatActivity
                 break;
                 case R.id.nav_meeting:
                 startActivity(new Intent(this, MeetingActivity.class));
+                break;
+
+                case R.id.nav_camera:
+                startActivity(new Intent(this, ImportMeetingActivity.class));
                 break;
 
         }

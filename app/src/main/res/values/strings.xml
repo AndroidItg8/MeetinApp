@@ -118,8 +118,6 @@
     <string name="rationale_no_permission">Please Provide Permission</string>
 
 
-
-
     <string name="preferences_meeting">Meeting</string>
     <string name="preferences_category_notification">Notification</string>
     <string name="preferences_category_meeting">Meeting</string>
@@ -195,8 +193,9 @@
         <item>2</item>
 
 
-
     </string-array>
+    <string name="title_activity_import_meeting">ImportMeetingActivity</string>
+    <string name="show_message">In Your Whats Up Account have any Meeting Message..Kindly Please Paste hear</string>
 
 
 </resources>

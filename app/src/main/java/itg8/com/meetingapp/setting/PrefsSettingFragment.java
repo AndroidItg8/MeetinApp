@@ -286,7 +286,7 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
 
     private void setMeetingVibratePref(Preference vibrateMeetingPref) {
         if (Prefs.getBoolean(CommonMethod.SETTING_PREF_MEETING_VIBRATE, false)) {
-            vibrateMeetingPref.setSummary("UnCheck For Vibration at Meeting Mode");
+            vibrateMeetingPref.setSummary("Uncheck For Vibration at Meeting Mode");
         } else {
             vibrateMeetingPref.setSummary("Check For Vibration at Meeting Mode");
         }
