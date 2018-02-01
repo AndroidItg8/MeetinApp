@@ -19,5 +19,8 @@ public class CommonMethod {
     public static final String SETTING_PREF_NOTIFICATION_VIBRATE = "SETTING_PREF_NOTIFICATION_VIBRATE";
     public static final String SETTING_PREF_NOTIFICATION_TOGGLE = "SETTING_PREF_NOTIFICATION_TOGGLE";
     public static final String NOTIFICATION_RINGTONE = "NOTIFICATION_RINGTONE";
+    public static final int PRIORITY_INT_HIGH=1;
+    public static final int PRIORITY_INT_MEDIUM=2;
+    public static final int PRIORITY_INT_LOW=3;
 }
 

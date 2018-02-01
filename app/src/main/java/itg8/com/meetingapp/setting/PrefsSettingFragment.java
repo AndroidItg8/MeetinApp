@@ -9,6 +9,9 @@ import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.common.Prefs;
@@ -28,6 +31,9 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
     private String mParam1;
     private String mParam2;
     private Preference pref;
+    private Preference mediumPrioritiesPref;
+    private Preference highPrioritiesPref;
+    private Preference lowPrioritiesPref;
 
 
     public PrefsSettingFragment() {
@@ -75,7 +81,7 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
     private void setNotificationSetting() {
         final Preference notificationSoundPref = findPreference(getString(R.string.pref_notification_sound));
         final Preference notificationVibratePref = findPreference(getString(R.string.pref_notification_vibrate));
-        final Preference notificationTogglePref = findPreference(getString(R.string.pref_notification_vibrate));
+        final Preference notificationTogglePref = findPreference(getString(R.string.pref_notification_toggle));
         final String[] singleChoiceItems = getResources().getStringArray(R.array.dialog_single_choice_array);
         final String title = getString(R.string.notificatin_ringtone);
         setNotificationVibratePref(notificationVibratePref);
@@ -86,7 +92,6 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
 
             @Override
             public boolean onPreferenceClick(Preference preference) {
-
                 openPrefDialogue(singleChoiceItems, title, notificationSoundPref);
                 return false;
             }
@@ -115,6 +120,8 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
 
 
 
+
+
     }
 
     private void setNotificationTogglePref(Preference notificationTogglePref) {
@@ -127,17 +134,20 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
 
     private void setNotificationVibratePref(Preference postureKey) {
         if (Prefs.getBoolean(CommonMethod.SETTING_PREF_NOTIFICATION_VIBRATE, false)) {
-            postureKey.setSummary("UnCheck For Vibration at Meeting Mode");
+            postureKey.setSummary("Turn Off Notification Vibration");
         } else {
-            postureKey.setSummary("Check For Vibration at Meeting Mode");
+            postureKey.setSummary("Turn On Notification Vibration");
         }
     }
 
     private void setPrioritySetting() {
 //        final Preference reminderPrioritiesPref = findPreference(getString(R.string.pref_reminder_priories));
-        final Preference highPrioritiesPref = findPreference(getString(R.string.pref_high_priories));
-        final Preference mediumPrioritiesPref = findPreference(getString(R.string.pref_medium_priories));
-        final Preference lowPrioritiesPref = findPreference(getString(R.string.pref_low_priories));
+        highPrioritiesPref = findPreference(getString(R.string.pref_high_priories));
+       mediumPrioritiesPref = findPreference(getString(R.string.pref_medium_priories));
+      lowPrioritiesPref = findPreference(getString(R.string.pref_low_priories));
+
+
+
 
 
         final String[] singleChoiceItems = getResources().getStringArray(R.array.dialog_single_choice_array_priorities);
@@ -148,6 +158,7 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
         final String titleMedium = getString(R.string.pref_medium_priories);
         final String titleLow = getString(R.string.pref_low_priories);
         final String title = getString(R.string.pref_reminder_priories);
+        setDetails();
 //        reminderPrioritiesPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
 //            @Override
 //            public boolean onPreferenceClick(Preference preference) {
@@ -157,6 +168,7 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
 //                return false;
 //            }
 //        });
+
 
         highPrioritiesPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
@@ -171,8 +183,7 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
         mediumPrioritiesPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-//                int itemSelected = checkItemSelect(titleMedium, mediumSingleChoiceItems);
-//                checkTitle(titleMedium, itemSelected, mediumSingleChoiceItems, mediumPrioritiesPref);
+//
                 openPrefDialogue(mediumSingleChoiceItems, titleMedium, mediumPrioritiesPref);
                 return false;
             }
@@ -182,8 +193,6 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
         lowPrioritiesPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-
-
 
                 openPrefDialogue(lowSingleChoiceItems, titleLow, lowPrioritiesPref);
                 return false;
@@ -197,6 +206,27 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
 
     }
 
+    private void setDetails() {
+        int value = Prefs.getInt(CommonMethod.PRIORITY_LOW, -1);
+            if(value>0)
+                lowPrioritiesPref.setSummary("You Have Set " + value+" Notifications For Low Level");
+
+            value = Prefs.getInt(CommonMethod.PRIORITY_MEDIUM, -1);
+            if(value>0)
+                mediumPrioritiesPref.setSummary("You Have Set " + value+" Notifications For Medium Level");
+
+            value = Prefs.getInt(CommonMethod.PRIORITY_HIGH, -1);
+            if(value>0)
+                highPrioritiesPref.setSummary("You Have Set " + value+" Notifications For High Level");
+
+
+        }
+//        if (title.equalsIgnoreCase(getString(R.string.pref_medium_priories))) {
+//            value = Prefs.getInt(CommonMethod.PRIORITY_MEDIUM);
+//        }
+//        if (title.equalsIgnoreCase(getString(R.string.pref_high_priories))) {
+//            value = Prefs.getInt(CommonMethod.PRIORITY_HIGH);
+//        }
 
 
     private void setMeetingMode() {
@@ -266,7 +296,7 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
         if (Prefs.getBoolean(CommonMethod.SETTING_PREF_MEETING_NOT_DISTURB, false)) {
             doNotDisturbPref.setSummary("Switching For  Disturb At Meeting Mode");
         } else {
-            doNotDisturbPref.setSummary("Switching For  Do NOt Disturb At Meeting Mode");
+            doNotDisturbPref.setSummary("Switching For  Do Not Disturb At Meeting Mode");
         }
     }
 
@@ -283,7 +313,8 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
                 .setSingleChoiceItems(singleChoiceItems, item, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int selectedIndex) {
-                        checkTitle(title, selectedIndex, singleChoiceItems, preference);
+//                        checkTitle(title, selectedIndex, singleChoiceItems, preference);
+                        checkTitle(title,singleChoiceItems[selectedIndex]);
 
                     }
                 })
@@ -295,6 +326,32 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
                     }
                 })
                 .show();
+    }
+
+    private void checkTitle(String title, String singleChoiceItem) {
+        switch (getType(title)){
+            case CommonMethod.PRIORITY_INT_HIGH:
+                Prefs.putInt(CommonMethod.PRIORITY_HIGH, Integer.parseInt(singleChoiceItem));
+                break;
+            case CommonMethod.PRIORITY_INT_MEDIUM:
+                Prefs.putInt(CommonMethod.PRIORITY_MEDIUM, Integer.parseInt(singleChoiceItem));
+                break;
+            case CommonMethod.PRIORITY_INT_LOW:
+                Prefs.putInt(CommonMethod.PRIORITY_LOW, Integer.parseInt(singleChoiceItem));
+                break;
+        }
+        setDetails();
+    }
+
+    private int getType(String title) {
+        if (title.equalsIgnoreCase(getString(R.string.pref_low_priories)))
+          return CommonMethod.PRIORITY_INT_LOW;
+        if (title.equalsIgnoreCase(getString(R.string.pref_medium_priories)))
+            return CommonMethod.PRIORITY_INT_MEDIUM;
+        if (title.equalsIgnoreCase(getString(R.string.pref_high_priories)))
+            return CommonMethod.PRIORITY_INT_HIGH;
+
+        return -1;
     }
 
     private int checkItemSelect(String title, String[] singleChoiceItems) {
@@ -310,8 +367,8 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
             value = Prefs.getInt(CommonMethod.PRIORITY_HIGH);
         }
 
-//        int position =new ArrayList<String>(Arrays.asList(singleChoiceItems)).indexOf(value);
-        int position = getItemValue(singleChoiceItems, value);
+        int position =new ArrayList<String>(Arrays.asList(singleChoiceItems)).indexOf(String.valueOf(value));
+//        int position = getItemValue(singleChoiceItems, value);
         Log.d("TAG", "Prefs position  Values:" + position);
         return position;
     }
@@ -327,6 +384,8 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
         }
         return position;
     }
+
+
 
     private void checkTitle(String title, int position, String[] singleChoiceItems, Preference preference) {
         if (title.equalsIgnoreCase(getString(R.string.pref_low_priories))) {

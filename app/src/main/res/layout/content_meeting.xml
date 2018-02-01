@@ -356,7 +356,7 @@
                             android:layout_alignParentRight="true"
                             android:layout_marginEnd="08dp"
                             android:layout_marginRight="08dp"
-                            android:src="@drawable/ic_error"
+                            app:srcCompat="@drawable/ic_error"
                             android:visibility="visible" />
 
                         <TextView

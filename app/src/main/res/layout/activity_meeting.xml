@@ -48,16 +48,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorWhite"
-                    android:textAllCaps="true"
                     android:textSize="22sp"
                     android:textStyle="normal"
                     android:hint="@string/ajenda"
                     android:paddingBottom="32dp"
                     android:layout_alignParentBottom="true"
-                    android:textColorHint="@color/colorGray"
-                    android:text="Agenda"/>
-
-
+                    android:textColorHint="@color/colorGray" />
 
             </RelativeLayout>
 
