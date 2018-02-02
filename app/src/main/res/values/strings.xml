@@ -195,7 +195,16 @@
 
     </string-array>
     <string name="title_activity_import_meeting">ImportMeetingActivity</string>
-    <string name="show_message">In Your Whats Up Account have any Meeting Message..Kindly Please Paste hear</string>
+    <string name="show_message">
+         Title:______\n
+        Date:_________\n
+        StartTime:___________\n
+        EndTime:____________\n
+
+    </string>
+    <!--<string name="show_message">Click on PASTE button below to import meeting details..\n Click on PASTE button below to import meeting details..\n Click on PASTE button below to import meeting details..</string>-->
+    <string name="title_activity_import_message_detail">ImportMessageDetailActivity</string>
+    <string name="title_activity_scrolling">ScrollingActivity</string>
 
 
 </resources>

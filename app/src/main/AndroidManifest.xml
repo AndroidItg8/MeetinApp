@@ -39,7 +39,7 @@
         <activity
             android:name=".meeting.MeetingActivity"
             android:label="@string/title_activity_meeting"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <service
             android:name=".service.NotificationService"
@@ -75,10 +75,18 @@
         <activity
             android:name=".setting.SettingActivity"
             android:label="@string/title_activity_setting"
-            android:theme="@style/AppTheme.SettingsTheme"></activity>
+            android:theme="@style/AppTheme.SettingsTheme" />
         <activity
             android:name=".import_meeting.ImportMeetingActivity"
             android:label="@string/title_activity_import_meeting"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".import_meeting.ImportMessageDetailActivity"
+            android:label="@string/title_activity_import_message_detail"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".test.ScrollingActivity"
+            android:label="@string/title_activity_scrolling"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
