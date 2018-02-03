@@ -12,6 +12,7 @@ import android.widget.RemoteViews;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.common.Helper;
+import itg8.com.meetingapp.common.Parcelables;
 import itg8.com.meetingapp.db.TblMeeting;
 
 public class MeetingStartNotificationBroadcast extends BroadcastReceiver {
@@ -24,25 +25,30 @@ public class MeetingStartNotificationBroadcast extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         // TODO: This method is called when the BroadcastReceiver is receiving
         // an Intent broadcast.
-        RemoteViews meetingStartCustomview;
-        TblMeeting meeting=intent.getParcelableExtra(CommonMethod.EXTRA_MEETING);
+        RemoteViews meetingCustomview;
+        TblMeeting meeting= Parcelables.toParcelable(intent.getByteArrayExtra(CommonMethod.EXTRA_MEETING),TblMeeting.CREATOR);
         if(intent.getAction()!=null && intent.getAction().equalsIgnoreCase(CommonMethod.ACTION_MEETING_NOTIFICATION_START)) {
-            meetingStartCustomview = new RemoteViews(context.getPackageName(), R.layout.notification_meeting_started);
-            meetingStartCustomview.setImageViewResource(R.id.img_meeting, R.mipmap.ic_launcher);
-            meetingStartCustomview.setImageViewResource(R.id.img_finish, R.drawable.ic_stop_black_24dp);
-            meetingStartCustomview.setTextViewText(R.id.txtMeetingTitle, "Meeting started at "+ Helper.getStringTimeFromDate(meeting.getStartTime()));
-            meetingStartCustomview.setTextViewText(R.id.txt_description, "Meeting with Agenda: '"+meeting.getTitle()+"' Started");
+            meetingCustomview = new RemoteViews(context.getPackageName(), R.layout.notification_meeting_started);
+            meetingCustomview.setImageViewResource(R.id.img_meeting, R.mipmap.ic_launcher);
+            meetingCustomview.setImageViewResource(R.id.img_finish, R.drawable.ic_stop_black_24dp);
+            meetingCustomview.setTextViewText(R.id.txtMeetingTitle, "Meeting started at "+ Helper.getStringTimeFromDate(meeting.getStartTime()));
+            meetingCustomview.setTextViewText(R.id.txt_description, "Meeting with agenda: '"+meeting.getTitle()+"' has been started");
 
-            Intent intentNew=new Intent(context,PostMeetingService.class);
-            intentNew.putExtra(CommonMethod.EXTRA_MEETING_STOPPED,meeting);
-            PendingIntent pIntent=PendingIntent.getService(context,POST_NOTIFICATION_REQUEST_CODE,intent,PendingIntent.FLAG_UPDATE_CURRENT);
-            meetingStartCustomview.setOnClickPendingIntent(R.id.img_finish,pIntent);
-
+            Intent intentNew=new Intent(context, MeetingStartNotificationBroadcast.class);
+            intentNew.setAction(CommonMethod.ACTION_MEETING_NOTIFICATION_STOP);
+            intentNew.putExtra(CommonMethod.EXTRA_MEETING,Parcelables.toByteArray(meeting));
+            PendingIntent pIntent=PendingIntent.getBroadcast(context,POST_NOTIFICATION_REQUEST_CODE,intentNew,PendingIntent.FLAG_UPDATE_CURRENT);
+            meetingCustomview.setOnClickPendingIntent(R.id.img_finish,pIntent);
         }else{
-            meetingStartCustomview = new RemoteViews(context.getPackageName(), R.layout.notification_meeting_started);
-            meetingStartCustomview.setImageViewResource(R.id.img_meeting, R.mipmap.ic_launcher);
-            meetingStartCustomview.setImageViewResource(R.id.img_finish, R.drawable.ic_stop_black_24dp);
-            meetingStartCustomview.setTextViewText(R.id.txtMeetingTitle, "ABC Meeting has started.");
+            meetingCustomview = new RemoteViews(context.getPackageName(), R.layout.notification_meeting_stopped);
+            meetingCustomview.setImageViewResource(R.id.img_meeting, R.mipmap.ic_launcher);
+            meetingCustomview.setTextViewText(R.id.txtMeetingTitle, "Meeting Finished?");
+            meetingCustomview.setTextViewText(R.id.txt_description,"Meeting with agenda: '"+meeting.getTitle()+"' seems like finished. Would you like to add documents related to meeting?");
+            Intent intentNew = new Intent(context,PostMeetingService.class);
+            intentNew.putExtra(CommonMethod.EXTRA_MEETING_STOPPED,Parcelables.toByteArray(meeting));
+            PendingIntent pIntent=PendingIntent.getService(context,POST_NOTIFICATION_REQUEST_CODE,intentNew,PendingIntent.FLAG_UPDATE_CURRENT);
+            meetingCustomview.setOnClickPendingIntent(R.id.img_finish,pIntent);
+
         }
 
         NotificationCompat.Builder builder = null;
@@ -51,11 +57,11 @@ public class MeetingStartNotificationBroadcast extends BroadcastReceiver {
                     .setSmallIcon(R.mipmap.ic_launcher)
                     .setOngoing(false)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                    .setCustomContentView(meetingStartCustomview);
+                    .setCustomContentView(meetingCustomview);
         }
         NotificationManager managerCompat= (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if(managerCompat!=null && builder!=null)
-            managerCompat.notify(CommonMethod.STATIC_NOTIFICATION_ID,builder.build());
+            managerCompat.notify(CommonMethod.MEETING_NOTIFICATION_ID,builder.build());
         else
             throw new NullPointerException("NotificationService not available.");
 

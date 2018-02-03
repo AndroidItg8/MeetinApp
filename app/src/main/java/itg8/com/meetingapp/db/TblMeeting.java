@@ -27,6 +27,7 @@ public class TblMeeting implements Parcelable {
     public static final String END_TIME="end_time";
     public static final String PRIORITY="priority";
     public static final String DATE="dateonly";
+    public static final String CREATED="created";
 
     @DatabaseField(columnName = FIELD_ID,generatedId = true)
     private long pkid;
@@ -45,6 +46,9 @@ public class TblMeeting implements Parcelable {
 
     @DatabaseField(columnName = DATE, dataType = DataType.DATE_STRING, format = Helper.DATE_FORMAT)
     private Date date;
+
+    @DatabaseField(columnName = CREATED, dataType = DataType.DATE_LONG)
+    private Date created;
 
     @ForeignCollectionField
     private ForeignCollection<TblDocument> documents;
@@ -111,6 +115,14 @@ public class TblMeeting implements Parcelable {
         this.date = date;
     }
 
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -124,6 +136,7 @@ public class TblMeeting implements Parcelable {
         dest.writeLong(this.endTime != null ? this.endTime.getTime() : -1);
         dest.writeInt(this.priority);
         dest.writeLong(this.date != null ? this.date.getTime() : -1);
+        dest.writeLong(this.created != null ? this.created.getTime() : -1);
     }
 
     protected TblMeeting(Parcel in) {
@@ -136,7 +149,8 @@ public class TblMeeting implements Parcelable {
         this.priority = in.readInt();
         long tmpDate = in.readLong();
         this.date = tmpDate == -1 ? null : new Date(tmpDate);
-//        this.documents = in.readParcelable(ForeignCollection<TblDocument>.class.getClassLoader());
+        long tmpCreated = in.readLong();
+        this.created = tmpCreated == -1 ? null : new Date(tmpCreated);
     }
 
     public static final Creator<TblMeeting> CREATOR = new Creator<TblMeeting>() {

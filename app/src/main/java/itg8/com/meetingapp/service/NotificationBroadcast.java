@@ -22,6 +22,14 @@ public class NotificationBroadcast extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        if(intent.hasExtra(CommonMethod.EXTRA_STICKY_NOTIFICATION)){
+            if(!Prefs.getBoolean(CommonMethod.SETTING_PREF_NOTIFICATION_TOGGLE,false)) {
+                NotificationManager managerCompat = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                if(managerCompat!=null)
+                    managerCompat.cancel(CommonMethod.STATIC_NOTIFICATION_ID);
+                return;
+            }
+        }
         if(intent.hasExtra(CommonMethod.NOTIFICATION_CHANGE_MEETING)) {
             boolean getBoolean=Prefs.getBoolean(CommonMethod.PREF_MEETING_MODE,false);
             Log.d(TAG,"getBoolean : "+getBoolean);

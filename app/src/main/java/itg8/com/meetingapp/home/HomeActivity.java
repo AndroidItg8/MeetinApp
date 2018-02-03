@@ -14,9 +14,15 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.Calendar;
+
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.common.CommonMethod;
+import itg8.com.meetingapp.common.Helper;
+import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.import_meeting.ImportMeetingActivity;
 import itg8.com.meetingapp.meeting.MeetingActivity;
+import itg8.com.meetingapp.service.NotificationService;
 import itg8.com.meetingapp.setting.SettingActivity;
 
 public class HomeActivity extends AppCompatActivity
@@ -33,8 +39,7 @@ public class HomeActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                testMeetingNotification();
             }
         });
 
@@ -46,6 +51,32 @@ public class HomeActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    //TODO DELETE:
+    private void testMeetingNotification() {
+        TblMeeting meeting=new TblMeeting();
+        meeting.setDate(Calendar.getInstance().getTime());
+        meeting.setTitle("MEETING TEST1");
+        meeting.setPriority(CommonMethod.PRIORITY_INT_HIGH);
+        Calendar calendar=Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY,15);
+        calendar.set(Calendar.MINUTE,44);
+        meeting.setStartTime(calendar.getTime());
+        calendar.add(Calendar.MINUTE,1);
+        meeting.setEndTime(calendar.getTime());
+        meeting.setCreated(Calendar.getInstance().getTime());
+        meeting.setPkid(1);
+        Intent intent=new Intent(this, NotificationService.class);
+        intent.putExtra(CommonMethod.EXTRA_MEETING,meeting);
+        long timeDifference= Helper.getTimeDifferenceFromCurrent(meeting.getStartTime());
+        if(timeDifference>1){
+            long diffByPriority= CommonMethod.getDifferenceFromPriority(meeting.getPriority(),timeDifference);
+            if(diffByPriority>0){
+                intent.putExtra(CommonMethod.EXTRA_MEETING_TIME_DIFF,diffByPriority);
+            }
+        }
+        startService(intent);
     }
 
     @Override

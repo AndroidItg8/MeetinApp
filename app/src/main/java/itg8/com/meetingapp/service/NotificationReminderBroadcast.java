@@ -11,6 +11,7 @@ import android.os.CountDownTimer;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.common.Helper;
+import itg8.com.meetingapp.common.Parcelables;
 import itg8.com.meetingapp.common.Prefs;
 import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.meeting.MeetingActivity;
@@ -29,7 +30,7 @@ public class NotificationReminderBroadcast extends BroadcastReceiver {
 
         if(intent.hasExtra(CommonMethod.EXTRA_MEETING))
         {
-            TblMeeting meeting=intent.getParcelableExtra(CommonMethod.EXTRA_MEETING);
+            TblMeeting meeting= Parcelables.toParcelable(intent.getByteArrayExtra(CommonMethod.EXTRA_MEETING),TblMeeting.CREATOR);
             if(meeting!=null)
             {
                 String title="Meeting Alert : meeting on "+Helper.getStringTimeFromDate(meeting.getStartTime())+".";

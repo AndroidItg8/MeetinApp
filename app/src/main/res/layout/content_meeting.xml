@@ -105,9 +105,9 @@
                             android:id="@+id/edt_date"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_alignEnd="@+id/end_time"
+                            android:layout_alignEnd="@+id/edt_end_time"
                             android:layout_alignParentTop="true"
-                            android:layout_alignRight="@+id/end_time"
+                            android:layout_alignRight="@+id/edt_end_time"
                             android:layout_toEndOf="@+id/img_time"
                             android:layout_toRightOf="@+id/img_time"
                             android:focusable="false"
@@ -117,27 +117,27 @@
                             android:textSize="@dimen/normal_text_size"
                             android:textStyle="normal" />
 
-                        <EditText
-                            android:id="@+id/editText"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="08dp"
-                            android:layout_marginStart="08dp"
-                            android:layout_toEndOf="@+id/edt_date"
-                            android:layout_toRightOf="@+id/edt_date"
-                            android:focusable="false"
-                            android:focusableInTouchMode="false"
-                            android:text="StartTime"
-                            android:textColor="@color/colorBlack"
-                            android:textSize="@dimen/normal_text_size"
-                            android:textStyle="normal"
-                            android:visibility="gone" />
+                        <!--<EditText-->
+                            <!--android:id="@+id/edtStartTime"-->
+                            <!--android:layout_width="wrap_content"-->
+                            <!--android:layout_height="wrap_content"-->
+                            <!--android:layout_marginLeft="08dp"-->
+                            <!--android:layout_marginStart="08dp"-->
+                            <!--android:layout_toEndOf="@+id/edt_date"-->
+                            <!--android:layout_toRightOf="@+id/edt_date"-->
+                            <!--android:focusable="false"-->
+                            <!--android:focusableInTouchMode="false"-->
+                            <!--android:text="StartTime"-->
+                            <!--android:textColor="@color/colorBlack"-->
+                            <!--android:textSize="@dimen/normal_text_size"-->
+                            <!--android:textStyle="normal"-->
+                            <!--android:visibility="gone" />-->
 
                         <ImageView
                             android:id="@+id/img_end_time"
                             android:layout_width="18dp"
                             android:layout_height="18dp"
-                            android:layout_alignBottom="@+id/edt_end_date"
+                            android:layout_alignBottom="@+id/edt_start_time"
                             android:layout_alignLeft="@+id/img_time"
                             android:layout_alignStart="@+id/img_time"
                             android:layout_below="@+id/edt_date"
@@ -148,7 +148,7 @@
                             app:srcCompat="@drawable/ic_endtime" />
 
                         <EditText
-                            android:id="@+id/edt_end_date"
+                            android:id="@+id/edt_start_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_below="@+id/edt_date"
@@ -162,15 +162,17 @@
                             android:textStyle="normal" />
 
                         <EditText
-                            android:id="@+id/end_time"
+                            android:id="@+id/edt_end_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_below="@+id/edt_date"
                             android:layout_marginLeft="08dp"
                             android:layout_marginStart="08dp"
-                            android:layout_toEndOf="@+id/edt_end_date"
-                            android:layout_toRightOf="@+id/edt_end_date"
+                            android:layout_toEndOf="@+id/edt_start_time"
+                            android:layout_toRightOf="@+id/edt_start_time"
                             android:text="End Time"
+                            android:focusableInTouchMode="false"
+                            android:focusable="false"
                             android:textColor="@color/colorBlack"
                             android:textSize="@dimen/normal_text_size"
                             android:textStyle="normal" />
@@ -357,13 +359,18 @@
                             android:layout_marginEnd="08dp"
                             android:layout_marginRight="08dp"
                             app:srcCompat="@drawable/ic_error"
-                            android:visibility="visible" />
+                            android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/lbl_add_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="ItechGalaxy"
+                            android:layout_alignLeft="@+id/img_place_cross"
+                            android:layout_alignParentLeft="true"
+                            android:layout_alignStart="@+id/img_place_cross"
+                            android:layout_toLeftOf="@+id/img_place_cross"
+                            android:layout_toStartOf="@+id/img_place_cross"
+                            android:text="Select place of meeting"
                             android:textColor="@color/colorGray"
                             android:textSize="12sp"
                             android:textStyle="normal"
@@ -427,7 +434,6 @@
                         android:id="@+id/lbl_add_image"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-
                         android:gravity="center"
                         android:text="Add Doc"
                         android:textColor="@color/colorGray"
@@ -435,7 +441,7 @@
                         android:textStyle="normal" />
 
                     <ImageView
-                        android:id="@+id/img_doc"
+                        android:id="@+id/img_doc_close"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_alignParentEnd="true"
@@ -443,19 +449,24 @@
                         android:layout_alignParentTop="true"
                         android:layout_marginEnd="16dp"
                         android:layout_marginRight="16dp"
-
-                        app:srcCompat="@drawable/ic_browser"
+                        app:srcCompat="@drawable/ic_error"
                         android:visibility="gone" />
 
-                    <TextView
-                        android:id="@+id/txt_docName"
+                    <!--<TextView-->
+                        <!--android:id="@+id/txt_docName"-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_below="@+id/lbl_add_image"-->
+                        <!--android:text="Document Name"-->
+                        <!--android:textColor="@color/colorBlack"-->
+                        <!--android:textSize="12sp"-->
+                        <!--android:visibility="visible" />-->
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/rvDocuments"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_below="@+id/lbl_add_image"
-                        android:text="Document Name"
-                        android:textColor="@color/colorBlack"
-                        android:textSize="12sp"
-                        android:visibility="gone" />
+                        android:layout_below="@+id/lbl_add_image" />
 
                 </RelativeLayout>
 

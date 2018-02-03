@@ -10,9 +10,10 @@ import java.util.Locale;
  */
 
 public class Helper {
-    public static final String DATE_FORMAT = "yyyy-MM-dd";
+    public static final String DATE_FORMAT = "dd-MM-yyyy";
     public static final String TIME_FORMAT = "hh:mm a";
-    private static SimpleDateFormat simpleTimeFormat=new SimpleDateFormat(TIME_FORMAT, Locale.getDefault());
+    private static SimpleDateFormat simpleTimeFormatTime=new SimpleDateFormat(TIME_FORMAT, Locale.getDefault());
+    private static SimpleDateFormat simpleTimeFormatDate=new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());
 
     public static Date getCurrentTime() {
         return Calendar.getInstance().getTime();
@@ -56,10 +57,31 @@ public class Helper {
     public static String getStringTimeFromDate(Date startTime) {
 
         try {
-            return simpleTimeFormat.format(startTime);
+            return simpleTimeFormatTime.format(startTime);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return "";
+    }
+
+    public static DocType getDocumentExtention(String fileName) {
+
+        return null;
+    }
+
+    public static String getStringDateFromCalander(Calendar selectedDate) {
+
+        return simpleTimeFormatDate.format(selectedDate.getTime());
+    }
+
+    public static int getTypeFromPriorityText(String priority){
+        if(priority.equalsIgnoreCase("High")){
+            return CommonMethod.PRIORITY_INT_HIGH;
+        }else if(priority.equalsIgnoreCase("Medium")){
+            return CommonMethod.PRIORITY_INT_MEDIUM;
+        }else if(priority.equalsIgnoreCase("Low")){
+            return CommonMethod.PRIORITY_INT_LOW;
+        }
+        return 0;
     }
 }

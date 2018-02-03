@@ -2,8 +2,10 @@ package itg8.com.meetingapp.setting;
 
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
@@ -113,6 +115,7 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 Prefs.putBoolean(CommonMethod.SETTING_PREF_NOTIFICATION_TOGGLE, (Boolean) newValue);
                 setNotificationTogglePref(notificationTogglePref);
+                sendBroadcastForStickyToggle((Boolean) newValue);
                 Log.d("TAG", "Prefs News Values:" + newValue.toString());
                 return true;
             }
@@ -122,6 +125,12 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
 
 
 
+    }
+
+    private void sendBroadcastForStickyToggle(Boolean newValue) {
+        Intent intent=new Intent(CommonMethod.ACTION_START_STATIC_NOTIFICATION);
+        intent.putExtra(CommonMethod.EXTRA_STICKY_NOTIFICATION,newValue);
+        getActivity().sendBroadcast(intent);
     }
 
     private void setNotificationTogglePref(Preference notificationTogglePref) {
@@ -264,9 +273,10 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
         doNotDisturbPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                Prefs.putBoolean(CommonMethod.SETTING_PREF_MEETING_NOT_DISTURB, (Boolean) newValue);
+                Prefs.putBoolean(CommonMethod.PREF_MEETING_MODE, (Boolean) newValue);
                 Log.d("TAG", "Prefs News Values:" + newValue.toString());
                 setMeetingNotDisturbPref(doNotDisturbPref);
+                sendBroadcastForUpdation();
                 return true;
             }
         });
@@ -284,6 +294,11 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
 
     }
 
+    private void sendBroadcastForUpdation() {
+        Intent intent=new Intent(CommonMethod.ACTION_START_STATIC_NOTIFICATION);
+        getActivity().sendBroadcast(intent);
+    }
+
     private void setMeetingVibratePref(Preference vibrateMeetingPref) {
         if (Prefs.getBoolean(CommonMethod.SETTING_PREF_MEETING_VIBRATE, false)) {
             vibrateMeetingPref.setSummary("Uncheck For Vibration at Meeting Mode");
@@ -293,10 +308,10 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
     }
 
     private void setMeetingNotDisturbPref(Preference doNotDisturbPref) {
-        if (Prefs.getBoolean(CommonMethod.SETTING_PREF_MEETING_NOT_DISTURB, false)) {
-            doNotDisturbPref.setSummary("Switching For  Disturb At Meeting Mode");
+        if (Prefs.getBoolean(CommonMethod.PREF_MEETING_MODE, false)) {
+            doNotDisturbPref.setSummary("Turn Off Meeting Mode");
         } else {
-            doNotDisturbPref.setSummary("Switching For  Do Not Disturb At Meeting Mode");
+            doNotDisturbPref.setSummary("Turn On Meeting Mode");
         }
     }
 

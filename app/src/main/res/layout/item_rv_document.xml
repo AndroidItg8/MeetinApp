@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    android:layout_width="86dp"
+    android:layout_height="86dp"
+    android:layout_marginEnd="4dp"
+    android:layout_marginRight="4dp"
+    app:cardPreventCornerOverlap="true"
+
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<FrameLayout android:id="@+id/frmDoc1"
+    android:layout_width="86dp"
+    android:layout_height="86dp"
+    android:layout_marginEnd="4dp"
+    android:layout_marginRight="4dp"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ImageView
+        android:id="@+id/imgDoc1"
+        android:layout_width="86dp"
+        android:layout_height="86dp"
+        android:scaleType="center"
+        app:srcCompat="@drawable/ic_add_circle_primary_24dp"/>
+    <TextView
+        android:id="@+id/txtDoc1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="bottom|center"
+        android:text="hgfh"
+        android:lines="3"
+        android:ellipsize="start"
+        android:textColor="@color/colorWhite"
+        android:background="@drawable/bg_half_transparent"/>
+    <ImageView
+        android:id="@+id/img_cross"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        app:srcCompat="@drawable/ic_close_black_24dp"
+        android:layout_gravity="end"/>
+</FrameLayout>
+</android.support.v7.widget.CardView>

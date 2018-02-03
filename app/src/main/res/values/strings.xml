@@ -128,7 +128,7 @@
     <string name="notification_sound">Notification Ringtone</string>
     <string name="notification_vibrate">Notification Vibrate</string>
     <string name="reminder_priorities">Reminder Priorities</string>
-    <string name="pref_do_not_disturb">Meetings</string>
+    <string name="pref_do_not_disturb">MYPREF_MEETING_MODE</string>
     <string name="pref_do_not_vibrate">Vibrate</string>
     <string name="pref_meeting_sound">Sound</string>
     <string name="pref_notification_sound">Sounds</string>

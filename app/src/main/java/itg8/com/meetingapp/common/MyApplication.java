@@ -1,6 +1,7 @@
 package itg8.com.meetingapp.common;
 
 import android.app.Application;
+import android.content.Intent;
 
 /**
  * Created by swapnilmeshram on 31/01/18.
@@ -16,6 +17,11 @@ public class MyApplication extends Application {
         mInstance = this;
 //        ACRA.init(this);
         mInstance.initPreference();
+        Prefs.putBoolean(CommonMethod.SETTING_PREF_NOTIFICATION_TOGGLE,true);
+        Prefs.putInt(CommonMethod.PRIORITY_LOW,1);
+        Prefs.putInt(CommonMethod.PRIORITY_MEDIUM,2);
+        Prefs.putInt(CommonMethod.PRIORITY_HIGH,3);
+        sendBroadcastForUpdation();
     }
 
     private void initPreference() {
@@ -27,6 +33,9 @@ public class MyApplication extends Application {
                 .build();
     }
 
-
+    private void sendBroadcastForUpdation() {
+        Intent intent=new Intent(CommonMethod.ACTION_START_STATIC_NOTIFICATION);
+        sendBroadcast(intent);
+    }
 
 }
