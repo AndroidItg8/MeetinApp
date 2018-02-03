@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="itg8.com.meetingapp.import_meeting.AddMeetingNoteActivity"
+    tools:showIn="@layout/activity_add_meeting_note">
+
+    <TextView
+        android:id="@+id/lbl_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:gravity="start|left"
+        android:text="Add Note"
+        android:textColor="@color/colorGray"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:visibility="visible" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/view"
+        android:layout_alignLeft="@+id/lbl_title"
+        android:layout_alignStart="@+id/lbl_title"
+        android:layout_below="@+id/lbl_title"
+        android:layout_marginBottom="10dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:id="@+id/txt_note_value"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="start|left"
+            android:hint="Add Note"
+            android:scrollbars="vertical"
+            android:textColor="@color/colorGray"
+            android:textSize="16sp"
+            android:textStyle="normal"
+            android:visibility="visible" />
+
+        <RelativeLayout
+            android:id="@+id/rl_note"
+            android:visibility="visible"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/txt_note_frame"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/img_doc"
+                            android:layout_marginBottom="16dp"
+                            android:layout_marginTop="16dp"
+                            android:gravity="start|left"
+                            android:hint="Add Note"
+                            android:scrollbars="vertical"
+                            android:textColor="@color/colorGray"
+                            android:textSize="16sp"
+                            android:textStyle="normal"
+                            android:visibility="visible" />
+
+                        <ImageView
+                            android:id="@+id/img_doc"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:src="@drawable/bg_button_blue" />
+
+                        <TextView
+                            android:id="@+id/lbl_tag_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/txt_note_frame"
+                            android:layout_marginBottom="5dp"
+                            android:layout_marginEnd="02dp"
+                            android:layout_marginLeft="02dp"
+                            android:layout_marginRight="02dp"
+                            android:layout_marginStart="02dp"
+                            android:layout_marginTop="5dp"
+                            android:background="@drawable/bg_tag"
+                            android:padding="10dp"
+                            android:text="Daily Routine"
+                            android:textColor="@color/colorBlack"
+                            android:textSize="10sp"
+                            android:textStyle="normal" />
+
+
+                    </RelativeLayout>
+                </FrameLayout>
+
+
+            </ScrollView>
+
+        </RelativeLayout>
+
+    </FrameLayout>
+
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_above="@+id/ll_bottom"
+        android:visibility="visible"
+        android:background="@color/colorGrayLight" />
+
+
+    <LinearLayout
+        android:id="@+id/ll_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
+        <!--//        android:background="@android:drawable/dialog_holo_light_frame"-->
+
+
+        <ImageView
+            android:id="@+id/img_add"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:padding="10dp"
+            app:srcCompat="@drawable/ic_add_box_black_24dp" />
+
+        <TextView
+            android:id="@+id/lbl_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="11:29 Pm"
+            android:textColor="@color/colorGrayLight"
+            android:textSize="14sp"
+            android:textStyle="normal" />
+
+        <ImageView
+            android:id="@+id/img_share"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:padding="10dp"
+            app:srcCompat="@drawable/ic_add_box_black_24dp" />
+
+
+    </LinearLayout>
+
+
+</RelativeLayout>

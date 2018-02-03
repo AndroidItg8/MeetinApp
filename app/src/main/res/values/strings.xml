@@ -2,6 +2,7 @@
     <string name="app_name">MeetingApp</string>
     <string name="action_settings">Settings</string>
     <string name="action_save">Save</string>
+    <string name="action_reminder">Reminder</string>
     <string name="title_activity_home">HomeActivity</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -205,6 +206,20 @@
     <!--<string name="show_message">Click on PASTE button below to import meeting details..\n Click on PASTE button below to import meeting details..\n Click on PASTE button below to import meeting details..</string>-->
     <string name="title_activity_import_message_detail">ImportMessageDetailActivity</string>
     <string name="title_activity_scrolling">ScrollingActivity</string>
+    <string name="title_activity_add_meeting_note">AddMeetingNoteActivity</string>
+
+    <integer-array name="androidcolors">
+        <item>@color/colorBlue</item>
+        <item>@color/colorYellow</item>
+        <item>@color/colorLight</item>
+        <item>@color/colorPink</item>
+        <item>@color/colorFire</item>
+        <item>@color/colorHospital</item>
+        <item>@color/colorAmbulance</item>
+        <item>@color/colorFacebook</item>
+        <item>@color/colorRed</item>
+        <item>@color/colorGoogle</item>
+    </integer-array>
 
 
 </resources>

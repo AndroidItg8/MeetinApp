@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/recyclerView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="itg8.com.meetingapp.import_meeting.ImportMessageDetailActivity"
     tools:showIn="@layout/activity_import_message_detail">
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
 
 
     <TextView
@@ -24,12 +20,13 @@
         android:layout_marginTop="10dp"
         android:text="DATE:"
         android:textColor="@color/colorGray"
-        android:textSize="12sp" />
+        android:textSize="10sp" />
 
     <TextView
         android:id="@+id/lbl_date_value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/lbl_date"
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="5dp"
         android:layout_marginStart="5dp"
@@ -50,12 +47,13 @@
         android:layout_marginStart="10dp"
         android:text="TIME:"
         android:textColor="@color/colorGray"
-        android:textSize="12sp" />
+        android:textSize="10sp" />
 
     <TextView
         android:id="@+id/lbl_time_value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/lbl_time"
         android:layout_below="@+id/lbl_date"
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="5dp"
@@ -77,7 +75,8 @@
         android:layout_marginRight="10dp"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
-        android:src="@drawable/ic_mode_edit_black_24dp" />
+
+        app:srcCompat="@drawable/ic_mode_edit_black_24dp" />
 
     <View
         android:id="@+id/view"
@@ -87,193 +86,188 @@
         android:layout_marginBottom="10dp"
         android:background="@color/colorGrayLight" />
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/ll_button"
+        android:layout_below="@+id/view">
 
-    <TextView
-        android:id="@+id/lbl_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/view"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="16dp"
-        android:fontFamily="sans-serif"
-        android:text="Title"
-        android:textColor="@color/colorBlack"
-        android:textSize="20sp"
-        android:textStyle="normal" />
-
-    <TextView
-        android:id="@+id/lbl_priority"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/lbl_title"
-        android:layout_alignStart="@+id/lbl_title"
-        android:layout_below="@+id/lbl_title"
-        android:layout_marginEnd="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        android:text="Priority"
-        android:textColor="@color/colorPrimary"
-        android:textSize="16sp" />
-
-    <TextView
-        android:id="@+id/lbl_priority_value"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/lbl_priority"
-        android:layout_alignStart="@+id/lbl_priority"
-        android:layout_below="@+id/lbl_priority"
-        android:layout_marginEnd="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="5dp"
-        android:text="HIGH "
-        android:textColor="@color/colorGreen"
-        android:textSize="18sp" />
-
-    <TextView
-        android:id="@+id/lbl_place"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/lbl_priority"
-        android:layout_alignStart="@+id/lbl_priority"
-        android:layout_below="@+id/lbl_priority_value"
-        android:layout_marginTop="10dp"
-        android:text="Place"
-        android:textColor="@color/colorPrimary"
-        android:textSize="16sp" />
-
-    <TextView
-        android:id="@+id/lbl_place_value"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/lbl_place"
-        android:layout_alignStart="@+id/lbl_place"
-        android:layout_below="@+id/lbl_place"
-        android:layout_marginEnd="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="5dp"
-        android:text="ItechGalaxy Near Prasad Nursing Home IT Park Road Nagpur.  "
-        android:textColor="@color/colorBlack"
-        android:textSize="18sp" />
-
-    <TextView
-        android:id="@+id/lbl_participeint"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/lbl_title"
-        android:layout_alignStart="@+id/lbl_title"
-        android:layout_below="@+id/lbl_place_value"
-        android:layout_marginEnd="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        android:text="Participant"
-        android:textColor="@color/colorPrimary"
-        android:textSize="16sp" />
-    <TextView
-        android:id="@+id/lbl_more_participeint"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/lbl_title"
-        android:layout_alignStart="@+id/lbl_title"
-        android:layout_below="@+id/lbl_participeint"
-        android:layout_marginEnd="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginStart="10dp"
-        android:text="Add  Participant"
-        android:textColor="@color/colorGray"
-        android:textSize="14sp" />
-
-    <TextView
-        android:id="@+id/lbl_tag_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/lbl_participeint"
-        android:layout_alignStart="@+id/lbl_participeint"
-        android:layout_below="@+id/lbl_more_participeint"
-        android:layout_marginEnd="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="5dp"
-        android:background="@drawable/bg_tag"
-        android:text="Ayesha"
-        android:textColor="@color/colorWhite"
-        android:textSize="16sp" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
 
+            <TextView
+                android:id="@+id/lbl_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/roboto_light"
+                android:text="Myself"
+                android:textColor="@color/colorBlack"
+                android:textSize="25sp"
+                android:textStyle="normal" />
 
-    <TextView
-        android:id="@+id/lbl_Document"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/lbl_title"
-        android:layout_alignStart="@+id/lbl_title"
-        android:layout_below="@+id/lbl_tag_name"
-        android:layout_marginEnd="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        android:text="Document"
-        android:textColor="@color/colorPrimary"
-        android:textSize="16sp" />
+            <TextView
+                android:id="@+id/lbl_priority"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/lbl_title"
+                android:layout_alignStart="@+id/lbl_title"
+                android:layout_below="@+id/lbl_title"
+                android:layout_marginEnd="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="24dp"
+                android:fontFamily="@font/roboto"
+                android:text="Priority"
+                android:textAllCaps="true"
+                android:textColor="@color/colorPrimary"
+                android:textSize="@dimen/txt_meeting_detail_heading" />
 
-        <TextView
-            android:id="@+id/lbl_more_document"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/lbl_title"
-            android:layout_alignStart="@+id/lbl_title"
-            android:layout_below="@+id/lbl_Document"
-            android:layout_marginEnd="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginStart="10dp"
-            android:text="Add  Document"
-            android:textColor="@color/colorGray"
-            android:textSize="14sp" />
+            <TextView
+                android:id="@+id/lbl_priority_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/lbl_priority"
+                android:layout_alignStart="@+id/lbl_priority"
+                android:layout_below="@+id/lbl_priority"
+                android:layout_marginEnd="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="3dp"
+                android:drawableLeft="@drawable/ic_priority_high"
+                android:drawablePadding="5dp"
+                android:drawableStart="@drawable/ic_priority_high"
+                android:text="HIGH"
+                android:textColor="@color/colorBlack"
+                android:textSize="@dimen/txt_meeting_detail_value" />
 
-        <TextView
-        android:id="@+id/lbl_Comment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/lbl_title"
-        android:layout_alignStart="@+id/lbl_title"
-        android:layout_below="@+id/lbl_more_document"
-        android:layout_marginEnd="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        android:text="Comments"
-        android:textColor="@color/colorPrimary"
-        android:textSize="16sp" />
+            <TextView
+                android:id="@+id/lbl_place"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/lbl_priority"
+                android:layout_alignStart="@+id/lbl_priority"
+                android:layout_below="@+id/lbl_priority_value"
+                android:layout_marginTop="24dp"
+                android:fontFamily="@font/roboto"
+                android:text="Place"
+                android:textAllCaps="true"
+                android:textColor="@color/colorPrimary"
+                android:textSize="@dimen/txt_meeting_detail_heading" />
 
-        <TextView
-            android:id="@+id/lbl_add_comment"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/lbl_title"
-            android:layout_alignStart="@+id/lbl_title"
-            android:layout_below="@+id/lbl_Comment"
-            android:layout_marginEnd="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginStart="10dp"
+            <TextView
+                android:id="@+id/lbl_place_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/lbl_place"
+                android:layout_alignStart="@+id/lbl_place"
+                android:layout_below="@+id/lbl_place"
+                android:layout_marginEnd="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="3dp"
+                android:text="ItechGalaxy Near Prasad Nursing Home IT Park Road Nagpur.  "
+                android:textColor="@color/colorBlack"
+                android:textSize="@dimen/txt_meeting_detail_value" />
 
-            android:text="Add Comments"
-            android:textColor="@color/colorGray"
-            android:textSize="14sp" />
+            <TextView
+                android:id="@+id/lbl_participeint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/lbl_title"
+                android:layout_alignStart="@+id/lbl_title"
+                android:layout_below="@+id/lbl_place_value"
+                android:layout_marginEnd="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="24dp"
+                android:text="Participant"
+                android:fontFamily="@font/roboto"
+                android:textAllCaps="true"
+                android:textColor="@color/colorPrimary"
+                android:textSize="@dimen/txt_meeting_detail_heading" />
 
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recyclerView_participant"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/lbl_title"
+                android:layout_alignStart="@+id/lbl_title"
+                android:layout_below="@+id/lbl_participeint"
+                android:minHeight="24dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="03dp" />
 
+            <TextView
+                android:id="@+id/lbl_no_participant"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/lbl_title"
+                android:layout_alignStart="@+id/lbl_title"
+                android:layout_below="@+id/lbl_participeint"
+                android:text="No Participant Added"
+                android:layout_marginEnd="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="03dp"
+                android:textColor="@color/colorBlack"
+                android:textSize="@dimen/txt_meeting_detail_value"/>
 
+            <TextView
+                android:id="@+id/lbl_Document"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/lbl_title"
+                android:layout_alignStart="@+id/lbl_title"
+                android:layout_below="@+id/recyclerView_participant"
+                android:layout_marginEnd="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="24dp"
+                android:text="Document Details"
+                android:textAllCaps="true"
+                android:textColor="@color/colorPrimary"
+                android:textSize="@dimen/txt_meeting_detail_heading" />
 
+            <TextView
+                android:id="@+id/lbl_more_document"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/lbl_title"
+                android:layout_alignStart="@+id/lbl_title"
+                android:layout_below="@+id/lbl_Document"
+                android:layout_marginEnd="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="3dp"
+                android:layout_marginBottom="16dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/bg_button_document"
+                android:paddingTop="04dp"
+                android:elevation="4dp"
+                android:paddingBottom="04dp"
+                android:paddingLeft="08dp"
+                android:paddingStart="08dp"
+                android:paddingEnd="08dp"
+                android:paddingRight="08dp"
+                android:text="2 no of document"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/txt_meeting_detail_heading" />
+
+        </RelativeLayout>
+    </ScrollView>
 
     <View
         android:layout_width="match_parent"
@@ -314,7 +308,7 @@
 
 
 
-    </RelativeLayout>
-</ScrollView>
+
+</RelativeLayout>
 
 

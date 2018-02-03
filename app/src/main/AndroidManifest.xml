@@ -36,6 +36,7 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_place_key" />
+
         <activity
             android:name=".meeting.MeetingActivity"
             android:label="@string/title_activity_meeting"
@@ -81,9 +82,7 @@
         <activity
             android:name=".meeting.NearByLocationActivity"
             android:label="@string/title_activity_near_by_location"
-            android:theme="@style/AppTheme.NoActionBar"/>
-
-
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".setting.SettingActivity"
             android:label="@string/title_activity_setting"
@@ -99,6 +98,10 @@
         <activity
             android:name=".test.ScrollingActivity"
             android:label="@string/title_activity_scrolling"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".import_meeting.AddMeetingNoteActivity"
+            android:label="@string/title_activity_add_meeting_note"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 

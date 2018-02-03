@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="itg8.com.meetingapp.import_meeting.ImportMeetingActivity"
     tools:showIn="@layout/activity_import_meeting">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
     <RelativeLayout
         android:id="@+id/rl_empty"
@@ -34,8 +38,7 @@
             android:fontFamily="sans-serif"
             android:gravity="center"
             android:text="Click PASTE button to import meeting details...
-"
-            android:textColor="@color/colorGray"
+"           android:textColor="@color/colorGray"
             android:textSize="20sp"
             android:textStyle="normal" />
 
@@ -139,8 +142,9 @@
 
 
     </RelativeLayout>
+    </FrameLayout>
 
-</FrameLayout>
+</ScrollView>
 
 
 

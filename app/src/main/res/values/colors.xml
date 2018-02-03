@@ -17,4 +17,19 @@
     <color name="transparentBlackListes">#12000000</color>
     <color name="transparentBlackLists">#5a000000</color>
     <color name="transparentLight">#0d131313</color>
+
+    <color name="colorFacebook">#385C8E</color>
+    <color name="colorGoogle">#631109</color>
+    <color name="colorRed">#5563120a</color>
+    <color name="bg_edittext_stroke_color">#c4c1c1</color>
+    <color name="transparentBlackHalf">#5b000000</color>
+    <color name="colorAmbulance">#A61100</color>
+    <color name="colorHospital">#7CB342</color>
+    <color name="colorFire">#C1562E</color>
+    <color name="colorYellow">#BDB76A</color>
+    <color name="colorPolice">#FFDF4B14</color>
+    <color name="colorBlue">#6594f9</color>
+    <color name="colorLight">#e28737</color>
+    <color name="colorPink">#680e47</color>
+
 </resources>

@@ -251,24 +251,11 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
         soundMeetingPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-//                SecurityFragment fragment = SecurityFragment.newInstance("", "");
-//                android.support.v4.app.FragmentTransaction ft = getFragmentManager().beginTransaction();
-//                ft.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
-//                ft.replace(R.id.frame_container, fragment, fragment.getClass().getSimpleName());
-//                ft.addToBackStack(fragment.getClass().getSimpleName());
-//                ft.commit();
+
                 openPrefDialogue(singleChoiceItems, title, soundMeetingPref);
                 return false;
             }
         });
-//        meetingPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-//            @Override
-//            public boolean onPreferenceChange(Preference preference, Object newValue) {
-//                Prefs.putBoolean(CommonMethod.SETTING_PREF_MEETING, (Boolean) newValue);
-//                Log.d("TAG","Prefs News Values:"+newValue.toString());
-//                return true;
-//            }
-//        });
 
         doNotDisturbPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override

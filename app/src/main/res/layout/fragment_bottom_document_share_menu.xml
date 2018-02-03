@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="200dp">
+
+    <ImageView
+        android:id="@+id/img_delete"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        app:srcCompat="@drawable/ic_delete_forever_black_24dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_toEndOf="@+id/img_delete"
+        android:layout_toRightOf="@+id/img_delete"
+        android:textStyle="normal"
+        android:textSize="14sp"
+        android:text="Delete"
+        android:textColor="@color/colorGray" />
+    <ImageView
+        android:id="@+id/img_copy"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_below="@+id/img_delete"
+        app:srcCompat="@drawable/ic_content_copy_black_24dp" />
+
+    <TextView
+        android:id="@+id/lbl_copy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_below="@+id/img_delete"
+        android:layout_toEndOf="@+id/img_delete"
+        android:layout_toRightOf="@+id/img_delete"
+        android:textStyle="normal"
+        android:textSize="14sp"
+        android:text="Choose Image"
+        android:textColor="@color/colorGray" />
+    <ImageView
+        android:id="@+id/img_send"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_below="@+id/img_copy"
+        app:srcCompat="@drawable/ic_send_black_24dp" />
+
+    <TextView
+        android:id="@+id/lbl_attach"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_below="@+id/lbl_copy"
+        android:layout_toEndOf="@+id/img_send"
+        android:layout_toRightOf="@+id/img_send"
+        android:textStyle="normal"
+        android:textSize="14sp"
+        android:text="Choose Image"
+        android:textColor="@color/colorGray" />
+    <ImageView
+        android:id="@+id/img_label"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_below="@+id/lbl_attach"
+        app:srcCompat="@drawable/ic_label_black_24dp" />
+
+    <TextView
+        android:id="@+id/lbl_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_below="@+id/lbl_attach"
+        android:layout_toEndOf="@+id/img_label"
+        android:layout_toRightOf="@+id/img_label"
+        android:textStyle="normal"
+        android:textSize="14sp"
+        android:text="Label"
+        android:textColor="@color/colorGray" />
+
+
+
+
+
+</RelativeLayout>
