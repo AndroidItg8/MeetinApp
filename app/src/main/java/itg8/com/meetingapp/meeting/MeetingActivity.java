@@ -3,18 +3,22 @@ package itg8.com.meetingapp.meeting;
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.FileProvider;
+import android.support.v4.provider.DocumentFile;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -27,6 +31,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -47,8 +52,13 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -86,6 +96,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private static final int RC_CONCTACT = 13;
     private static final int REQUEST_TAKE_PHOTO = 30;
     private static final int READ_REQUEST_CODE = 34;
+    private static final String MIME_TYPE_IMAGE = "image/*";
+    private static final String MIME_TYPE_PDF = "application/pdf";
+    private static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.toolbar_layout)
@@ -495,12 +508,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             }
         } else if (requestCode == REQUEST_TAKE_PHOTO) {
             if (resultCode == RESULT_OK) {
-                TblDocument document = new TblDocument();
-                document.setFileActPath(mCurrentPhotoPath);
-                document.setFileName(new File(mCurrentPhotoPath).getName());
-                document.setMeeting(meeting);
-                documents.add(document);
-                adapter.notifyDataSetChanged();
+                createDocumentFile(mCurrentPhotoPath);
             }
         }else if(requestCode== READ_REQUEST_CODE){
             if(resultCode==RESULT_OK){
@@ -510,13 +518,147 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                     // provided to this method as a parameter.
                     // Pull that URI using resultData.getData().
                     Uri uri = null;
+
                     if (data != null) {
                         uri = data.getData();
+                        assert uri != null;
                         Log.i(TAG, "Uri: " + uri.toString());
+                        String selectedMimeType=getMimetypeFromUri(uri);
+                        Log.d(TAG,"SelectedMimeType:"+selectedMimeType);
+                        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                        String newFileName=timeStamp+getFilenameFromMimetype(selectedMimeType);
 //                        showImage(uri);
+//                        DocumentFile file;
+//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+//                            if (DocumentsContract.isDocumentUri(this, uri)) {
+//                                file = DocumentFile.fromSingleUri(this, uri);
+//                            } else {
+//                                file = DocumentFile.fromTreeUri(this, uri);
+//                            }
+//                        }
+//                        file.get
+                        InputStream in = null;
+                        try {
+                            /** Here we keep it all in a try-catch in case, so we don't
+                             * force-close if something doesn't go to plan.
+                             *
+                             * This finds the location of the device's local storage (don't
+                             * assume that this will be /sdcard/!), and appends a hard-
+                             *  coded string with a new subfolder, and gives the file that
+                             *  we are going to create a name.
+                             *
+                             *  Note: You'll want to replace 'gdrive_image.jpg' with the
+                             *  filename that you fetch from Drive if you want to preserve
+                             *  the filename. That's out of the scope of this post. */
+
+
+
+
+                            String output_path = Environment.getExternalStorageDirectory()
+                                    + "/MeetingApp/"+newFileName;
+
+                            // Create the file in the location that we just defined.
+                            File oFile = new File(output_path);
+
+                            /**   Create the file if it doesn't exist; be aware that if it
+                             * does, we'll be overwriting it further down. */
+                            if (!oFile.exists()) {
+                                /**   Note that this isn't just mkdirs; that would make our
+                                 * file into a directory! The 'getParentFile()' bit ensures
+                                 * that the tail end remains a File. */
+                                oFile.getParentFile().mkdirs();
+                                oFile.createNewFile();
+                            }
+
+                            /**   The 'getActivity()' bit assumes that this is being run from
+                             * within a Fragment, which it is of course. You wouldn't be
+                             * working outside of current Android good practice would
+                             * you?... */
+                            InputStream iStream =getContentResolver()
+                                    .openInputStream(uri);
+
+                            /**   Create a byte array to hold the content that exists at the
+                             * Uri we're interested in; this preserves all of the data that
+                             * exists within the file, including any JPEG meta data. If
+                             * you punt this straight to a Bitmap object, you'll lose all
+                             * of that.
+                             *
+                             * Note: This is reallt the main point of this entire post, as
+                             * you're getting ALL OF THE DATA from the source file, as
+                             * is. */
+                            byte[] inputData = getBytes(iStream);
+
+                            writeFile(inputData,output_path);
+                            createDocumentFile(oFile.getAbsolutePath());
+
+
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
                     }
             }
         }
+    }
+
+    private void createDocumentFile(String mCurrentPhotoPath) {
+        TblDocument document = new TblDocument();
+        document.setFileActPath(mCurrentPhotoPath);
+        document.setFileName(new File(mCurrentPhotoPath).getName());
+        document.setMeeting(meeting);
+        documents.add(document);
+        adapter.notifyDataSetChanged();
+    }
+
+    /**   This function rewrites the byte array to the provided filename.
+     *
+     * Note: A String, NOT a file object, though you could easily tweak it to do
+     * that. */
+    public void writeFile(byte[] data, String fileName) throws IOException{
+        FileOutputStream out = new FileOutputStream(fileName);
+        out.write(data);
+        out.close();
+    }
+
+    /** This function puts everything in the provided InputStream into a byte array
+     * and returns it to the calling function. */
+    public byte[] getBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+        int bufferSize = 1024;
+        byte[] buffer = new byte[bufferSize];
+
+        int len = 0;
+        while ((len = inputStream.read(buffer)) != -1) {
+            byteBuffer.write(buffer, 0, len);
+        }
+        return byteBuffer.toByteArray();
+    }
+
+    private String getFilenameFromMimetype(String mimeType) {
+        if(mimeType.equalsIgnoreCase(MIME_TYPE_PDF)){
+            return ".pdf";
+        }else if(mimeType.equalsIgnoreCase(MIME_TYPE_IMAGE)){
+            return ".jpg";
+        }else if(mimeType.equalsIgnoreCase(MIME_TYPE_TEXT_PLAIN)){
+            return ".txt";
+        }
+        return null;
+    }
+
+    private String getMimetypeFromUri(Uri uri) {
+        String mimeType = null;
+        if (uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
+            ContentResolver cr = getContentResolver();
+            mimeType = cr.getType(uri);
+        } else {
+            String fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri
+                    .toString());
+            mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                    fileExtension.toLowerCase());
+        }
+        return mimeType;
     }
 
     private void showPlaceCross() {
@@ -816,7 +958,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         // To search for all documents available via installed storage providers,
         // it would be "*/*".
         intent.setType("*/*");
-        intent.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/*","application/pdf","text/plain"});
+        intent.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{MIME_TYPE_IMAGE,MIME_TYPE_PDF,MIME_TYPE_TEXT_PLAIN});
         startActivityForResult(intent, READ_REQUEST_CODE);
     }
 
