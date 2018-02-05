@@ -1,19 +1,18 @@
 package itg8.com.meetingapp.service;
 
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.common.Prefs;
+import itg8.com.meetingapp.document_meeting.DocumentMeetingActivity;
 
 public class NotificationBroadcast extends BroadcastReceiver {
 
@@ -49,6 +48,13 @@ public class NotificationBroadcast extends BroadcastReceiver {
         notificationMeetingIntent.putExtra(CommonMethod.NOTIFICATION_CHANGE_MEETING,isInMeeting);
         PendingIntent notificationMeetingPendingIntent=PendingIntent.getBroadcast(context,0,notificationMeetingIntent,0);
         staticNotificationView.setOnClickPendingIntent(R.id.img_meeting,notificationMeetingPendingIntent);
+
+
+        Intent notificationWalletIntent= new Intent(context, DocumentMeetingActivity.class);
+        Log.d(TAG,"IsInMeeting: "+isInMeeting);
+//        notificationMeetingIntent.putExtra(CommonMethod.NOTIFICATION_CHANGE_MEETING,isInMeeting);
+        PendingIntent notificationWalletPendingIntent=PendingIntent.getActivity(context,0,notificationWalletIntent,0);
+        staticNotificationView.setOnClickPendingIntent(R.id.img_wallet,notificationWalletPendingIntent);
 
 
         NotificationCompat.Builder builder= null;

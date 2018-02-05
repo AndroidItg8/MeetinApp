@@ -30,6 +30,14 @@ public class CommonMethod {
     public static final String EXTRA_MEETING_STOPPED = "meetingHasBeenStopped";
     public static final String ACTION_MEETING_NOTIFICATION_STOP = "meetingNotificationStopped";
     public static final String EXTRA_STICKY_NOTIFICATION = "stickyNotificationChangeFromSetting";
+    public  static final String EXT_PDF ="pdf";
+    public  static final String EXT_TXT ="txt";
+    public  static final String EXT_JPG ="jpg";
+    public  static final String EXT_PNG ="png";
+    public  static final String EXT_PPT ="ppt";
+    public  static final String EXT_EXL ="xls";
+    public  static final String EXT_DOC ="doc";
+    public  static final String EXT_ZIP ="zip";
 
     public static long getDifferenceFromPriority(int priority, long timeDifference) {
         int priorityDiff=getPriorityDifferenceFromSetting(priority);

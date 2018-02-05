@@ -18,6 +18,7 @@ public class TblDocument implements Parcelable {
     public static final String FIELD_ACT_PATH="file_act_path";
     public static final String FIELD_CACHE_PATH="file_cache_path";
     public static final String FIELD_FILE_NAME="file_name";
+    public static final String FIELD_FILE_EXT="file_ext";
 
     @DatabaseField(columnName = FIELD_ID,generatedId = true)
     private long pkId;
@@ -33,6 +34,9 @@ public class TblDocument implements Parcelable {
 
     @DatabaseField(columnName = FIELD_FILE_NAME)
     private String fileName;
+
+    @DatabaseField(columnName = FIELD_FILE_EXT)
+    private String fileExt;
 
 
     public long getPkId() {
@@ -112,4 +116,12 @@ public class TblDocument implements Parcelable {
             return new TblDocument[size];
         }
     };
+
+    public String getFileExt() {
+        return fileExt;
+    }
+
+    public void setFileExt(String fileExt) {
+        this.fileExt = fileExt;
+    }
 }

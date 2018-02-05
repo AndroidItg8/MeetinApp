@@ -1,11 +1,9 @@
 package itg8.com.meetingapp.import_meeting;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -17,11 +15,10 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import java.util.List;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.document_meeting.DocumentMeetingActivity;
 
 public class ImportMessageDetailActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -107,7 +104,8 @@ public class ImportMessageDetailActivity extends AppCompatActivity implements Vi
         switch (view.getId()) {
 
             case R.id.lbl_more_document:
-                openBottomSheetAddDocument();
+               // openBottomSheetAddDocument();
+                startActivity(new Intent(getApplicationContext(), DocumentMeetingActivity.class));
                 break;
         }
     }

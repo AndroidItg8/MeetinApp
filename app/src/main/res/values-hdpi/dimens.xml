@@ -5,6 +5,8 @@
     <dimen name="highlight_textSize">13sp</dimen>
     <dimen name="margin_ten">10dp</dimen>
     <dimen name="normal_text_size">10sp</dimen>
+    <dimen name="small_text_size">10sp</dimen>
+
     <dimen name="import_meeting_text">15sp</dimen>
     <dimen name="txt_meeting_detail_heading">12sp</dimen>
     <dimen name="txt_meeting_detail_value">14sp</dimen>

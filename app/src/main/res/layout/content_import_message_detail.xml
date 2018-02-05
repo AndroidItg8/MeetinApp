@@ -256,7 +256,6 @@
                 android:layout_marginStart="10dp"
                 android:background="@drawable/bg_button_document"
                 android:paddingTop="04dp"
-                android:elevation="4dp"
                 android:paddingBottom="04dp"
                 android:paddingLeft="08dp"
                 android:paddingStart="08dp"

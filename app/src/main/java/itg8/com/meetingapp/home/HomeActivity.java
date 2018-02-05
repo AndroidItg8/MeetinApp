@@ -24,6 +24,7 @@ import itg8.com.meetingapp.import_meeting.ImportMeetingActivity;
 import itg8.com.meetingapp.meeting.MeetingActivity;
 import itg8.com.meetingapp.service.NotificationService;
 import itg8.com.meetingapp.setting.SettingActivity;
+import itg8.com.meetingapp.wallet_document.WalletActivity;
 
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -125,6 +126,9 @@ public class HomeActivity extends AppCompatActivity
 
                 case R.id.nav_camera:
                 startActivity(new Intent(this, ImportMeetingActivity.class));
+                break;
+                case R.id.nav_wallet:
+                startActivity(new Intent(this, WalletActivity.class));
                 break;
 
         }

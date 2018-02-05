@@ -20,9 +20,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
 
-/**
- * Created by Android itg 8 on 2/2/2018.
- */
 
 public class ParticipantTagAdapter extends RecyclerView.Adapter<ParticipantTagAdapter.ViewHolder> {
 
