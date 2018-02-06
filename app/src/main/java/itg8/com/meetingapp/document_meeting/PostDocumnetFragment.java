@@ -119,7 +119,6 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
         return list;
     }
 
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();

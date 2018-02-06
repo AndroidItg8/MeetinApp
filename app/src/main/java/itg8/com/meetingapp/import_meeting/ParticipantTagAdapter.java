@@ -24,13 +24,9 @@ import itg8.com.meetingapp.db.TblContact;
 
 public class ParticipantTagAdapter extends RecyclerView.Adapter<ParticipantTagAdapter.ViewHolder> {
 
-    private Context applicationContext;
-    private int[] listOfColor;
     private List<TblContact> contactList;
 
-    public ParticipantTagAdapter(Context applicationContext, int[] listOfColor, List<TblContact> contactList) {
-        this.applicationContext = applicationContext;
-        this.listOfColor = listOfColor;
+    public ParticipantTagAdapter(List<TblContact> contactList) {
         this.contactList = contactList;
     }
 
@@ -42,29 +38,30 @@ public class ParticipantTagAdapter extends RecyclerView.Adapter<ParticipantTagAd
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        if (holder.txtParticipantName != null) {
-            int randomAndroidColor = new Random().nextInt(R.array.androidcolors);
-            setTextViewDrawableColor(holder.txtParticipantName, randomAndroidColor);
-        }
+            holder.setTextViewDrawableColor();
+            holder.txtParticipantName.setText(contactList.get(position).getName());
     }
 
     @Override
     public int getItemCount() {
-        return 10;
+        return contactList.size();
     }
 
-    private void setTextViewDrawableColor(TextView textView, int color) {
-        textView.getBackground().setColorFilter(color, PorterDuff.Mode.LIGHTEN);
-
-    }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.txt_participant_name)
         TextView txtParticipantName;
+        int color;
 
         public ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
+        }
+
+        public void setTextViewDrawableColor() {
+            color = new Random().nextInt(R.array.androidcolors);
+            txtParticipantName.getBackground().setColorFilter(color, PorterDuff.Mode.LIGHTEN);
+
         }
     }
 }

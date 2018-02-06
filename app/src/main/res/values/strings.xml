@@ -223,6 +223,11 @@
     </integer-array>
     <string name="title_activity_wallet_meeting">WalletMeetingActivity</string>
     <string name="title_activity_wallet">WalletActivity</string>
+    <string name="add_friends">Add Participent</string>
+    <string name="ok">Ok</string>
+    <string name="friend">Person</string>
+    <string name="friends">People</string>
+    <string name="add">Add</string>
 
 
 </resources>

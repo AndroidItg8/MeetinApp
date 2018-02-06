@@ -522,10 +522,10 @@
                         android:id="@+id/img_phone_book"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:layout_above="@+id/recyclerView"
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
                         android:paddingTop="4dp"
+                        android:scaleType="center"
                         app:srcCompat="@drawable/ic_contacts_black_24dp" />
 
 

@@ -22,6 +22,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.Spanned;
@@ -73,6 +74,7 @@ import itg8.com.meetingapp.db.TblContact;
 import itg8.com.meetingapp.db.TblDocument;
 import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.import_meeting.ParticipantTagAdapter;
+import itg8.com.meetingapp.meeting.model.Contact;
 import itg8.com.meetingapp.meeting.mvp.MeetingMVP;
 import itg8.com.meetingapp.meeting.mvp.MeetingPresenterImp;
 import pub.devrel.easypermissions.AfterPermissionGranted;
@@ -177,7 +179,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     RecyclerView rvDocuments;
     @BindView(R.id.rl_participant)
     RelativeLayout rlParticipant;
-    TblContact contact = new TblContact();
+    TblContact contact;
     private String[] permissions;
     private boolean canAccessCamera;
     private boolean canAccessLocation;
@@ -366,14 +368,22 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 showDialogConatctBox();
                 break;
             case R.id.img_phone_book:
-                openPhoneBook();
+                openPhoneBook2();
                 break;
         }
     }
 
+    private void openPhoneBook2() {
+        if(canPhoneState){
+            startActivityForResult(new Intent(this,MultipleContactPickerActivity.class),RC_PHONE_BOOK);
+        }else {
+            checkContactPerm();
+        }
+    }
+
     private void openPhoneBook() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
+        Intent intent = new Intent(Intent.ACTION_PICK,ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+//        intent.setType();
         startActivityForResult(intent, RC_PHONE_BOOK);
 
     }
@@ -406,6 +416,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (!TextUtils.isEmpty(lblDocumentNote.getText())) {
+
                     contact.setName(lblDocumentNote.getText().toString().trim());
                     contact.setNumber("NOT AVAILABLE");
                     contactList.add(contact);
@@ -670,10 +681,28 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
                 }
             }
-        }
+        }else if (requestCode == RC_PHONE_BOOK) {
+//            getContactDetail(resultCode, data);
+            if (resultCode == RESULT_OK) {
 
-        if (requestCode == RC_PHONE_BOOK) {
-            getContactDetail(resultCode, data);
+                ArrayList<Contact> contacts = new ArrayList<Contact>();
+                contacts = data.getParcelableArrayListExtra("contacts");
+                int itemCountOld=contactList.size();
+                for (Contact c: contacts){
+                    Log.d("Selected contact = ", c.getEmail());
+                    contact = new TblContact();
+                    contact.setName(c.getName());
+                    contact.setNumber(c.getNumber());
+                    contactList.add(contact);
+//                    adapterContact.notifyItemInserted(contactList.size()-1);
+                }
+
+                adapterContact.notifyItemRangeInserted(itemCountOld,contactList.size());
+                recyclerView.invalidate();
+                //data.
+                // A contact was picked.  Here we will just display it
+                // to the user.
+            }
         }
 
 
@@ -697,10 +726,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 phoneNo = cursor.getString(phoneIndex);
                 name = cursor.getString(nameIndex);
                 // Set the value to the textviews
-                contact.setName(name);
-                contact.setNumber(phoneNo);
-                contactList.add(contact);
-                adapter.notifyDataSetChanged();
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -712,10 +738,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     public void setContacRecyclerView() {
-        int[] listOfColor = getResources().getIntArray(R.array.androidcolors);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false));
+        StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(3, LinearLayoutManager.HORIZONTAL);
 
-        adapterContact = new ParticipantTagAdapter(getApplicationContext(), listOfColor, contactList);
+        recyclerView.setLayoutManager(staggeredGridLayoutManager);
+
+        adapterContact = new ParticipantTagAdapter(contactList);
         recyclerView.setAdapter(adapterContact);
     }
 

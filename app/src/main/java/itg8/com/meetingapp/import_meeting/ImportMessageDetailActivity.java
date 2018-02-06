@@ -148,13 +148,14 @@ public class ImportMessageDetailActivity extends AppCompatActivity implements Vi
     }
 
     private void setRecyclerview(RecyclerView recyclerView) {
+
         recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false));
 //        RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL);
 //        recyclerView.addItemDecoration(itemDecoration);
         int[] listOfColor = getResources().getIntArray(R.array.androidcolors);
 
         List<TblContact> contactList = new ArrayList<>();
-        recyclerView.setAdapter(new ParticipantTagAdapter(getApplicationContext(), listOfColor, contactList));
+        recyclerView.setAdapter(new ParticipantTagAdapter(contactList));
     }
 
     private void openBottomSheetAddComment() {
