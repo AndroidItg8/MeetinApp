@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:textSize="@dimen/txt_meeting_detail_value"
+    android:textSize="@dimen/small_text_size"
     android:layout_marginTop="08dp"
     android:layout_marginBottom="08dp"
     android:layout_marginStart="04dp"
@@ -14,6 +15,6 @@
     android:textStyle="normal"
     android:padding="8dp"
     android:id="@+id/txt_participant_name"
-    android:textColor="@color/colorBlack"
+    android:textColor="@color/colorWhite"
     android:background="@drawable/bg_participant">
 </TextView>

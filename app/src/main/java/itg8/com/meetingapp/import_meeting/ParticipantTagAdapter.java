@@ -1,35 +1,37 @@
 package itg8.com.meetingapp.import_meeting;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.List;
 import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.db.TblContact;
 
 
 public class ParticipantTagAdapter extends RecyclerView.Adapter<ParticipantTagAdapter.ViewHolder> {
 
     private Context applicationContext;
     private int[] listOfColor;
+    private List<TblContact> contactList;
 
-    public ParticipantTagAdapter(Context applicationContext, int[] listOfColor) {
-
+    public ParticipantTagAdapter(Context applicationContext, int[] listOfColor, List<TblContact> contactList) {
         this.applicationContext = applicationContext;
         this.listOfColor = listOfColor;
+        this.contactList = contactList;
     }
 
     @Override
@@ -40,16 +42,20 @@ public class ParticipantTagAdapter extends RecyclerView.Adapter<ParticipantTagAd
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        int randomAndroidColor = new Random().nextInt(listOfColor.length);
-        // holder.txtParticipantName.setBackgroundColor(randomAndroidColor);
-
-        setTextViewDrawableColor(holder.txtParticipantName, randomAndroidColor);
-
+        if (holder.txtParticipantName != null) {
+            int randomAndroidColor = new Random().nextInt(R.array.androidcolors);
+            setTextViewDrawableColor(holder.txtParticipantName, randomAndroidColor);
+        }
     }
 
     @Override
     public int getItemCount() {
         return 10;
+    }
+
+    private void setTextViewDrawableColor(TextView textView, int color) {
+        textView.getBackground().setColorFilter(color, PorterDuff.Mode.LIGHTEN);
+
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -59,14 +65,6 @@ public class ParticipantTagAdapter extends RecyclerView.Adapter<ParticipantTagAd
         public ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
-        }
-    }
-
-    private void setTextViewDrawableColor(TextView textView, int color) {
-        for (Drawable drawable : textView.getCompoundDrawables()) {
-            if (drawable != null) {
-                drawable.setColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(applicationContext, color), PorterDuff.Mode.SRC_IN));
-            }
         }
     }
 }

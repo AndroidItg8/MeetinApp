@@ -1,15 +1,24 @@
 package itg8.com.meetingapp.document_meeting;
 
 
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.Toast;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +26,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.db.TblDocument;
 import itg8.com.meetingapp.meeting.MeetingDocumentAdapter;
 
@@ -25,7 +35,7 @@ import itg8.com.meetingapp.meeting.MeetingDocumentAdapter;
  * Use the {@link PreDocmentFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PreDocmentFragment extends Fragment {
+public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemClickListner {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -83,11 +93,42 @@ public class PreDocmentFragment extends Fragment {
     }
 
     private void init() {
+        List<TblDocument> list = getTblDocuments();
+
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
         recyclerView.addItemDecoration(itemDecoration);
-        recyclerView.setAdapter(new PreDocAdpater(getActivity()));
+        recyclerView.setAdapter(new PreDocAdpater(getActivity(), list, this));
 
+    }
+    @NonNull
+    private List<TblDocument> getTblDocuments() {
+        TblDocument document = new TblDocument();
+        List<TblDocument> list = new ArrayList<>();
+
+        document.setFileName("DOC FILE");
+        document.setFileExt(CommonMethod.EXT_DOC);
+        list.add(document);
+
+        document.setFileName("EXCEL FILE");
+        document.setFileExt(CommonMethod.EXT_EXL);
+        list.add(document);
+        document.setFileName("PDF FILE");
+        document.setFileExt(CommonMethod.EXT_PDF);
+        list.add(document);
+        document.setFileName("JPG FILE");
+        document.setFileExt(CommonMethod.EXT_JPG);
+        list.add(document);
+        document.setFileName("TXT FILE");
+        document.setFileExt(CommonMethod.EXT_TXT);
+        list.add(document);
+        document.setFileName("ZIP FILE");
+        document.setFileExt(CommonMethod.EXT_ZIP);
+        list.add(document);
+        document.setFileName("PPT FILE");
+        document.setFileExt(CommonMethod.EXT_PPT);
+        list.add(document);
+        return list;
     }
 
 
@@ -98,4 +139,65 @@ public class PreDocmentFragment extends Fragment {
     }
 
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+
+            case R.id.action_share:
+
+                shareItem(getActivity(),"TITLE","BODY", null);
+
+                return true;
+
+
+            default:
+                break;
+        }
+
+        return false;
+    }
+
+
+
+    @Override
+    public void onItemClcikedListener(int position, TblDocument item, ImageView img) {
+        PopupMenu popup = new PopupMenu(getActivity(), img);
+        //Inflating the Popup using xml file
+        popup.getMenuInflater()
+                .inflate(R.menu.popup_menu, popup.getMenu());
+
+        //registering popup with OnMenuItemClickListener
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                Toast.makeText(
+                        getActivity(),
+                        "You Clicked : " + item.getTitle(),
+                        Toast.LENGTH_SHORT
+                ).show();
+                shareItem(getActivity(),"TITLE","BODY", null);
+                return true;
+            }
+        });
+
+        popup.show(); //showing popup menu
+    }
+
+
+    public static void shareItem(Context context, String title, String body, Uri uri) {
+        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+        if (uri != null) {
+            sharingIntent.setType("image/*");
+            sharingIntent.putExtra(Intent.EXTRA_STREAM, uri);
+
+        }else
+        {
+            sharingIntent.setType("text/plain");
+        }
+        sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, title);
+        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, body);
+        sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        context.startActivity(Intent.createChooser(sharingIntent, "Share"));
+
+
+    }
 }

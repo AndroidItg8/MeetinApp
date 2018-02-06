@@ -514,7 +514,8 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:id="@+id/rl_participant">
 
 
                     <ImageView
@@ -536,7 +537,6 @@
                         android:layout_alignParentStart="true"
                         android:layout_alignParentTop="true"
                         android:gravity="center"
-
                         android:text="Add Your Participants Member"
                         android:textAllCaps="true"
                         android:textColor="@color/colorGray"

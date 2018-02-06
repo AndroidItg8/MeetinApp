@@ -15,9 +15,13 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.db.TblContact;
 import itg8.com.meetingapp.document_meeting.DocumentMeetingActivity;
 
 public class ImportMessageDetailActivity extends AppCompatActivity implements View.OnClickListener {
@@ -82,13 +86,13 @@ public class ImportMessageDetailActivity extends AppCompatActivity implements Vi
         recyclerViewParticipant.setVisibility(View.INVISIBLE);
 
     }
+
     private void showParticipant() {
         lblNoParticipant.setVisibility(View.INVISIBLE);
         recyclerViewParticipant.setVisibility(View.VISIBLE);
         setRecyclerview(recyclerViewParticipant);
 
     }
-
 
 
     @Override
@@ -104,7 +108,7 @@ public class ImportMessageDetailActivity extends AppCompatActivity implements Vi
         switch (view.getId()) {
 
             case R.id.lbl_more_document:
-               // openBottomSheetAddDocument();
+                // openBottomSheetAddDocument();
                 startActivity(new Intent(getApplicationContext(), DocumentMeetingActivity.class));
                 break;
         }
@@ -144,12 +148,13 @@ public class ImportMessageDetailActivity extends AppCompatActivity implements Vi
     }
 
     private void setRecyclerview(RecyclerView recyclerView) {
-        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL,false));
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false));
 //        RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL);
 //        recyclerView.addItemDecoration(itemDecoration);
         int[] listOfColor = getResources().getIntArray(R.array.androidcolors);
 
-        recyclerView.setAdapter(new ParticipantTagAdapter(getApplicationContext(),listOfColor));
+        List<TblContact> contactList = new ArrayList<>();
+        recyclerView.setAdapter(new ParticipantTagAdapter(getApplicationContext(), listOfColor, contactList));
     }
 
     private void openBottomSheetAddComment() {

@@ -7,18 +7,17 @@ import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.DocumentsContract;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.FileProvider;
-import android.support.v4.provider.DocumentFile;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,6 +27,7 @@ import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -58,7 +58,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -70,8 +69,10 @@ import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.DocType;
 import itg8.com.meetingapp.common.Helper;
+import itg8.com.meetingapp.db.TblContact;
 import itg8.com.meetingapp.db.TblDocument;
 import itg8.com.meetingapp.db.TblMeeting;
+import itg8.com.meetingapp.import_meeting.ParticipantTagAdapter;
 import itg8.com.meetingapp.meeting.mvp.MeetingMVP;
 import itg8.com.meetingapp.meeting.mvp.MeetingPresenterImp;
 import pub.devrel.easypermissions.AfterPermissionGranted;
@@ -99,6 +100,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private static final String MIME_TYPE_IMAGE = "image/*";
     private static final String MIME_TYPE_PDF = "application/pdf";
     private static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
+    private static final int RC_PHONE_BOOK = 900;
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.toolbar_layout)
@@ -173,28 +175,41 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     ImageView imgDocClose;
     @BindView(R.id.rvDocuments)
     RecyclerView rvDocuments;
+    @BindView(R.id.rl_participant)
+    RelativeLayout rlParticipant;
+    TblContact contact = new TblContact();
     private String[] permissions;
     private boolean canAccessCamera;
     private boolean canAccessLocation;
     private boolean canStorage;
     private boolean canPhoneState;
     private GoogleApiClient mClient;
-
     private String[] value = {
             "Camera",
             "File"
     };
-
     private List<TblDocument> documents = new ArrayList<>();
     private MeetingDocumentAdapter adapter;
     private TblMeeting meeting = new TblMeeting();
     private MeetingMVP.MeetingPresenter presenter;
-
     private Calendar selectedDate = Calendar.getInstance();
     private Calendar selectedStartTime = Calendar.getInstance();
     private Calendar selectedEndTime = Calendar.getInstance();
     private String mCurrentPhotoPath;
+    private List<TblContact> contactList = new ArrayList<>();
+    private ParticipantTagAdapter adapterContact;
 
+    /**
+     * Helper method to format information about a place nicely.
+     */
+    private static Spanned formatPlaceDetails(Resources res, CharSequence name, String id,
+                                              CharSequence address, CharSequence phoneNumber, Uri websiteUri) {
+        Log.e(TAG, res.getString(R.string.place_details, name, id, address, phoneNumber,
+                websiteUri));
+        return Html.fromHtml(res.getString(R.string.place_details, name, id, address, phoneNumber,
+                websiteUri));
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -216,10 +231,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void checkEveryPermissions() {
-        canAccessLocation=hasLocationPermission();
-        canPhoneState=hasContactPermission();
-        canAccessCamera=hasCameraPermission();
-        canStorage=hasStoragePermission();
+        canAccessLocation = hasLocationPermission();
+        canPhoneState = hasContactPermission();
+        canAccessCamera = hasCameraPermission();
+        canStorage = hasStoragePermission();
     }
 
     private void createRecyclerviewForDocuments() {
@@ -228,7 +243,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         rvDocuments.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, true));
         rvDocuments.setAdapter(adapter);
     }
-
 
     @Override
     protected void onStart() {
@@ -242,10 +256,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         super.onStop();
     }
 
-
     private void init() {
         setDefaultInfo();
         setOnClickedListener();
+        setContacRecyclerView();
+
 
     }
 
@@ -273,9 +288,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         edtStartTime.setOnClickListener(this);
         edtEndTime.setOnClickListener(this);
         edtDate.setOnClickListener(this);
+        rlParticipant.setOnClickListener(this);
+        imgPhoneBook.setOnClickListener(this);
 
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -346,8 +362,64 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.img_place_cross:
                 lblAddName.setText("Select place of meeting");
                 break;
+            case R.id.rl_participant:
+                showDialogConatctBox();
+                break;
+            case R.id.img_phone_book:
+                openPhoneBook();
+                break;
         }
     }
+
+    private void openPhoneBook() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
+        startActivityForResult(intent, RC_PHONE_BOOK);
+
+    }
+
+    private void showDialogConatctBox() {
+
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(MeetingActivity.this);
+        builderSingle.setIcon(R.drawable.ic_mode_edit);
+        //  AlertDialog dialog = new AlertDialog(DocumentMeetingActivity.this);
+        builderSingle.setTitle("Add Person:-");
+//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+//        dialog.requestWindowFeature(Window.FEATURE_LEFT_ICON);
+//        dialog.setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.ic_mode_edit_black_24dp);
+
+        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(MeetingActivity.this);
+        View mView = layoutInflaterAndroid.inflate(R.layout.add_participant, null);
+        builderSingle.setView(mView);
+        final EditText lblDocumentNote = (EditText) mView.findViewById(R.id.edt_document_title);
+//
+        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+
+        builderSingle.setPositiveButton("Add", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (!TextUtils.isEmpty(lblDocumentNote.getText())) {
+                    contact.setName(lblDocumentNote.getText().toString().trim());
+                    contact.setNumber("NOT AVAILABLE");
+                    contactList.add(contact);
+                    adapterContact.notifyDataSetChanged();
+
+
+                }
+            }
+        });
+//        dialog = builderSingle.create();
+
+        builderSingle.show();
+    }
+
 
     private void openStartTimePicker() {
         Calendar mcurrentTime = Calendar.getInstance();
@@ -510,23 +582,23 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             if (resultCode == RESULT_OK) {
                 createDocumentFile(mCurrentPhotoPath);
             }
-        }else if(requestCode== READ_REQUEST_CODE){
-            if(resultCode==RESULT_OK){
+        } else if (requestCode == READ_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
 
-                    // The document selected by the user won't be returned in the intent.
-                    // Instead, a URI to that document will be contained in the return intent
-                    // provided to this method as a parameter.
-                    // Pull that URI using resultData.getData().
-                    Uri uri = null;
+                // The document selected by the user won't be returned in the intent.
+                // Instead, a URI to that document will be contained in the return intent
+                // provided to this method as a parameter.
+                // Pull that URI using resultData.getData().
+                Uri uri = null;
 
-                    if (data != null) {
-                        uri = data.getData();
-                        assert uri != null;
-                        Log.i(TAG, "Uri: " + uri.toString());
-                        String selectedMimeType=getMimetypeFromUri(uri);
-                        Log.d(TAG,"SelectedMimeType:"+selectedMimeType);
-                        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                        String newFileName=timeStamp+getFilenameFromMimetype(selectedMimeType);
+                if (data != null) {
+                    uri = data.getData();
+                    assert uri != null;
+                    Log.i(TAG, "Uri: " + uri.toString());
+                    String selectedMimeType = getMimetypeFromUri(uri);
+                    Log.d(TAG, "SelectedMimeType:" + selectedMimeType);
+                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                    String newFileName = timeStamp + getFilenameFromMimetype(selectedMimeType);
 //                        showImage(uri);
 //                        DocumentFile file;
 //                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -537,70 +609,114 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 //                            }
 //                        }
 //                        file.get
-                        InputStream in = null;
-                        try {
-                            /** Here we keep it all in a try-catch in case, so we don't
-                             * force-close if something doesn't go to plan.
-                             *
-                             * This finds the location of the device's local storage (don't
-                             * assume that this will be /sdcard/!), and appends a hard-
-                             *  coded string with a new subfolder, and gives the file that
-                             *  we are going to create a name.
-                             *
-                             *  Note: You'll want to replace 'gdrive_image.jpg' with the
-                             *  filename that you fetch from Drive if you want to preserve
-                             *  the filename. That's out of the scope of this post. */
+                    InputStream in = null;
+                    try {
+                        /** Here we keep it all in a try-catch in case, so we don't
+                         * force-close if something doesn't go to plan.
+                         *
+                         * This finds the location of the device's local storage (don't
+                         * assume that this will be /sdcard/!), and appends a hard-
+                         *  coded string with a new subfolder, and gives the file that
+                         *  we are going to create a name.
+                         *
+                         *  Note: You'll want to replace 'gdrive_image.jpg' with the
+                         *  filename that you fetch from Drive if you want to preserve
+                         *  the filename. That's out of the scope of this post. */
 
 
+                        String output_path = Environment.getExternalStorageDirectory()
+                                + "/MeetingApp/" + newFileName;
 
+                        // Create the file in the location that we just defined.
+                        File oFile = new File(output_path);
 
-                            String output_path = Environment.getExternalStorageDirectory()
-                                    + "/MeetingApp/"+newFileName;
-
-                            // Create the file in the location that we just defined.
-                            File oFile = new File(output_path);
-
-                            /**   Create the file if it doesn't exist; be aware that if it
-                             * does, we'll be overwriting it further down. */
-                            if (!oFile.exists()) {
-                                /**   Note that this isn't just mkdirs; that would make our
-                                 * file into a directory! The 'getParentFile()' bit ensures
-                                 * that the tail end remains a File. */
-                                oFile.getParentFile().mkdirs();
-                                oFile.createNewFile();
-                            }
-
-                            /**   The 'getActivity()' bit assumes that this is being run from
-                             * within a Fragment, which it is of course. You wouldn't be
-                             * working outside of current Android good practice would
-                             * you?... */
-                            InputStream iStream =getContentResolver()
-                                    .openInputStream(uri);
-
-                            /**   Create a byte array to hold the content that exists at the
-                             * Uri we're interested in; this preserves all of the data that
-                             * exists within the file, including any JPEG meta data. If
-                             * you punt this straight to a Bitmap object, you'll lose all
-                             * of that.
-                             *
-                             * Note: This is reallt the main point of this entire post, as
-                             * you're getting ALL OF THE DATA from the source file, as
-                             * is. */
-                            byte[] inputData = getBytes(iStream);
-
-                            writeFile(inputData,output_path);
-                            createDocumentFile(oFile.getAbsolutePath());
-
-
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        /**   Create the file if it doesn't exist; be aware that if it
+                         * does, we'll be overwriting it further down. */
+                        if (!oFile.exists()) {
+                            /**   Note that this isn't just mkdirs; that would make our
+                             * file into a directory! The 'getParentFile()' bit ensures
+                             * that the tail end remains a File. */
+                            oFile.getParentFile().mkdirs();
+                            oFile.createNewFile();
                         }
 
+                        /**   The 'getActivity()' bit assumes that this is being run from
+                         * within a Fragment, which it is of course. You wouldn't be
+                         * working outside of current Android good practice would
+                         * you?... */
+                        InputStream iStream = getContentResolver()
+                                .openInputStream(uri);
+
+                        /**   Create a byte array to hold the content that exists at the
+                         * Uri we're interested in; this preserves all of the data that
+                         * exists within the file, including any JPEG meta data. If
+                         * you punt this straight to a Bitmap object, you'll lose all
+                         * of that.
+                         *
+                         * Note: This is reallt the main point of this entire post, as
+                         * you're getting ALL OF THE DATA from the source file, as
+                         * is. */
+                        byte[] inputData = getBytes(iStream);
+
+                        writeFile(inputData, output_path);
+                        createDocumentFile(oFile.getAbsolutePath());
+
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
+
+                }
             }
         }
+
+        if (requestCode == RC_PHONE_BOOK) {
+            getContactDetail(resultCode, data);
+        }
+
+
+    }
+
+    private void getContactDetail(int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            Cursor cursor = null;
+            try {
+                String phoneNo = null ;
+                String name = null;
+                // getData() method will have the Content Uri of the selected contact
+                Uri uri = data.getData();
+                //Query the content uri
+                cursor = getContentResolver().query(uri, null, null, null, null);
+                cursor.moveToFirst();
+                // column index of the phone number
+                int  phoneIndex =cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                // column index of the contact name
+                int  nameIndex =cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+                phoneNo = cursor.getString(phoneIndex);
+                name = cursor.getString(nameIndex);
+                // Set the value to the textviews
+                contact.setName(name);
+                contact.setNumber(phoneNo);
+                contactList.add(contact);
+                adapter.notifyDataSetChanged();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            // column index of the phone number
+
+
+        }
+
+    }
+
+    public void setContacRecyclerView() {
+        int[] listOfColor = getResources().getIntArray(R.array.androidcolors);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false));
+
+        adapterContact = new ParticipantTagAdapter(getApplicationContext(), listOfColor, contactList);
+        recyclerView.setAdapter(adapterContact);
     }
 
     private void createDocumentFile(String mCurrentPhotoPath) {
@@ -612,18 +728,22 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         adapter.notifyDataSetChanged();
     }
 
-    /**   This function rewrites the byte array to the provided filename.
-     *
+    /**
+     * This function rewrites the byte array to the provided filename.
+     * <p>
      * Note: A String, NOT a file object, though you could easily tweak it to do
-     * that. */
-    public void writeFile(byte[] data, String fileName) throws IOException{
+     * that.
+     */
+    public void writeFile(byte[] data, String fileName) throws IOException {
         FileOutputStream out = new FileOutputStream(fileName);
         out.write(data);
         out.close();
     }
 
-    /** This function puts everything in the provided InputStream into a byte array
-     * and returns it to the calling function. */
+    /**
+     * This function puts everything in the provided InputStream into a byte array
+     * and returns it to the calling function.
+     */
     public byte[] getBytes(InputStream inputStream) throws IOException {
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
         int bufferSize = 1024;
@@ -637,11 +757,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private String getFilenameFromMimetype(String mimeType) {
-        if(mimeType.equalsIgnoreCase(MIME_TYPE_PDF)){
+        if (mimeType.equalsIgnoreCase(MIME_TYPE_PDF)) {
             return ".pdf";
-        }else if(mimeType.equalsIgnoreCase(MIME_TYPE_IMAGE)){
+        } else if (mimeType.equalsIgnoreCase(MIME_TYPE_IMAGE)) {
             return ".jpg";
-        }else if(mimeType.equalsIgnoreCase(MIME_TYPE_TEXT_PLAIN)){
+        } else if (mimeType.equalsIgnoreCase(MIME_TYPE_TEXT_PLAIN)) {
             return ".txt";
         }
         return null;
@@ -668,19 +788,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private void showFailToGetAddress() {
         Toast.makeText(this, "Fail to get Map Result", Toast.LENGTH_SHORT).show();
     }
-
-    /**
-     * Helper method to format information about a place nicely.
-     */
-    private static Spanned formatPlaceDetails(Resources res, CharSequence name, String id,
-                                              CharSequence address, CharSequence phoneNumber, Uri websiteUri) {
-        Log.e(TAG, res.getString(R.string.place_details, name, id, address, phoneNumber,
-                websiteUri));
-        return Html.fromHtml(res.getString(R.string.place_details, name, id, address, phoneNumber,
-                websiteUri));
-
-    }
-
 
     private void toggleReminderView(boolean showReminder) {
         if (showReminder) {
@@ -780,8 +887,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private boolean hasCameraPermission() {
-        if(EasyPermissions.hasPermissions(this, getCameraPermission()))
-            canAccessCamera=true;
+        if (EasyPermissions.hasPermissions(this, getCameraPermission()))
+            canAccessCamera = true;
         return canAccessCamera;
     }
 
@@ -800,7 +907,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private boolean hasContactPermission() {
-        if(EasyPermissions.hasPermissions(this, getContactPermission()))
+        if (EasyPermissions.hasPermissions(this, getContactPermission()))
             canPhoneState = true;
         return canPhoneState;
     }
@@ -819,8 +926,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private boolean hasLocationPermission() {
-        if(EasyPermissions.hasPermissions(this, getLocationPermission()))
-            canAccessLocation=true;
+        if (EasyPermissions.hasPermissions(this, getLocationPermission()))
+            canAccessLocation = true;
         return canAccessLocation;
     }
 
@@ -891,7 +998,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                     else
                         checkCameraPerm();
                 } else {
-                    if(canStorage)
+                    if (canStorage)
                         showFileManager();
                     else
                         checkStoragePerm();
@@ -958,7 +1065,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         // To search for all documents available via installed storage providers,
         // it would be "*/*".
         intent.setType("*/*");
-        intent.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{MIME_TYPE_IMAGE,MIME_TYPE_PDF,MIME_TYPE_TEXT_PLAIN});
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{MIME_TYPE_IMAGE, MIME_TYPE_PDF, MIME_TYPE_TEXT_PLAIN});
         startActivityForResult(intent, READ_REQUEST_CODE);
     }
 

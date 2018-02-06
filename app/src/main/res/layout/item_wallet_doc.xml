@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rl_root"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
@@ -79,6 +80,10 @@
             app:cardBackgroundColor="@color/colorPrimary"
             app:contentPadding="4dp">
 
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
 
             <TextView
                 android:id="@+id/lbl_title"
@@ -92,6 +97,19 @@
                 android:text="Ajenda Ajenda Ajenda Ajenda Ajenda Ajenda Ajenda Ajenda Ajenda AjendaAjenda Ajenda Ajenda Ajenda Ajenda"
                 android:textSize="@dimen/normal_text_size"
                 />
+
+                <TextView
+                    android:id="@+id/lbl_title_full"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:maxWidth="180dp"
+                    android:textColor="@color/colorWhite"
+                    android:visibility="gone"
+                    android:text="Ajenda Ajenda Ajenda Ajenda Ajenda Ajenda Ajenda Ajenda Ajenda AjendaAjenda Ajenda Ajenda Ajenda Ajenda"
+                    android:textSize="@dimen/normal_text_size"
+                    />
+            </FrameLayout>
 
         </android.support.v7.widget.CardView>
     </FrameLayout>

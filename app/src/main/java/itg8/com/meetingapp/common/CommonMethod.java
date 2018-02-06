@@ -1,5 +1,7 @@
 package itg8.com.meetingapp.common;
 
+import android.widget.ImageView;
+
 /**
  * Created by swapnilmeshram on 30/01/18.
  */
@@ -59,6 +61,11 @@ public class CommonMethod {
                 break;
         }
         return priorityDiff;
+    }
+
+
+    public  interface ItemClickListner{
+        void onItemClcikedListener(int position, String item, ImageView img);
     }
 
 }
