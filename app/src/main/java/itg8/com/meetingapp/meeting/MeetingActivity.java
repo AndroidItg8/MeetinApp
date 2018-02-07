@@ -73,6 +73,7 @@ import itg8.com.meetingapp.common.Helper;
 import itg8.com.meetingapp.db.TblContact;
 import itg8.com.meetingapp.db.TblDocument;
 import itg8.com.meetingapp.db.TblMeeting;
+import itg8.com.meetingapp.db.TblTAG;
 import itg8.com.meetingapp.import_meeting.ParticipantTagAdapter;
 import itg8.com.meetingapp.meeting.model.Contact;
 import itg8.com.meetingapp.meeting.mvp.MeetingMVP;
@@ -80,7 +81,7 @@ import itg8.com.meetingapp.meeting.mvp.MeetingPresenterImp;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
-public class MeetingActivity extends AppCompatActivity implements View.OnClickListener, EasyPermissions.PermissionCallbacks, MeetingDocumentAdapter.OnRecyclerviewItemClickedListener, MeetingMVP.MeetingView {
+public class MeetingActivity extends AppCompatActivity implements View.OnClickListener, EasyPermissions.PermissionCallbacks, MeetingDocumentAdapter.OnRecyclerviewItemClickedListener, MeetingMVP.MeetingView, TAGAdapter.TAGItemClickedListner {
 
 
     private static final boolean SHOW_DUE = true;
@@ -103,6 +104,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private static final String MIME_TYPE_PDF = "application/pdf";
     private static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
     private static final int RC_PHONE_BOOK = 900;
+    private static final int RC_TAG = 800;
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.toolbar_layout)
@@ -180,6 +182,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     @BindView(R.id.rl_participant)
     RelativeLayout rlParticipant;
     TblContact contact;
+    @BindView(R.id.edt_agenda)
+    EditText edtAgenda;
+    @BindView(R.id.recyclerViewTAG)
+    RecyclerView recyclerViewTAG;
     private String[] permissions;
     private boolean canAccessCamera;
     private boolean canAccessLocation;
@@ -199,7 +205,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private Calendar selectedEndTime = Calendar.getInstance();
     private String mCurrentPhotoPath;
     private List<TblContact> contactList = new ArrayList<>();
+    private List<TblTAG> tagList = new ArrayList<>();
     private ParticipantTagAdapter adapterContact;
+    private TAGAdapter adapterTAG;
+    private TblTAG tagModel;
 
     /**
      * Helper method to format information about a place nicely.
@@ -221,6 +230,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setTitle(null);
+        collapsed();
 
         presenter = new MeetingPresenterImp(this);
 
@@ -230,6 +241,20 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         createRecyclerviewForDocuments();
 
 
+    }
+
+    private void createRecyclerViewForTAG() {
+        StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(3, LinearLayoutManager.HORIZONTAL);
+        recyclerViewTAG.setLayoutManager(staggeredGridLayoutManager);
+        adapterTAG = new TAGAdapter(tagList, this);
+        recyclerViewTAG.setAdapter(adapterTAG);
+
+    }
+
+    private void collapsed() {
+        AppBarLayout.LayoutParams params = (AppBarLayout.LayoutParams) toolbarLayout.getLayoutParams();
+        params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP); // list other flags here by |
+        toolbarLayout.setLayoutParams(params);
     }
 
     private void checkEveryPermissions() {
@@ -262,6 +287,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         setDefaultInfo();
         setOnClickedListener();
         setContacRecyclerView();
+        createRecyclerViewForTAG();
+
 
 
     }
@@ -292,6 +319,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         edtDate.setOnClickListener(this);
         rlParticipant.setOnClickListener(this);
         imgPhoneBook.setOnClickListener(this);
+        fab.setOnClickListener(this);
 
     }
 
@@ -365,35 +393,43 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 lblAddName.setText("Select place of meeting");
                 break;
             case R.id.rl_participant:
-                showDialogConatctBox();
+                showDialogConatctBox(true);
                 break;
             case R.id.img_phone_book:
                 openPhoneBook2();
+                break;
+            case R.id.fab:
+//                showDialogConatctBox(false);
+                startActivityForResult(new Intent(MeetingActivity.this,TAGActivity.class),RC_TAG);
                 break;
         }
     }
 
     private void openPhoneBook2() {
-        if(canPhoneState){
-            startActivityForResult(new Intent(this,MultipleContactPickerActivity.class),RC_PHONE_BOOK);
-        }else {
+        if (canPhoneState) {
+            startActivityForResult(new Intent(this, MultipleContactPickerActivity.class), RC_PHONE_BOOK);
+        } else {
             checkContactPerm();
         }
     }
 
     private void openPhoneBook() {
-        Intent intent = new Intent(Intent.ACTION_PICK,ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
 //        intent.setType();
         startActivityForResult(intent, RC_PHONE_BOOK);
 
     }
 
-    private void showDialogConatctBox() {
+    private void showDialogConatctBox(final boolean b) {
 
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(MeetingActivity.this);
         builderSingle.setIcon(R.drawable.ic_mode_edit);
         //  AlertDialog dialog = new AlertDialog(DocumentMeetingActivity.this);
-        builderSingle.setTitle("Add Person:-");
+        if (b)
+            builderSingle.setTitle("Add Person:-");
+        else
+            builderSingle.setTitle("Add TAG:-");
+
 //        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 //        dialog.requestWindowFeature(Window.FEATURE_LEFT_ICON);
@@ -416,11 +452,21 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (!TextUtils.isEmpty(lblDocumentNote.getText())) {
+                    if (b) {
+                        contact.setName(lblDocumentNote.getText().toString().trim());
+                        contact.setNumber("NOT AVAILABLE");
+                        contactList.add(contact);
+                        adapterContact.notifyDataSetChanged();
+                    } else
+                    {
+//                        contact.setName(lblDocumentNote.getText().toString().trim());
+//                        contact.setNumber("NOT AVAILABLE");
+//                        tagList.add(contact);
+//                        adapterTAG.notifyDataSetChanged();
 
-                    contact.setName(lblDocumentNote.getText().toString().trim());
-                    contact.setNumber("NOT AVAILABLE");
-                    contactList.add(contact);
-                    adapterContact.notifyDataSetChanged();
+
+
+                    }
 
 
                 }
@@ -467,10 +513,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         mTimePicker.show();
     }
 
-    private void OpenTimeCalender() {
 
-
-    }
 
     private void openDateCalender() {
 
@@ -681,14 +724,14 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
                 }
             }
-        }else if (requestCode == RC_PHONE_BOOK) {
+        } else if (requestCode == RC_PHONE_BOOK) {
 //            getContactDetail(resultCode, data);
             if (resultCode == RESULT_OK) {
 
                 ArrayList<Contact> contacts = new ArrayList<Contact>();
                 contacts = data.getParcelableArrayListExtra("contacts");
-                int itemCountOld=contactList.size();
-                for (Contact c: contacts){
+                int itemCountOld = contactList.size();
+                for (Contact c : contacts) {
                     Log.d("Selected contact = ", c.getEmail());
                     contact = new TblContact();
                     contact.setName(c.getName());
@@ -697,7 +740,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 //                    adapterContact.notifyItemInserted(contactList.size()-1);
                 }
 
-                adapterContact.notifyItemRangeInserted(itemCountOld,contactList.size());
+                adapterContact.notifyItemRangeInserted(itemCountOld, contactList.size());
                 recyclerView.invalidate();
                 //data.
                 // A contact was picked.  Here we will just display it
@@ -705,14 +748,33 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             }
         }
 
+        else if (requestCode == RC_TAG) {
+//            getContactDetail(resultCode, data);
+            if (resultCode == RESULT_OK) {
+                ArrayList<TblTAG> contacts = new ArrayList<TblTAG>();
+                contacts = data.getParcelableArrayListExtra("tag");
+                int itemCountOld = tagList.size();
+                for (TblTAG c : contacts) {
+//                    Log.d("Selected contact = ", c.getEmail());
+                    tagModel = new TblTAG();
+                    tagModel.setName(c.getName());
+//                    contact.setNumber(c.getNumber());
+                    tagList.add(tagModel);
+//                    adapterContact.notifyItemInserted(contactList.size()-1);
+                }
 
+                adapterTAG.notifyItemRangeInserted(itemCountOld, tagList.size());
+                recyclerViewTAG.invalidate();
+
+            }
+        }
     }
 
     private void getContactDetail(int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             Cursor cursor = null;
             try {
-                String phoneNo = null ;
+                String phoneNo = null;
                 String name = null;
                 // getData() method will have the Content Uri of the selected contact
                 Uri uri = data.getData();
@@ -720,9 +782,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 cursor = getContentResolver().query(uri, null, null, null, null);
                 cursor.moveToFirst();
                 // column index of the phone number
-                int  phoneIndex =cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                int phoneIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
                 // column index of the contact name
-                int  nameIndex =cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+                int nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
                 phoneNo = cursor.getString(phoneIndex);
                 name = cursor.getString(nameIndex);
                 // Set the value to the textviews
@@ -1125,4 +1187,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
 
+    @Override
+    public void onItemClicked(int position, TblTAG item) {
+
+        adapterTAG.notifyItemRemoved(position);
+        adapterTAG.notifyDataSetChanged();
+    }
 }

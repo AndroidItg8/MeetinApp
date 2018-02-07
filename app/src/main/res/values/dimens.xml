@@ -7,4 +7,28 @@
     <dimen name="nav_header_height">176dp</dimen>
     <dimen name="app_bar_height">180dp</dimen>
     <dimen name="text_margin">16dp</dimen>
+
+
+    <!--&lt;!&ndash; Calendar values &ndash;&gt;-->
+    <!--<dimen name="calendar_header_height">20dp</dimen>-->
+    <!--<dimen name="day_cell_height">52dp</dimen>-->
+    <!--<dimen name="text_month_size">18dp</dimen>-->
+    <!--<dimen name="text_day_size">14dp</dimen>-->
+    <!--<dimen name="circle_selected_size">32dp</dimen>-->
+
+    <!--&lt;!&ndash; Agenda values &ndash;&gt;-->
+    <!--<dimen name="circle_event_color_size">14dp</dimen>-->
+    <!--<dimen name="circle_day_size">60dp</dimen>-->
+
+    <!--&lt;!&ndash; Floating action button values &ndash;&gt;-->
+    <!--<dimen name="fab_size">40dp</dimen>-->
+    <!--<dimen name="fab_shadow_size">12dp</dimen>-->
+    <!--<dimen name="fab_elevation_lollipop">8dp</dimen>-->
+    <!--<dimen name="fab_press_translation_z">6dp</dimen>-->
+
+    <!--<dimen name="agenda_event_view_padding_left">70dp</dimen>-->
+    <!--<dimen name="agenda_event_view_padding_top">5dp</dimen>-->
+    <!--<dimen name="agenda_event_view_padding_right">15dp</dimen>-->
+    <!--<dimen name="agenda_event_view_padding_bottom">5dp</dimen>-->
+
 </resources>

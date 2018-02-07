@@ -111,8 +111,12 @@
             android:name=".wallet_document.WalletActivity"
             android:label="@string/title_activity_wallet"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".meeting.MultipleContactPicker"></activity>
+        <activity android:name=".meeting.MultipleContactPicker" />
         <activity android:name=".meeting.MultipleContactPickerActivity" />
+        <activity
+            android:name=".meeting.TAGActivity"
+            android:label="@string/title_activity_tag"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

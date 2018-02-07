@@ -45,6 +45,7 @@
 
 
                 <EditText
+                    android:id="@+id/edt_agenda"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorWhite"
@@ -52,9 +53,18 @@
                     android:textSize="22sp"
                     android:lines="2"
                     android:gravity="top"
+                    android:layout_marginTop="10dp"
                     android:hint="@string/ajenda"
-                    android:textColorHint="@color/colorGray"
-                    />
+                    android:textColorHint="@color/colorWhite" />
+
+                <android.support.v7.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/recyclerViewTAG"
+                    android:layout_margin="05dp"
+                    android:layout_below="@+id/edt_agenda"/>
+
+
 
 
 
@@ -71,8 +81,8 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
         app:layout_anchor="@id/app_bar"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_anchorGravity="bottom|end"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
+        app:srcCompat="@drawable/ic_add_black_24dp" />
 
 </android.support.design.widget.CoordinatorLayout>

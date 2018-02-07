@@ -5,7 +5,6 @@
     <scale
         android:fromXScale="1.1"
         android:toXScale="1.0"
-
         android:fromYScale="1.1"
         android:toYScale="1.0"
         android:pivotX="50%"
@@ -13,6 +12,8 @@
         android:duration="200"
         android:repeatCount="0"
         android:repeatMode="reverse">
+
+
 
         <!--android:toZScale="1.0"-->
         <!--android:fromZScale="1.3"-->

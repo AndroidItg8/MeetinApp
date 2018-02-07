@@ -1,1 +1,1 @@
-include ':app', ':basestructure'
+include ':app', ':basestructure', ':agendacalendarview'
