@@ -19,7 +19,9 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.common.Helper;
 import itg8.com.meetingapp.db.TblDocument;
+import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.document_meeting.PreDocAdpater;
 
 /**
@@ -31,15 +33,14 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
 
 
     private Context context;
-    private List<TblDocument> list;
+    private List<TblMeeting> list;
     cardOnLongPressListerner listner;
 
-    public WalletAdapter(Context context, List<TblDocument> list, cardOnLongPressListerner listner) {
+    public WalletAdapter(Context context, List<TblMeeting> list, cardOnLongPressListerner listner) {
         this.context = context;
         this.list = list;
         this.listner = listner;
     }
-
 
     @Override
     public WalletViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -54,21 +55,25 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
         itemRowHolder.recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         DividerItemDecoration itemDecoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
         itemRowHolder.recyclerView.addItemDecoration(itemDecoration);
-        itemRowHolder.recyclerView.setAdapter(new PreDocAdpater(context,  list,this));
+//        itemRowHolder.recyclerView.setAdapter(new PreDocAdpater(context,  list.get(position).getDocuments().getWrappedIterable().iterator().next(),this));
         itemRowHolder.lblTitleFull.setVisibility(View.GONE);
         itemRowHolder.lblTitle.setVisibility(View.VISIBLE);
-
+        itemRowHolder.lblTitleFull.setText(list.get(position).getTitle());
+        itemRowHolder.lblTitle.setText(list.get(position).getTitle());
+        itemRowHolder.startTime.setText(Helper.getStringTimeFromDate(list.get(position).getStartTime()));
+        itemRowHolder.endTime.setText(Helper.getStringTimeFromDate(list.get(position).getEndTime()));
 
     }
 
     @Override
     public int getItemCount() {
         return list.size();
+
     }
 
     @Override
     public void onItemClcikedListener(int position, TblDocument item, ImageView img) {
-        listner.onItemImgMoreClickListner(position, (TblDocument) list.get(position), img);
+        listner.onItemImgMoreClickListner(position, (TblDocument) list.get(position).getDocuments(), img);
     }
 
     public class WalletViewHolder extends RecyclerView.ViewHolder {
@@ -110,7 +115,7 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
 
     public interface cardOnLongPressListerner {
 
-        boolean  onLongPressClickListner(int position, TblDocument list, RelativeLayout view, CardView cradView, TextView textView, TextView lblTitleFull, MotionEvent motionEvent);
+        boolean  onLongPressClickListner(int position, TblMeeting list, RelativeLayout view, CardView cradView, TextView textView, TextView lblTitleFull, MotionEvent motionEvent);
         void  onItemImgMoreClickListner(int position, TblDocument document, ImageView img);
     }
 }

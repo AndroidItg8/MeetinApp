@@ -40,6 +40,8 @@ public class CommonMethod {
     public  static final String EXT_EXL ="xls";
     public  static final String EXT_DOC ="doc";
     public  static final String EXT_ZIP ="zip";
+    public static final String FIRST_TIME_WALLET = "FIRST_TIME_WALLET";
+    public static final String MEETING = "MEETING";
 
     public static long getDifferenceFromPriority(int priority, long timeDifference) {
         int priorityDiff=getPriorityDifferenceFromSetting(priority);

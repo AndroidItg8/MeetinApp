@@ -2,7 +2,9 @@ package itg8.com.meetingapp.meeting;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.RecyclerView;
@@ -12,8 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import itg8.com.meetingapp.db.TblTAG;
 
 public class TAGAddAdapter extends RecyclerView.Adapter<TAGAddAdapter.ViewHolder> {
 
+    onItemClickedListener listener;
     private List<TblTAG> contacts;
     private int checkBoxCount = 0;
     private ActionMode mActionMode;
@@ -112,20 +114,43 @@ public class TAGAddAdapter extends RecyclerView.Adapter<TAGAddAdapter.ViewHolder
     };
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public TAGAddAdapter(Activity activity, List<TblTAG> contacts) {
+    public TAGAddAdapter(Activity activity, List<TblTAG> contacts, onItemClickedListener listener) {
         this.activity = activity;
         this.contacts = contacts;
+        this.listener = listener;
     }
 
     private void selectItem(int position, ViewHolder holder) {
-        if (contacts.get(position).isSelected()) {
-            holder.checkBox.setSelected(true);
-//            holder.rowView.setActivated(true);
+        if (!contacts.get(position).isSelected()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                holder.lblTagTitle.setBackground(ContextCompat.getDrawable(activity, R.drawable.bg_tag));
+                holder.lblTagTitle.setTextColor(ContextCompat.getColor(activity, R.color.theme_primary));
+                holder.imgDelete.setBackground(ContextCompat.getDrawable(activity, R.drawable.ic_check_white_24dp));
+
+
+            } else {
+                holder.lblTagTitle.setBackgroundDrawable(activity.getResources().getDrawable(R.drawable.bg_tag));
+                holder.imgDelete.setBackgroundDrawable(activity.getResources().getDrawable(R.drawable.ic_check_white_24dp));
+                holder.lblTagTitle.setTextColor(ContextCompat.getColor(activity, R.color.theme_primary));
+            }
         } else {
-            holder.checkBox.setSelected(false);
-//            holder.rowView.setActivated(false);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                holder.imgDelete.setBackground(ContextCompat.getDrawable(activity, R.drawable.ic_close_black_24dp));
+                holder.lblTagTitle.setBackground(ContextCompat.getDrawable(activity, R.drawable.bg_tag_primary));
+                holder.lblTagTitle.setTextColor(ContextCompat.getColor(activity, R.color.colorWhite));
+
+            } else {
+                holder.lblTagTitle.setBackgroundDrawable(activity.getResources().getDrawable(R.drawable.bg_tag_primary));
+                holder.imgDelete.setBackgroundDrawable(activity.getResources().getDrawable(R.drawable.ic_close_black_24dp));
+                holder.lblTagTitle.setTextColor(ContextCompat.getColor(activity, R.color.colorWhite));
+            }
 
         }
+
+//            holder.rowView.setActivated(false);
+
+
         updateActionBar();
     }
 
@@ -175,15 +200,14 @@ public class TAGAddAdapter extends RecyclerView.Adapter<TAGAddAdapter.ViewHolder
 
         holder.lblTagTitle.setText(contacts.get(position).getName());
 
-
-        holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+        //        holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
 //                contacts.get(position).setSelected(!contacts.get(position).isSelected());
-                contacts.get(position).setSelected(b);
-                selectItem(position, holder);
-            }
-        });
+//                contacts.get(position).setSelected(b);
+//                selectItem(position, holder);
+//            }
+//        });
         selectItem(position, holder);
 
 
@@ -196,27 +220,45 @@ public class TAGAddAdapter extends RecyclerView.Adapter<TAGAddAdapter.ViewHolder
         return contacts.size();
     }
 
+    public interface onItemClickedListener {
+        void onItemClicked(int position, TblTAG tag);
+
+        void onTagItemDelete(int position, TblTAG tag);
+    }
+
     // Provide a reference to the views for each data item
 // Complex data items may need more than one view per item, and
 // you provide access to all the views for a data item in a view holder
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
 
         @BindView(R.id.lbl_tag_title)
         TextView lblTagTitle;
-        @BindView(R.id.checkBox)
-        CheckBox checkBox;
+        @BindView(R.id.img_delete)
+        ImageView imgDelete;
 
 
         public ViewHolder(View v) {
             super(v);
-            ButterKnife.bind(this,itemView);
+            ButterKnife.bind(this, itemView);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+//                    contacts.get(getAdapterPosition()).setSelected(!contacts.get(position).isSelected());
+//                    contacts.get(getAdapterPosition()).setSelected(true);
+//                    selectItem(position, holder);
+                    listener.onItemClicked(getAdapterPosition(), contacts.get(getAdapterPosition()));
+                }
+            });
+            imgDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    listener.onTagItemDelete(getAdapterPosition(), contacts.get(getAdapterPosition()));
 
-
+                }
+            });
 
 
         }
-
-
     }
 }

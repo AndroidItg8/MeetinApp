@@ -36,8 +36,8 @@ public class TAGAdapter extends RecyclerView.Adapter<TAGAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(TAGAdapter.ViewHolder holder, int position) {
-        holder.setTextViewDrawableColor();
         holder.txtParticipantName.setText(contactList.get(position).getName());
+        holder.setTextViewDrawableColor();
     }
 
     @Override
@@ -57,7 +57,7 @@ public class TAGAdapter extends RecyclerView.Adapter<TAGAdapter.ViewHolder> {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    listner.onItemClicked(getAdapterPosition(), contactList.get(getAdapterPosition()));
+                    listner.onItemAddTagClicked(getAdapterPosition(), contactList.get(getAdapterPosition()));
                 }
             });
         }
@@ -65,11 +65,10 @@ public class TAGAdapter extends RecyclerView.Adapter<TAGAdapter.ViewHolder> {
         public void setTextViewDrawableColor() {
             color = new Random().nextInt(R.array.androidcolors);
             txtParticipantName.getBackground().setColorFilter(color, PorterDuff.Mode.LIGHTEN);
-
         }
     }
 
     public interface TAGItemClickedListner{
-        void onItemClicked(int position,TblTAG item );
+        void onItemAddTagClicked(int position,TblTAG item );
     }
 }

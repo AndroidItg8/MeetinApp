@@ -11,7 +11,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,11 +21,10 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
-import itg8.com.meetingapp.db.TblContact;
+import itg8.com.meetingapp.db.DaoTagInteractor;
 import itg8.com.meetingapp.db.TblTAG;
-import itg8.com.meetingapp.meeting.model.Contact;
 
-public class TAGActivity extends AppCompatActivity implements View.OnClickListener {
+public class TAGActivity extends AppCompatActivity implements View.OnClickListener, TAGAddAdapter.onItemClickedListener {
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -40,8 +41,15 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     @BindView(R.id.fab)
     FloatingActionButton fab;
     List<TblTAG> tagList = new ArrayList<>();
+    @BindView(R.id.img_icon)
+    ImageView imgIcon;
+    @BindView(R.id.txt_lbl)
+    TextView txtLbl;
+    @BindView(R.id.rl_no_tag)
+    RelativeLayout rlNoTag;
     private TblTAG tag;
     private TAGAddAdapter tagAddAdapter;
+    private DaoTagInteractor tagInteractor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,22 +65,44 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     }
 
     private void init() {
+        tagInteractor = new DaoTagInteractor(TAGActivity.this);
         btnAdd.setOnClickListener(this);
-        createRecyclerView();
+        tagList = tagInteractor.getTags();
+        if (tagList != null && tagList.size() > 0) {
+            showHideView(recyclerView, rlNoTag);
+            createRecyclerView();
+        } else {
+            showHideView(rlNoTag, recyclerView);
+        }
 
 
     }
 
+    private void showHideView(View show, View hide) {
+        show.setVisibility(View.VISIBLE);
+        hide.setVisibility(View.GONE);
+    }
+
     private void createRecyclerView() {
         recyclerView.setHasFixedSize(true);
-
         // use a linear layout manager
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
-
         // specify an adapter (see also next example)
-        tagAddAdapter = new TAGAddAdapter(this, tagList);
+        tagAddAdapter = new TAGAddAdapter(this, tagList, this);
         recyclerView.setAdapter(tagAddAdapter);
+    }
+    private void updateTAGItem() {
+        tag = new TblTAG();
+        tag.setName(edtDocumentTitle.getText().toString().trim());
+        tagInteractor.insert(tag);
+
+        showHideView(recyclerView, rlNoTag);
+//        tagList.add(tag);
+//        tagAddAdapter.notifyDataSetChanged();
+//        edtDocumentTitle.setText("");
+
+
     }
 
     @Override
@@ -85,21 +115,21 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
     @Override
     public void onClick(View view) {
-        switch (view.getId())
-        {
+        switch (view.getId()) {
             case R.id.btn_add:
                 updateTAGItem();
                 break;
         }
     }
 
-    private void updateTAGItem() {
-        tag = new TblTAG();
-        tag.setName(edtDocumentTitle.getText().toString().trim());
-        tagList.add(tag);
-        tagAddAdapter.notifyDataSetChanged();
-        edtDocumentTitle.setText("");
 
+    @Override
+    public void onItemClicked(int position, TblTAG tag) {
+
+    }
+
+    @Override
+    public void onTagItemDelete(int position, TblTAG tag) {
 
     }
 }

@@ -205,7 +205,7 @@
 
     </string>
     <!--<string name="show_message">Click on PASTE button below to import meeting details..\n Click on PASTE button below to import meeting details..\n Click on PASTE button below to import meeting details..</string>-->
-    <string name="title_activity_import_message_detail">ImportMessageDetailActivity</string>
+    <string name="title_activity_import_message_detail">ImportDetail</string>
     <string name="title_activity_scrolling">ScrollingActivity</string>
     <string name="title_activity_add_meeting_note">AddMeetingNoteActivity</string>
 

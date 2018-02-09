@@ -29,7 +29,10 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
+import itg8.com.meetingapp.db.DaoDocumentInteractor;
+import itg8.com.meetingapp.db.DaoMeetingInteractor;
 import itg8.com.meetingapp.db.TblDocument;
+import itg8.com.meetingapp.db.TblMeeting;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -99,24 +102,24 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
     }
 
     private void init() {
-        List<TblDocument> list = getTblDocuments();
+
 
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
         recyclerView.addItemDecoration(itemDecoration);
-        recyclerView.setAdapter(new PreDocAdpater(getActivity(), list, this));
+        recyclerView.setAdapter(new PreDocAdpater(getActivity(),  getTblDocuments(), this));
 
     }
 
     @NonNull
     private List<TblDocument> getTblDocuments() {
-        TblDocument document = new TblDocument();
-        List<TblDocument> list = new ArrayList<>();
-        document.setFileName("PPT FILE");
-        document.setFileExt(CommonMethod.EXT_PPT);
-        list.add(document);
-        return list;
+//        TblDocument document = new TblDocument();
+//        List<TblDocument> list = new ArrayList<>();
+//        document.setFileName("PPT FILE");
+//        document.setFileExt(CommonMethod.EXT_PPT);
+//        list.add(document);
+        return  new DaoDocumentInteractor(getActivity()).getAll();
     }
 
     @Override

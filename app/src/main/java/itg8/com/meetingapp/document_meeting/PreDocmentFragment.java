@@ -27,8 +27,12 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
+import itg8.com.meetingapp.db.DaoDocumentInteractor;
+import itg8.com.meetingapp.db.DaoMeetingInteractor;
 import itg8.com.meetingapp.db.TblDocument;
+import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.meeting.MeetingDocumentAdapter;
+import itg8.com.meetingapp.wallet_document.WalletActivity;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -93,16 +97,17 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
     }
 
     private void init() {
-        List<TblDocument> list = getTblDocuments();
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
         recyclerView.addItemDecoration(itemDecoration);
-        recyclerView.setAdapter(new PreDocAdpater(getActivity(), list, this));
+        recyclerView.setAdapter(new PreDocAdpater(getActivity(), getTblDocuments(), this));
 
     }
     @NonNull
     private List<TblDocument> getTblDocuments() {
+
+
         TblDocument document = new TblDocument();
         List<TblDocument> list = new ArrayList<>();
 
@@ -128,7 +133,7 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
         document.setFileName("PPT FILE");
         document.setFileExt(CommonMethod.EXT_PPT);
         list.add(document);
-        return list;
+        return new DaoDocumentInteractor(getActivity()).getAll();
     }
 
 

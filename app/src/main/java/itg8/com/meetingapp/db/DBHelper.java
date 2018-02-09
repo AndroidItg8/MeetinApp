@@ -20,18 +20,23 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 
     private Dao<TblDocument,Integer> documentDao=null;
     private Dao<TblMeeting,Integer> meetingDao=null;
+    private Dao<TblTAG,Integer> tagDao=null;
+    private Dao<TblContact,Integer> contactDao=null;
 
 
 
     public DBHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
+        this.getWritableDatabase();
     }
 
     @Override
     public void onCreate(SQLiteDatabase database, ConnectionSource connectionSource) {
         try {
-            TableUtils.createTable(connectionSource,TblMeeting.class);
-            TableUtils.createTable(connectionSource,TblDocument.class);
+            TableUtils.createTableIfNotExists(connectionSource,TblMeeting.class);
+            TableUtils.createTableIfNotExists(connectionSource,TblDocument.class);
+            TableUtils.createTableIfNotExists(connectionSource,TblTAG.class);
+            TableUtils.createTableIfNotExists(connectionSource,TblContact.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -41,11 +46,29 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase database, ConnectionSource connectionSource, int oldVersion, int newVersion) {
         try {
-            TableUtils.dropTable(connectionSource,TblMeeting.class,true);
-            TableUtils.dropTable(connectionSource,TblDocument.class,true);
+            switch (oldVersion)
+            {
+                case 1:
+                    dropingTable(connectionSource);
+                case 2:
+                    dropingTable(connectionSource);
+                case 3:
+                    dropingTable(connectionSource);
+                    break;
+
+            }
+
+
         }catch (SQLException e){
             e.printStackTrace();
         }
+    }
+
+    private void dropingTable(ConnectionSource connectionSource) throws SQLException {
+        TableUtils.dropTable(connectionSource,TblMeeting.class,true);
+        TableUtils.dropTable(connectionSource,TblDocument.class,true);
+        TableUtils.dropTable(connectionSource,TblTAG.class,true);
+        TableUtils.dropTable(connectionSource,TblContact.class,true);
     }
 
     /**
@@ -66,5 +89,33 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
         return documentDao;
     }
 
+    /**
+     * table_tag
+     */
+
+    public Dao<TblTAG,Integer> getTagDao()throws SQLException{
+        if(tagDao==null)
+            tagDao=getDao(TblTAG.class);
+        return tagDao;
+
+    } /**
+     * table_contact
+     */
+
+    public Dao<TblContact,Integer> getContactDao()throws SQLException{
+        if(contactDao==null)
+            contactDao=getDao(TblContact.class);
+        return contactDao;
+
+    }
+
+    @Override
+    public void close() {
+        documentDao = null;
+        contactDao = null;
+        tagDao = null;
+        meetingDao = null;
+        super.close();
+    }
 
 }

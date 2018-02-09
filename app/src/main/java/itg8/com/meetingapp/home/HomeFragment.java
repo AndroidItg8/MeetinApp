@@ -106,6 +106,7 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
 
 
 
+
                 Log.d(TAG,"MaxDATE"+ maxDate.getTime());
                 Log.d(TAG,"minDate"+ minDate.getTime());
 

@@ -34,6 +34,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -70,6 +71,10 @@ import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.DocType;
 import itg8.com.meetingapp.common.Helper;
+import itg8.com.meetingapp.db.DaoContactInteractor;
+import itg8.com.meetingapp.db.DaoDocumentInteractor;
+import itg8.com.meetingapp.db.DaoMeetingInteractor;
+import itg8.com.meetingapp.db.DaoTagInteractor;
 import itg8.com.meetingapp.db.TblContact;
 import itg8.com.meetingapp.db.TblDocument;
 import itg8.com.meetingapp.db.TblMeeting;
@@ -81,7 +86,7 @@ import itg8.com.meetingapp.meeting.mvp.MeetingPresenterImp;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
-public class MeetingActivity extends AppCompatActivity implements View.OnClickListener, EasyPermissions.PermissionCallbacks, MeetingDocumentAdapter.OnRecyclerviewItemClickedListener, MeetingMVP.MeetingView, TAGAdapter.TAGItemClickedListner {
+public class MeetingActivity extends AppCompatActivity implements View.OnClickListener, EasyPermissions.PermissionCallbacks, MeetingDocumentAdapter.OnRecyclerviewItemClickedListener, MeetingMVP.MeetingView, TAGAdapter.TAGItemClickedListner, TAGAddAdapter.onItemClickedListener {
 
 
     private static final boolean SHOW_DUE = true;
@@ -181,11 +186,13 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     RecyclerView rvDocuments;
     @BindView(R.id.rl_participant)
     RelativeLayout rlParticipant;
-    TblContact contact;
+
     @BindView(R.id.edt_agenda)
     EditText edtAgenda;
     @BindView(R.id.recyclerViewTAG)
     RecyclerView recyclerViewTAG;
+    TblContact contact = new TblContact();
+    DaoContactInteractor contactInteractor;
     private String[] permissions;
     private boolean canAccessCamera;
     private boolean canAccessLocation;
@@ -209,6 +216,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private ParticipantTagAdapter adapterContact;
     private TAGAdapter adapterTAG;
     private TblTAG tagModel;
+    private TAGAddAdapter tagAddAdapter;
+    private DaoTagInteractor tagInteractor;
+    private TblTAG tag;
 
     /**
      * Helper method to format information about a place nicely.
@@ -236,6 +246,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         presenter = new MeetingPresenterImp(this);
 
         mClient = new GoogleApiClient.Builder(this).addApi(Places.GEO_DATA_API).addApi(Places.PLACE_DETECTION_API).build();
+        contactInteractor = new DaoContactInteractor(MeetingActivity.this);
+
         init();
         checkEveryPermissions();
         createRecyclerviewForDocuments();
@@ -288,7 +300,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         setOnClickedListener();
         setContacRecyclerView();
         createRecyclerViewForTAG();
-
 
 
     }
@@ -345,12 +356,16 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     private void storeToDb() {
         TblMeeting meeting = getCompleteDetailForMeeting();
+        DaoMeetingInteractor interactor = new DaoMeetingInteractor(MeetingActivity.this);
+        interactor.insert(meeting);
+
     }
 
     private TblMeeting getCompleteDetailForMeeting() {
         TblMeeting meeting = new TblMeeting();
 
-        return null;
+
+        return meeting;
     }
 
     @Override
@@ -399,8 +414,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 openPhoneBook2();
                 break;
             case R.id.fab:
-//                showDialogConatctBox(false);
-                startActivityForResult(new Intent(MeetingActivity.this,TAGActivity.class),RC_TAG);
+                showDialogConatctBox(false);
+                //startActivityForResult(new Intent(MeetingActivity.this,TAGActivity.class),RC_TAG);
                 break;
         }
     }
@@ -422,59 +437,134 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     private void showDialogConatctBox(final boolean b) {
 
+        View mView = null;
+
+
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(MeetingActivity.this);
         builderSingle.setIcon(R.drawable.ic_mode_edit);
         //  AlertDialog dialog = new AlertDialog(DocumentMeetingActivity.this);
-        if (b)
+   EditText lblDocumentNote= null;
+        Button btnAdd = null;
+
+
+
+        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(MeetingActivity.this);
+
+        if (b) {
             builderSingle.setTitle("Add Person:-");
-        else
+            mView = layoutInflaterAndroid.inflate(R.layout.add_participant, null);
+
+
+        } else {
             builderSingle.setTitle("Add TAG:-");
+            mView = layoutInflaterAndroid.inflate(R.layout.add_tag, null);
+            btnAdd = (Button) mView.findViewById(R.id.btn_add);
+            final RecyclerView recyclerViewTag = (RecyclerView) mView.findViewById(R.id.recyclerView);
+            createRecyclerView(recyclerViewTag);
+
+        }
+        lblDocumentNote = (EditText) mView.findViewById(R.id.edt_document_title);
 
 //        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 //        dialog.requestWindowFeature(Window.FEATURE_LEFT_ICON);
 //        dialog.setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.ic_mode_edit_black_24dp);
 
-        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(MeetingActivity.this);
-        View mView = layoutInflaterAndroid.inflate(R.layout.add_participant, null);
+
         builderSingle.setView(mView);
-        final EditText lblDocumentNote = (EditText) mView.findViewById(R.id.edt_document_title);
-//
+
+
         builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
             }
         });
+        final EditText finalLblDocumentNote = lblDocumentNote;
+        if(!b) {
+            final EditText finalLblDocumentNote1 = lblDocumentNote;
+            btnAdd.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
 
+                    if (!TextUtils.isEmpty(finalLblDocumentNote1.getText())) {
 
-        builderSingle.setPositiveButton("Add", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (!TextUtils.isEmpty(lblDocumentNote.getText())) {
-                    if (b) {
-                        contact.setName(lblDocumentNote.getText().toString().trim());
-                        contact.setNumber("NOT AVAILABLE");
-                        contactList.add(contact);
-                        adapterContact.notifyDataSetChanged();
-                    } else
-                    {
-//                        contact.setName(lblDocumentNote.getText().toString().trim());
-//                        contact.setNumber("NOT AVAILABLE");
-//                        tagList.add(contact);
-//                        adapterTAG.notifyDataSetChanged();
-
+                        updateTAGItem(finalLblDocumentNote1.getText().toString().trim(), finalLblDocumentNote);
 
 
                     }
 
+                }
+            });
+        }
 
+
+        final EditText finalLblDocumentNote2 = lblDocumentNote;
+        builderSingle.setPositiveButton("Add", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (!TextUtils.isEmpty(finalLblDocumentNote2.getText())) {
+                    if (b) {
+                        contact.setName(finalLblDocumentNote2.getText().toString().trim());
+                        contact.setNumber("NOT AVAILABLE");
+                        contactInteractor.insert(contact);
+                        contactList.add(contact);
+                        adapterContact.notifyDataSetChanged();
+                    } else {
+//                        contact.setName(lblDocumentNote.getText().toString().trim());
+//                        contact.setNumber("NOT AVAILABLE");
+//                        tagList.add(contact);
+//                        adapterTAG.notifyDataSetChanged();
+                    }
                 }
             }
         });
 //        dialog = builderSingle.create();
 
         builderSingle.show();
+    }
+
+    @Override
+    public void onTagItemDelete(int position, TblTAG tag) {
+        if (tag.isSelected()) {
+            tagList.remove(tag);
+            tagAddAdapter.notifyItemRemoved(position);
+            tagAddAdapter.notifyDataSetChanged();
+        } else {
+//
+// tagAddAdapter.notifyItemRemoved(position);
+            tagAddAdapter.notifyDataSetChanged();
+
+
+        }
+//             tagInteractor.delete(tag);
+
+
+    }
+
+    private void createRecyclerView(RecyclerView recyclerViewTag) {
+
+        recyclerViewTag.setHasFixedSize(true);
+
+        // use a linear layout manager
+        StaggeredGridLayoutManager linearLayoutManager = new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.HORIZONTAL);
+        recyclerViewTag.setLayoutManager(linearLayoutManager);
+
+        // specify an adapter (see also next example)
+        tagAddAdapter = new TAGAddAdapter(this, tagList, this);
+        recyclerViewTag.setAdapter(tagAddAdapter);
+    }
+
+    private void updateTAGItem(String value, EditText lblDocumentNote) {
+        tag = new TblTAG();
+        tag.setName(value);
+        //     tagInteractor.insert(tag);
+
+        tagList.add(tag);
+        tagAddAdapter.notifyDataSetChanged();
+        lblDocumentNote.setText("");
+
+
     }
 
 
@@ -514,9 +604,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
 
-
     private void openDateCalender() {
-
         DatePickerDialog datePickerDialog = new DatePickerDialog(MeetingActivity.this, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker datePicker, int year, int month, int dayOfMonth) {
@@ -746,9 +834,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 // A contact was picked.  Here we will just display it
                 // to the user.
             }
-        }
-
-        else if (requestCode == RC_TAG) {
+        } else if (requestCode == RC_TAG) {
 //            getContactDetail(resultCode, data);
             if (resultCode == RESULT_OK) {
                 ArrayList<TblTAG> contacts = new ArrayList<TblTAG>();
@@ -815,6 +901,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         document.setMeeting(meeting);
         documents.add(document);
         adapter.notifyDataSetChanged();
+        DaoDocumentInteractor interactor = new DaoDocumentInteractor(MeetingActivity.this);
+        interactor.insert(document);
     }
 
     /**
@@ -1030,20 +1118,14 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
-
-
     }
-
 
     @Override
     public void onPermissionsGranted(int requestCode, List<String> perms) {
-
         checkPrems(perms, true);
     }
 
     private void checkPrems(List<String> perms, boolean isGranted) {
-
-
         if (perms.contains(Manifest.permission.READ_EXTERNAL_STORAGE)
                 || perms.contains(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             canStorage = isGranted;
@@ -1063,7 +1145,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public void onPermissionsDenied(int requestCode, List<String> perms) {
-
         checkPrems(perms, false);
     }
 
@@ -1074,10 +1155,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     private void showDialogToAddDocument() {
         AlertDialog.Builder alertdialogbuilder = new AlertDialog.Builder(MeetingActivity.this);
-
-
         alertdialogbuilder.setTitle("Select Document Type ");
-
         alertdialogbuilder.setItems(value, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -1190,7 +1268,20 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     public void onItemClicked(int position, TblTAG item) {
 
-        adapterTAG.notifyItemRemoved(position);
-        adapterTAG.notifyDataSetChanged();
+
+        item.setSelected(true);
+        tagAddAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
+    }
+
+    @Override
+    public void onItemAddTagClicked(int position, TblTAG item) {
+//        adapterTAG.notifyItemRemoved(position);
+//        adapterTAG.notifyDataSetChanged();
+
     }
 }

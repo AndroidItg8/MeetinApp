@@ -1,6 +1,7 @@
 package itg8.com.meetingapp.db;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.sql.SQLException;
 import java.util.Date;
@@ -20,6 +21,7 @@ public class DaoMeetingInteractor {
     public void insert(TblMeeting meeting){
         try {
             helper.getMeetingDao().create(meeting);
+            Log.d("TAG","InsertMeeting");
         } catch (SQLException e) {
             e.printStackTrace();
         }

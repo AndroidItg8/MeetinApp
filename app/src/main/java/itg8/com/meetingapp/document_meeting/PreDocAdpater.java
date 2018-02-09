@@ -17,6 +17,7 @@ import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.db.TblDocument;
+import itg8.com.meetingapp.db.TblMeeting;
 
 /**
  * Created by Android itg 8 on 2/5/2018.
@@ -28,7 +29,7 @@ public class PreDocAdpater extends RecyclerView.Adapter<PreDocAdpater.PreDocView
     private List<TblDocument> list;
     private ItemClickListner listner;
 
-    public PreDocAdpater(Context activity, List<TblDocument> list,ItemClickListner listner) {
+    public PreDocAdpater(Context activity, List<TblDocument> list, ItemClickListner listner) {
         this.activity = activity;
         this.list = list;
         this.listner = listner;
@@ -43,50 +44,40 @@ public class PreDocAdpater extends RecyclerView.Adapter<PreDocAdpater.PreDocView
 
     @Override
     public void onBindViewHolder(PreDocViewHolder holder, int position) {
-      holder.document =  list.get(position);
+        holder.document = list.get(position);
         setImageDrawable(holder);
 
 
     }
 
     private void setImageDrawable(PreDocViewHolder holder) {
-        if(holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_DOC))
-        {
+        if (holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_DOC)) {
             holder.imgFile.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_doc));
         }
-        if(holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_JPG))
-        {
+        if (holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_JPG)) {
             holder.imgFile.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_jpg));
         }
-
-
-        if(holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_PNG))
-        {
+        if (holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_PNG)) {
             holder.imgFile.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_png));
         }
 
-        if(holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_PDF))
-        {
+        if (holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_PDF)) {
             holder.imgFile.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_pdf));
         }
 
-        if(holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_PPT))
-        {
+        if (holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_PPT)) {
             holder.imgFile.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_ppt));
         }
 
-        if(holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_ZIP))
-        {
+        if (holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_ZIP)) {
             holder.imgFile.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_zip));
         }
 
-        if(holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_TXT))
-        {
+        if (holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_TXT)) {
             holder.imgFile.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_txt));
         }
 
-        if(holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_EXL))
-        {
+        if (holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_EXL)) {
             holder.imgFile.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_xls));
         }
     }
@@ -94,6 +85,10 @@ public class PreDocAdpater extends RecyclerView.Adapter<PreDocAdpater.PreDocView
     @Override
     public int getItemCount() {
         return list.size();
+    }
+
+    public interface ItemClickListner {
+        void onItemClcikedListener(int position, TblDocument item, ImageView img);
     }
 
     public class PreDocViewHolder extends RecyclerView.ViewHolder {
@@ -112,22 +107,19 @@ public class PreDocAdpater extends RecyclerView.Adapter<PreDocAdpater.PreDocView
         @BindView(R.id.rl_document)
         RelativeLayout rlDocument;
         TblDocument document;
+
         public PreDocViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
             imgMore.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                     listner.onItemClcikedListener(getAdapterPosition(), list.get(getAdapterPosition()), imgMore);
+                    listner.onItemClcikedListener(getAdapterPosition(), list.get(getAdapterPosition()), imgMore);
 
 
                 }
             });
         }
-    }
-
-    public  interface ItemClickListner{
-        void onItemClcikedListener(int position, TblDocument item, ImageView img);
     }
 
 }

@@ -64,17 +64,18 @@ public class HomeActivity extends AppCompatActivity
                 testMeetingNotification();
             }
         });
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
         SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:MM:ss.SSS");
         Log.d(TAG, "onCreate: df:"+df.format(new Date()));
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+//      this.deleteDatabase("meetingDb");
+//        Log.d("TAG","DeletedDatabase()"+this.deleteDatabase("meetingDb"));
+
 
     }
 

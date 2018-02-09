@@ -54,6 +54,13 @@ public class TblMeeting implements Parcelable {
     private ForeignCollection<TblDocument> documents;
 
 
+    @ForeignCollectionField
+    private ForeignCollection<TblTAG> tags;
+
+    @ForeignCollectionField
+    private ForeignCollection<TblContact> contacts;
+
+
     public TblMeeting() {
     }
 
@@ -164,4 +171,20 @@ public class TblMeeting implements Parcelable {
             return new TblMeeting[size];
         }
     };
+
+    public ForeignCollection<TblTAG> getTags() {
+        return tags;
+    }
+
+    public void setTags(ForeignCollection<TblTAG> tags) {
+        this.tags = tags;
+    }
+
+    public ForeignCollection<TblContact> getContacts() {
+        return contacts;
+    }
+
+    public void setContacts(ForeignCollection<TblContact> contacts) {
+        this.contacts = contacts;
+    }
 }

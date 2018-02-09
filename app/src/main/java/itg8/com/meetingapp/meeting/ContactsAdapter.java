@@ -23,6 +23,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.db.DaoContactInteractor;
 import itg8.com.meetingapp.meeting.model.Contact;
 
 /**
@@ -110,14 +111,20 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
 
         private void finishWithResult()
         {
+//            DaoContactInteractor contactInteractor = new DaoContactInteractor(activity) ;
             ArrayList<Contact> selectedContacts = new ArrayList<Contact>();
             for (Contact c: contacts){
                 if (c.isSelected()){
                     selectedContacts.add(c);
+//                    contactInteractor.insert(c);
+
                 }
             }
 
             Bundle resultData = new Bundle();
+
+
+
             resultData.putParcelableArrayList("contacts", selectedContacts);
             Intent intent = new Intent();
             intent.putExtras(resultData);
