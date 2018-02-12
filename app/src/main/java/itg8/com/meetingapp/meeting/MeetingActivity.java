@@ -595,30 +595,28 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         builderSingle.setPositiveButton("Add", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (!TextUtils.isEmpty(finalLblDocumentNote2.getText())) {
+
                     if (b) {
-                        contact.setName(finalLblDocumentNote2.getText().toString().trim());
-                        contact.setNumber("NOT AVAILABLE");
-//                        contactInteractor.insert(contact);
-                        contactList.add(contact);
-                        adapterContact.notifyDataSetChanged();
-                    } else {
-                        if (finalEdtNumber.getText().toString().trim().length() == 10) {
-                            if (b) {
-                                contact.setName(finalLblDocumentNote2.getText().toString().trim());
-                                contact.setNumber(finalEdtNumber.getText().toString().trim());
+                        if (!TextUtils.isEmpty(finalLblDocumentNote2.getText())) {
+                            contact.setName(finalLblDocumentNote2.getText().toString().trim());
+                            if(TextUtils.isEmpty(finalEdtNumber.getText())) {
+                                contact.setNumber("NOT AVAILABLE");
                                 contactList.add(contact);
                                 adapterContact.notifyDataSetChanged();
-                            } else {
-//                        contact.setName(lblDocumentNote.getText().toString().trim());
-//                        contact.setNumber("NOT AVAILABLE");
-//                        tagList.add(contact);
-//                        adapterTAG.notifyDataSetChanged();
                             }
+                            else {
+                                if (finalEdtNumber.getText().toString().trim().length() == 10) {
+
+                                    contact.setName(finalLblDocumentNote2.getText().toString().trim());
+                                    contact.setNumber(finalEdtNumber.getText().toString().trim());
+                                    contactList.add(contact);
+                                    adapterContact.notifyDataSetChanged();
+                                }
+                            }
+                        }else {
+//                            finalLblDocumentNote2.setError(getString(R.string.));
+
                         }
-
-
-                    }
                 }
         }
     });
