@@ -253,6 +253,17 @@
 
     </string>
 
+    <string name="no_tag">
+        <![CDATA[<font color=\"#000\"> %1$s</font>
+        <b><font color=\"#870000\">%2$s</b>
+        <font color=\"#000\">%3$s</font>
+        <br/>
+]]>
+
+    </string>
+    <string name="add_person_name">Add Person Name</string>
+    <string name="search_title">search</string>
+
 
     <!--<![CDATA[-->
     <!--<b>%1$s</b>-->

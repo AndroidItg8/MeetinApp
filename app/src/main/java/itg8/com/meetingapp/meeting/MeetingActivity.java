@@ -3,6 +3,7 @@ package itg8.com.meetingapp.meeting;
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
@@ -228,6 +230,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private DaoDocumentInteractor daoDocument;
     private DaoMeetingInteractor daoMeeting;
     private DaoTagInteractor daoTag;
+    private AlertDialog dialog;
 
     /**
      * Helper method to format information about a place nicely.
@@ -285,6 +288,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         canStorage = hasStoragePermission();
     }
 
+
     private void createRecyclerviewForDocuments() {
         documents.add(null);
         adapter = new MeetingDocumentAdapter(documents, this);
@@ -315,10 +319,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void initDaoInteractors() {
-        daoContact=new DaoContactInteractor(this);
-        daoDocument=new DaoDocumentInteractor(this);
-        daoMeeting=new DaoMeetingInteractor(this);
-        daoTag=new DaoTagInteractor(this);
+        daoContact = new DaoContactInteractor(this);
+        daoDocument = new DaoDocumentInteractor(this);
+        daoMeeting = new DaoMeetingInteractor(this);
+        daoTag = new DaoTagInteractor(this);
     }
 
     private void setDefaultInfo() {
@@ -372,14 +376,14 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void storeToDb() {
-        if(!validateMeetingDetails()){
+        if (!validateMeetingDetails()) {
             return;
         }
         boolean isInserted = getCompleteDetailForMeeting();
-        if(isInserted){
+        if (isInserted) {
             Toast.makeText(this, "Meeting stored successfully", Toast.LENGTH_SHORT).show();
             onBackPressed();
-        }else {
+        } else {
             Toast.makeText(this, "Fail to store meeting.", Toast.LENGTH_SHORT).show();
         }
 //        DaoMeetingInteractor interactor = new DaoMeetingInteractor(MeetingActivity.this);
@@ -388,19 +392,19 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private boolean validateMeetingDetails() {
-        if(TextUtils.isEmpty(edtAgenda.getText().toString())){
+        if (TextUtils.isEmpty(edtAgenda.getText().toString())) {
             String error = "Please enter meeting agenda";
-            ForegroundColorSpan fgcspan = new ForegroundColorSpan(ContextCompat.getColor(this,R.color.colorWhite));
+            ForegroundColorSpan fgcspan = new ForegroundColorSpan(ContextCompat.getColor(this, R.color.colorWhite));
             SpannableStringBuilder ssbuilder = new SpannableStringBuilder(error);
             ssbuilder.setSpan(fgcspan, 0, error.length(), 0);
             edtAgenda.setError(ssbuilder);
             return false;
         }
-        if(!isReminderDateTimeSet()){
+        if (!isReminderDateTimeSet()) {
             toggleDueView(SHOW_DUE);
             showSnackbar("Set meeting date and time first");
             return false;
-        }else if(!isPrioritySet()){
+        } else if (!isPrioritySet()) {
             toggleReminderView(SHOW_REMINDER);
             showSnackbar("Set meeting priority");
             return false;
@@ -409,7 +413,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void showSnackbar(String text) {
-        Snackbar snackbar=Snackbar.make(rlReminder,text,Snackbar.LENGTH_LONG);
+        Snackbar snackbar = Snackbar.make(rlReminder, text, Snackbar.LENGTH_LONG);
         snackbar.show();
     }
 
@@ -437,7 +441,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
         for (TblDocument document :
                 documents) {
-            if(document==null)
+            if (document == null)
                 continue;
             document.setMeeting(meeting);
             try {
@@ -501,14 +505,16 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 lblAddName.setText("Select place of meeting");
                 break;
             case R.id.rl_participant:
-                showDialogConatctBox(true);
+                if (canPhoneState)
+                    showDialogConatctBox();
+                else
+                    checkContactPerm();
                 break;
             case R.id.img_phone_book:
                 openPhoneBook2();
                 break;
             case R.id.fab:
-                showDialogConatctBox(false);
-                //startActivityForResult(new Intent(MeetingActivity.this,TAGActivity.class),RC_TAG);
+                startActivityForResult(new Intent(MeetingActivity.this,TAGActivity.class),RC_TAG);
                 break;
         }
     }
@@ -527,37 +533,45 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         startActivityForResult(intent, RC_PHONE_BOOK);
 
     }
-
-    private void showDialogConatctBox(final boolean b) {
+    EditText lblDocumentNote = null;
+    EditText edtNumber = null;
+    TextInputLayout inputLayout = null;
+    TextInputLayout inputLayoutNumber = null;
+    private void showDialogConatctBox() {
 
         View mView = null;
 
 
-        AlertDialog.Builder builderSingle = new AlertDialog.Builder(MeetingActivity.this);
+     final    AlertDialog.Builder builderSingle = new AlertDialog.Builder(MeetingActivity.this);
 //        builderSingle.setIcon(R.drawable.ic_mode_edit);
         //  AlertDialog dialog = new AlertDialog(DocumentMeetingActivity.this);
-        EditText lblDocumentNote = null;
-        EditText edtNumber = null;
+
         Button btnAdd = null;
 
 
         LayoutInflater layoutInflaterAndroid = LayoutInflater.from(MeetingActivity.this);
 
-        if (b) {
+
             builderSingle.setTitle("Add Person:-");
             mView = layoutInflaterAndroid.inflate(R.layout.add_participant, null);
             edtNumber = (EditText) mView.findViewById(R.id.edt_person_number);
+            lblDocumentNote = (EditText) mView.findViewById(R.id.edt_document_title);
+        inputLayout = (TextInputLayout) mView.findViewById(R.id.input_layout_name);
+        inputLayoutNumber = (TextInputLayout) mView.findViewById(R.id.input_layout_number);
+        builderSingle.setCancelable(false);
 
 
-        } else {
-            builderSingle.setTitle("Add TAG:-");
-            mView = layoutInflaterAndroid.inflate(R.layout.add_tag, null);
-            btnAdd = (Button) mView.findViewById(R.id.btn_add);
-            final RecyclerView recyclerViewTag = (RecyclerView) mView.findViewById(R.id.recyclerView);
-            createRecyclerView(recyclerViewTag);
 
-        }
-        lblDocumentNote = (EditText) mView.findViewById(R.id.edt_document_title);
+
+
+//        else {
+//            builderSingle.setTitle("Add TAG:-");
+//            mView = layoutInflaterAndroid.inflate(R.layout.add_tag, null);
+//            btnAdd = (Button) mView.findViewById(R.id.btn_add);
+//            final RecyclerView recyclerViewTag = (RecyclerView) mView.findViewById(R.id.recyclerView);
+//            createRecyclerView(recyclerViewTag);
+//
+//        }
 
 //        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
@@ -571,59 +585,130 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
+
             }
         });
-        final EditText finalLblDocumentNote = lblDocumentNote;
-        if (!b) {
-            final EditText finalLblDocumentNote1 = lblDocumentNote;
-            btnAdd.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                    if (!TextUtils.isEmpty(finalLblDocumentNote1.getText())) {
-                        updateTAGItem(finalLblDocumentNote1.getText().toString().trim(), finalLblDocumentNote);
-                    }
-
-                }
-            });
-        }
 
 
-        final EditText finalLblDocumentNote2 = lblDocumentNote;
-        final EditText finalEdtNumber = edtNumber;
+
+//            btnAdd.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//
+//                    if (!TextUtils.isEmpty(finalLblDocumentNote1.getText())) {
+//                        updateTAGItem(lblDocumentNote1.getText().toString().trim(), lblDocumentNote);
+//                    }
+//
+//                }
+//            });
+
+
+
+
         builderSingle.setPositiveButton("Add", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                    if (b) {
-                        if (!TextUtils.isEmpty(finalLblDocumentNote2.getText())) {
-                            contact.setName(finalLblDocumentNote2.getText().toString().trim());
-                            if(TextUtils.isEmpty(finalEdtNumber.getText())) {
-                                contact.setNumber("NOT AVAILABLE");
-                                contactList.add(contact);
-                                adapterContact.notifyDataSetChanged();
-                            }
-                            else {
-                                if (finalEdtNumber.getText().toString().trim().length() == 10) {
 
-                                    contact.setName(finalLblDocumentNote2.getText().toString().trim());
-                                    contact.setNumber(finalEdtNumber.getText().toString().trim());
-                                    contactList.add(contact);
-                                    adapterContact.notifyDataSetChanged();
-                                }
-                            }
-                        }else {
-//                            finalLblDocumentNote2.setError(getString(R.string.));
+            }
+        });
+        dialog = builderSingle.create();
+        dialog.show();
+        dialog.setCancelable(false);
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addPersonFromDialog();
+            }
+        });
+         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View view) {
+                 dialog.dismiss();
+             }
+         });
 
-                        }
+
+    }
+
+    private void addPersonFromDialog() {
+        contact = new TblContact();
+        if (!TextUtils.isEmpty(lblDocumentNote.getText())) {
+            contact.setName(lblDocumentNote.getText().toString().trim());
+            if (TextUtils.isEmpty(edtNumber.getText())) {
+                contact.setNumber("NOT AVAILABLE");
+                contactList.add(contact);
+                adapterContact.notifyDataSetChanged();
+                AddContactToPhoneContactList(lblDocumentNote.getText().toString().trim(), edtNumber.getText().toString().trim());
+                dialog.dismiss();
+            } else {
+                if (edtNumber.getText().toString().trim().length() == 10) {
+
+                    contact.setName(lblDocumentNote.getText().toString().trim());
+                    contact.setNumber(edtNumber.getText().toString().trim());
+                    contactList.add(contact);
+                    adapterContact.notifyDataSetChanged();
+                    AddContactToPhoneContactList(lblDocumentNote.getText().toString().trim(), edtNumber.getText().toString().trim());
+                    dialog.dismiss();
+                }else
+                {
+
+                    inputLayoutNumber.setError("Add 10 digit Number");
                 }
+            }
+
+
+        } else {
+            inputLayout.setEnabled(true);
+            inputLayout.setError("Add Person Name");
+
+
         }
-    });
-//        dialog = builderSingle.create();
+    }
 
-        builderSingle.show();
+    private void AddContactToPhoneContactList(String name, String number) {
+        ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 
+        ops.add(ContentProviderOperation.newInsert(
+                ContactsContract.RawContacts.CONTENT_URI)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+                .build());
+
+        //------------------------------------------------------ Names
+        if (name != null) {
+            ops.add(ContentProviderOperation.newInsert(
+                    ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                    .withValue(ContactsContract.Data.MIMETYPE,
+                            ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                    .withValue(
+                            ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME,
+                            name).build());
+        }
+
+        //------------------------------------------------------ Mobile Number
+        if (number != null) {
+            ops.add(ContentProviderOperation.
+                    newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                    .withValue(ContactsContract.Data.MIMETYPE,
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
+                    .withValue(ContactsContract.CommonDataKinds.Phone.TYPE,
+                            ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+                    .build());
+        }
+
+
+        // Asking the Contact provider to create a new contact
+        try {
+            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            Toast.makeText(MeetingActivity.this, "Exception: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
 
@@ -684,9 +769,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 selectedStartTime.set(Calendar.MINUTE, selectedMinute);
                 edtStartTime.setText(Helper.getStringTimeFromDate(selectedStartTime.getTime()));
                 meeting.setStartTime(selectedStartTime.getTime());
-                if((selectedEndTime.getTimeInMillis()-selectedStartTime.getTimeInMillis())<60000){
-                    selectedEndTime.set(Calendar.HOUR_OF_DAY,selectedHour+1);
-                    selectedEndTime.set(Calendar.MINUTE,selectedMinute);
+                if ((selectedEndTime.getTimeInMillis() - selectedStartTime.getTimeInMillis()) < 60000) {
+                    selectedEndTime.set(Calendar.HOUR_OF_DAY, selectedHour + 1);
+                    selectedEndTime.set(Calendar.MINUTE, selectedMinute);
                     edtEndTime.setText(Helper.getStringTimeFromDate(selectedEndTime.getTime()));
                 }
                 meeting.setEndTime(selectedEndTime.getTime());
@@ -705,7 +790,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         mTimePicker = new TimePickerDialog(MeetingActivity.this, new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-                if(selectedStartTime.getTimeInMillis()>selectedEndTime.getTimeInMillis()){
+                if (selectedStartTime.getTimeInMillis() > selectedEndTime.getTimeInMillis()) {
                     showSnackbar("End time should be greater than Start time");
                     return;
                 }
@@ -1120,14 +1205,15 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     /**
      * check if reminder date set or not
      */
-    private boolean isReminderDateTimeSet(){
-        return rlDue.getVisibility()==View.VISIBLE;
+    private boolean isReminderDateTimeSet() {
+        return rlDue.getVisibility() == View.VISIBLE;
     }
+
     /**
      * check if priority set or not
      */
-    private boolean isPrioritySet(){
-        return rlReminder.getVisibility()==View.VISIBLE;
+    private boolean isPrioritySet() {
+        return rlReminder.getVisibility() == View.VISIBLE;
     }
 
 
@@ -1222,7 +1308,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     @NonNull
     private String[] getContactPermission() {
-        return new String[]{Manifest.permission.READ_CONTACTS};
+        return new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS};
     }
 
     @AfterPermissionGranted(RC_LOCATION)
