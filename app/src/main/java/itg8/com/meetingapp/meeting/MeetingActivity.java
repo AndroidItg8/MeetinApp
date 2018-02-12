@@ -534,11 +534,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
 
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(MeetingActivity.this);
-        builderSingle.setIcon(R.drawable.ic_mode_edit);
+//        builderSingle.setIcon(R.drawable.ic_mode_edit);
         //  AlertDialog dialog = new AlertDialog(DocumentMeetingActivity.this);
-   EditText lblDocumentNote= null;
+        EditText lblDocumentNote = null;
+        EditText edtNumber = null;
         Button btnAdd = null;
-
 
 
         LayoutInflater layoutInflaterAndroid = LayoutInflater.from(MeetingActivity.this);
@@ -546,6 +546,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         if (b) {
             builderSingle.setTitle("Add Person:-");
             mView = layoutInflaterAndroid.inflate(R.layout.add_participant, null);
+            edtNumber = (EditText) mView.findViewById(R.id.edt_person_number);
 
 
         } else {
@@ -574,17 +575,14 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             }
         });
         final EditText finalLblDocumentNote = lblDocumentNote;
-        if(!b) {
+        if (!b) {
             final EditText finalLblDocumentNote1 = lblDocumentNote;
             btnAdd.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
                     if (!TextUtils.isEmpty(finalLblDocumentNote1.getText())) {
-
                         updateTAGItem(finalLblDocumentNote1.getText().toString().trim(), finalLblDocumentNote);
-
-
                     }
 
                 }
@@ -593,6 +591,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
 
         final EditText finalLblDocumentNote2 = lblDocumentNote;
+        final EditText finalEdtNumber = edtNumber;
         builderSingle.setPositiveButton("Add", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -604,18 +603,31 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                         contactList.add(contact);
                         adapterContact.notifyDataSetChanged();
                     } else {
+                        if (finalEdtNumber.getText().toString().trim().length() == 10) {
+                            if (b) {
+                                contact.setName(finalLblDocumentNote2.getText().toString().trim());
+                                contact.setNumber(finalEdtNumber.getText().toString().trim());
+                                contactList.add(contact);
+                                adapterContact.notifyDataSetChanged();
+                            } else {
 //                        contact.setName(lblDocumentNote.getText().toString().trim());
 //                        contact.setNumber("NOT AVAILABLE");
 //                        tagList.add(contact);
 //                        adapterTAG.notifyDataSetChanged();
+                            }
+                        }
+
+
                     }
                 }
-            }
-        });
+        }
+    });
 //        dialog = builderSingle.create();
 
         builderSingle.show();
+
     }
+
 
     @Override
     public void onTagItemDelete(int position, TblTAG tag) {
@@ -634,6 +646,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
 
     }
+
 
     private void createRecyclerView(RecyclerView recyclerViewTag) {
 

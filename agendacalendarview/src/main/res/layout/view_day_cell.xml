@@ -13,7 +13,8 @@
 
     <FrameLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp">
 
         <View
             android:id="@+id/view_day_circle_selected"
@@ -25,18 +26,21 @@
         <TextView
             android:id="@+id/view_day_day_label"
             android:layout_gravity="center"
+            android:visibility="visible"
+            android:text="12"
             style="@style/CalendarCellText"/>
 
 
 
     </FrameLayout>
+    <!--android:layout_marginTop="2dp"-->
 
     <ImageView
         android:id="@+id/img_agenda_indicator"
         android:layout_width="6dp"
         android:layout_height="6dp"
+        android:visibility="visible"
         android:src="@drawable/agenda_indicator"
-        android:layout_marginTop="4dp"
-        android:drawablePadding="04dp"/>
+      />
 
 </LinearLayout>

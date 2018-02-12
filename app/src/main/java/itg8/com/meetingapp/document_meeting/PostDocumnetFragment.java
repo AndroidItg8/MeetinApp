@@ -3,6 +3,7 @@ package itg8.com.meetingapp.document_meeting;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,12 +13,16 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
+import android.text.Spanned;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,22 +34,20 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import itg8.com.meetingapp.R;
-import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.db.DaoDocumentInteractor;
-import itg8.com.meetingapp.db.DaoMeetingInteractor;
 import itg8.com.meetingapp.db.TblDocument;
-import itg8.com.meetingapp.db.TblMeeting;
 
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link PostDocumnetFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PostDocumnetFragment extends Fragment implements DocumentMeetingActivity.NoteItemListener,  PreDocAdpater.ItemClickListner {
+public class PostDocumnetFragment extends Fragment implements DocumentMeetingActivity.NoteItemListener, PreDocAdpater.ItemClickListner {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String TAG = PostDocumnetFragment.class.getSimpleName();
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     Unbinder unbinder;
@@ -55,6 +58,16 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
     @BindView(R.id.cardView)
     CardView cardView;
     DocumentMeetingActivity.NoteItemListener listener;
+    @BindView(R.id.rl_recyclerView)
+    RelativeLayout rlRecyclerView;
+    @BindView(R.id.img_no_meeting)
+    ImageView imgNoMeeting;
+    @BindView(R.id.txt_title)
+    TextView txtTitle;
+    @BindView(R.id.txt_sub_title)
+    TextView txtSubTitle;
+    @BindView(R.id.rl_no_doc_item)
+    RelativeLayout rlNoDocItem;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -104,13 +117,34 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
 
     private void init() {
 
+        if (getTblDocuments().size() > 0) {
+            showRecyclerView();
+            recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+            DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
+            recyclerView.addItemDecoration(itemDecoration);
+            recyclerView.setAdapter(new PreDocAdpater(getActivity(), getTblDocuments(), this));
+        } else {
+            hideRecyclerView();
+            txtTitle.setText(formatPlaceDetails(getResources(), "Till Now Not Add Document To meeting", "Quickly add document to", "DocWallet", "to get access fast!!!!"));
 
+        }
+    }
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
-        recyclerView.addItemDecoration(itemDecoration);
-        recyclerView.setAdapter(new PreDocAdpater(getActivity(),  getTblDocuments(), this));
+    private void hideRecyclerView() {
+        rlRecyclerView.setVisibility(View.GONE);
+        rlNoDocItem.setVisibility(View.VISIBLE);
+    }
 
+    private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
+                                              CharSequence doc_name, String remaing) {
+        Log.e(TAG, res.getString(R.string.no_document_details, title, sub_title, doc_name, remaing));
+        return Html.fromHtml(res.getString(R.string.no_document_details, title, sub_title, doc_name, remaing));
+
+    }
+
+    private void showRecyclerView() {
+        rlRecyclerView.setVisibility(View.VISIBLE);
+        rlNoDocItem.setVisibility(View.GONE);
     }
 
     @NonNull
@@ -160,7 +194,7 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
 
             case R.id.action_share:
 
-                shareItem(getActivity(),"TITLE","BODY", null);
+                shareItem(getActivity(), "TITLE", "BODY", null);
 
                 return true;
 
@@ -189,7 +223,7 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
                         Toast.LENGTH_SHORT
                 ).show();
 
-                shareItem(getActivity(),"TITLE","BODY", null);
+                shareItem(getActivity(), "TITLE", "BODY", null);
 
                 return true;
             }
@@ -204,12 +238,11 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
             sharingIntent.setType("image/*");
             sharingIntent.putExtra(Intent.EXTRA_STREAM, uri);
 
-        }else
-        {
+        } else {
             sharingIntent.setType("text/plain");
         }
-        sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, title);
-        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, body);
+        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, title);
+        sharingIntent.putExtra(Intent.EXTRA_TEXT, body);
         sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         context.startActivity(Intent.createChooser(sharingIntent, "Share"));
 

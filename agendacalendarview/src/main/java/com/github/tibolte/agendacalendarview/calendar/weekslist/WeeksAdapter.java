@@ -191,7 +191,7 @@ public class WeeksAdapter extends RecyclerView.Adapter<WeeksAdapter.WeekViewHold
                      imgAgendaCircle.setVisibility(View.VISIBLE);
                  }else
                  {
-                     imgAgendaCircle.setVisibility(View.GONE);
+                     imgAgendaCircle.setVisibility(View.INVISIBLE);
                  }
             }
         }

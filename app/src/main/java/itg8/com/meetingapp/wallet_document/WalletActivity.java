@@ -4,16 +4,21 @@ import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -34,7 +39,6 @@ import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.common.Prefs;
 import itg8.com.meetingapp.db.DaoMeetingInteractor;
-import itg8.com.meetingapp.db.TblDocument;
 import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.showcase.MaterialIntroView;
 import itg8.com.meetingapp.showcase.animation.MaterialIntroListener;
@@ -49,6 +53,16 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
     Toolbar toolbar;
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
+    @BindView(R.id.img_no_meeting)
+    ImageView imgNoMeeting;
+    @BindView(R.id.txt_title)
+    TextView txtTitle;
+    @BindView(R.id.txt_sub_title)
+    TextView txtSubTitle;
+    @BindView(R.id.rl_no_meeting_item)
+    RelativeLayout rlNoMeetingItem;
+    @BindView(R.id.fab)
+    FloatingActionButton fab;
     private WalletAdapter adapter;
 
     public static void shareItem(Context context, String title, String body, Uri uri) {
@@ -60,8 +74,8 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
         } else {
             sharingIntent.setType("text/plain");
         }
-        sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, title);
-        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, body);
+        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, title);
+        sharingIntent.putExtra(Intent.EXTRA_TEXT, body);
         sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         context.startActivity(Intent.createChooser(sharingIntent, "Share"));
 
@@ -83,28 +97,51 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
 
     private void init() {
         List<TblMeeting> listDoc = getTblDocuments();
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new WalletAdapter(getApplicationContext(), listDoc, this);
-        recyclerView.setAdapter(adapter);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                showMaterialIntro();
-            }
-        }, 2000);
+        if (listDoc.size() > 0) {
+            showRecyclerView();
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            adapter = new WalletAdapter(getApplicationContext(), listDoc, this);
+            recyclerView.setAdapter(adapter);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    showMaterialIntro();
+                }
+            }, 2000);
 
-//   if(!Prefs.getBoolean(CommonMethod.FIRST_TIME_WALLET,false))
-//       showMaterialIntro();
-//
-//
+        } else {
+
+                hideRecyclerView();
+                txtTitle.setText(formatPlaceDetails(getResources(), "Yet Not Schedule Any", "Meeting", "Quickly join your meeting!!!!"));
+
+            }
+
+    }
+
+    private void hideRecyclerView() {
+        recyclerView.setVisibility(View.GONE);
+        rlNoMeetingItem.setVisibility(View.VISIBLE);
+    }
+
+    private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
+                                              CharSequence doc_name) {
+        return Html.fromHtml(res.getString(R.string.no_meeting, title, sub_title, doc_name));
+
+    }
+
+    private void showRecyclerView() {
+        recyclerView.setVisibility(View.VISIBLE);
+        rlNoMeetingItem.setVisibility(View.GONE);
+
     }
 
     private void showMaterialIntro() {
         new MaterialIntroView.Builder(WalletActivity.this)
                 .enableDotAnimation(true)
                 .setShape(ShapeType.CIRCLE)
-                .setInfoTextSize(14)
-                .setMaskColor(R.color.colorRed)
+                .setInfoTextSize(24)
+                .setTextColor(Color.WHITE)
+                .setMaskColor(R.color.transparentBlack)
                 .setTarget((recyclerView.getChildAt(0).findViewById(R.id.cardView)))
                 .setTargetPadding(0)
                 .setFocusGravity(FocusGravity.CENTER)
@@ -133,7 +170,7 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
     }
 
     @Override
-    public void onItemImgMoreClickListner(int position, TblDocument document, ImageView img) {
+    public void onItemImgMoreClickListner(int position, TblMeeting document, ImageView img) {
         PopupMenu popup = new PopupMenu(this, img);
         //Inflating the Popup using xml file
         popup.getMenuInflater()
@@ -175,11 +212,15 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
         }
 //
 //        TblDocument document = new TblDocument();
+//        TblMeeting meeting1 = new TblMeeting();
+//        List<TblMeeting> listMeeting = new ArrayList<>();
 //        List<TblDocument> list = new ArrayList<>();
 //
 //        document.setFileName("DOC FILE");
 //        document.setFileExt(CommonMethod.EXT_DOC);
+//
 //        list.add(document);
+//
 //        TblDocument document1 = new TblDocument();
 //        document1.setFileName("EXCEL FILE");
 //        document1.setFileExt(CommonMethod.EXT_EXL);
@@ -209,6 +250,8 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
 //        document6.setFileName("PPT FILE");
 //        document6.setFileExt(CommonMethod.EXT_PPT);
 //        list.add(document6);
+//      //  meeting1.setDocuments(list);
+//        listMeeting.add(meeting1);
 
         return listMeeting;
     }
@@ -216,13 +259,13 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
 
     private boolean longPressEvent(CardView view, TextView textView, TextView lblTitleFull, MotionEvent motionEvent, int height, int fullHeight) {
 
-        if (motionEvent.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
             Log.d("TouchTest", "Touch down");
             lblTitleFull.setVisibility(View.VISIBLE);
             textView.setVisibility(View.GONE);
             setZoomInAnimation(view);
 //            view.animate().scaleY(height/2).start();
-        } else if (motionEvent.getAction() == android.view.MotionEvent.ACTION_UP) {
+        } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
             Log.d("TouchTest", "Touch up");
             lblTitleFull.setVisibility(View.GONE);
             textView.setVisibility(View.VISIBLE);
@@ -257,7 +300,7 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
     public void onUserClicked(String materialIntroViewId) {
         if (materialIntroViewId.equals(INTRO_CARD)) {
             Toast.makeText(WalletActivity.this, "User Clicked", Toast.LENGTH_SHORT).show();
-            Prefs.putBoolean(CommonMethod.FIRST_TIME_WALLET,true);
+            Prefs.putBoolean(CommonMethod.FIRST_TIME_WALLET, true);
             new MaterialIntroView.Builder(WalletActivity.this).dismissOnTouch(true);
         }
     }

@@ -1,14 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="itg8.com.meetingapp.wallet_document.WalletActivity"
-    android:id="@+id/recyclerView"
     tools:showIn="@layout/activity_wallet">
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible" />
+
+    <RelativeLayout
+        android:id="@+id/rl_no_meeting_item"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
 
-</android.support.v7.widget.RecyclerView>
+        <ImageView
+            android:id="@+id/img_no_meeting"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerInParent="true"
+            app:srcCompat="@drawable/ic_no_meeting" />
+
+        <TextView
+            android:id="@+id/txt_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/img_no_meeting"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp"
+            android:text="Yet Not Schedule Any Meeting !!!"
+            android:textColor="@color/colorBlack"
+            android:textStyle="normal"
+            android:fontFamily="@font/roboto"
+            android:textSize="13sp" />
+        <TextView
+            android:id="@+id/txt_sub_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/txt_title"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="5dp"
+            android:visibility="gone"
+            android:text="Quickly join your meeting!!!!"
+            android:textColor="@color/colorGray"
+            android:textStyle="normal"
+            android:fontFamily="@font/roboto"
+            android:textSize="13sp" />
+    </RelativeLayout>
+
+
+</FrameLayout>

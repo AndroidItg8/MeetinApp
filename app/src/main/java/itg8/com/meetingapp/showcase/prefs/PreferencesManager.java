@@ -21,7 +21,7 @@ public class PreferencesManager {
     }
 
     public void setDisplayed(String id){
-        sharedPreferences.edit().putBoolean(id,true).apply();
+        sharedPreferences.edit().putBoolean(id,false).apply();
     }
 
     public void reset(String id){

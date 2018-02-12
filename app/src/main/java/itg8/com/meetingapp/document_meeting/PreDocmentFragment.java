@@ -1,8 +1,10 @@
 package itg8.com.meetingapp.document_meeting;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,11 +13,16 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
+import android.text.Spanned;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.net.URI;
@@ -29,11 +36,8 @@ import butterknife.Unbinder;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.db.DaoDocumentInteractor;
-import itg8.com.meetingapp.db.DaoMeetingInteractor;
 import itg8.com.meetingapp.db.TblDocument;
-import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.meeting.MeetingDocumentAdapter;
-import itg8.com.meetingapp.wallet_document.WalletActivity;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -45,9 +49,18 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String TAG = PreDocmentFragment.class.getSimpleName();
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     Unbinder unbinder;
+    @BindView(R.id.img_no_meeting)
+    ImageView imgNoMeeting;
+    @BindView(R.id.txt_title)
+    TextView txtTitle;
+    @BindView(R.id.txt_sub_title)
+    TextView txtSubTitle;
+    @BindView(R.id.rl_no_doc_item)
+    RelativeLayout rlNoDocItem;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -98,13 +111,38 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
     }
 
     private void init() {
+        if (getTblDocuments().size() > 0) {
+            showRecyclerView();
+            recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+            DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
+            recyclerView.addItemDecoration(itemDecoration);
+            recyclerView.setAdapter(new PreDocAdpater(getActivity(), getTblDocuments(), this));
+        }else {
+            hideRecyclerView();
+            txtTitle.setText(formatPlaceDetails(getResources(),"Till Now Not Add Document To meeting","Quickly add document to","DocWallet","to get access fast!!!!"));
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
-        recyclerView.addItemDecoration(itemDecoration);
-        recyclerView.setAdapter(new PreDocAdpater(getActivity(), getTblDocuments(), this));
+        }
 
     }
+
+    private void hideRecyclerView() {
+        recyclerView.setVisibility(View.GONE);
+        rlNoDocItem.setVisibility(View.VISIBLE);
+    }
+
+    private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
+                                              CharSequence doc_name, String remaing) {
+        Log.e(TAG, res.getString(R.string.no_document_details, title, sub_title, doc_name,remaing));
+        return Html.fromHtml(res.getString(R.string.no_document_details, title, sub_title, doc_name,remaing));
+
+    }
+
+    private void showRecyclerView() {
+        recyclerView.setVisibility(View.VISIBLE);
+        rlNoDocItem.setVisibility(View.GONE);
+
+    }
+
     @NonNull
     private List<TblDocument> getTblDocuments() {
 
@@ -156,7 +194,7 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
 
             case R.id.action_share:
 
-                shareItem(getActivity(),"TITLE","BODY", null);
+                shareItem(getActivity(), "TITLE", "BODY", null);
 
                 return true;
 
@@ -167,7 +205,6 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
 
         return false;
     }
-
 
 
     @Override
@@ -185,7 +222,7 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
                         "You Clicked : " + item.getTitle(),
                         Toast.LENGTH_SHORT
                 ).show();
-                shareItem(getActivity(),"TITLE","BODY", null);
+                shareItem(getActivity(), "TITLE", "BODY", null);
                 return true;
             }
         });
@@ -200,12 +237,11 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
             sharingIntent.setType("image/*");
             sharingIntent.putExtra(Intent.EXTRA_STREAM, uri);
 
-        }else
-        {
+        } else {
             sharingIntent.setType("text/plain");
         }
-        sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, title);
-        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, body);
+        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, title);
+        sharingIntent.putExtra(Intent.EXTRA_TEXT, body);
         sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         context.startActivity(Intent.createChooser(sharingIntent, "Share"));
 

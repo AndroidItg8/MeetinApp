@@ -1,10 +1,55 @@
-<android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/recyclerView"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="itg8.com.meetingapp.document_meeting.PreDocmentFragment">
+    <android.support.v7.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:id="@+id/recyclerView"/>
 
 
+    <RelativeLayout
+        android:id="@+id/rl_no_doc_item"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-</android.support.v7.widget.RecyclerView>
+        <ImageView
+            android:id="@+id/img_no_meeting"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerInParent="true"
+            app:srcCompat="@drawable/ic_documents" />
+
+        <TextView
+            android:id="@+id/txt_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/img_no_meeting"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/roboto"
+            android:text="Till Now Not Add Document To meeting !!!"
+            android:textColor="@color/colorBlack"
+            android:textSize="13sp"
+            android:textStyle="normal" />
+
+        <TextView
+            android:id="@+id/txt_sub_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/txt_title"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:layout_marginTop="5dp"
+            android:visibility="gone"
+            android:fontFamily="@font/roboto"
+            android:text="Quickly add document to DocWallet to get access fast!!!!"
+            android:textColor="@color/colorGray"
+            android:textSize="13sp"
+            android:textStyle="normal" />
+    </RelativeLayout>
+
+</FrameLayout>

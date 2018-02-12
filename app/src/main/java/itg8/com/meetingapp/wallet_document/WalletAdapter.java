@@ -1,5 +1,6 @@
 package itg8.com.meetingapp.wallet_document;
 
+
 import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.DividerItemDecoration;
@@ -13,9 +14,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
 import java.util.List;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
@@ -55,7 +54,7 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
         itemRowHolder.recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         DividerItemDecoration itemDecoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
         itemRowHolder.recyclerView.addItemDecoration(itemDecoration);
-//        itemRowHolder.recyclerView.setAdapter(new PreDocAdpater(context,  list.get(position).getDocuments().getWrappedIterable().iterator().next(),this));
+        itemRowHolder.recyclerView.setAdapter(new PreDocAdpater(context, (List<TblDocument>) list.get(position).getDocuments(),this));
         itemRowHolder.lblTitleFull.setVisibility(View.GONE);
         itemRowHolder.lblTitle.setVisibility(View.VISIBLE);
         itemRowHolder.lblTitleFull.setText(list.get(position).getTitle());
@@ -67,13 +66,13 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
 
     @Override
     public int getItemCount() {
-        return list.size();
+        return 7;
 
     }
 
     @Override
     public void onItemClcikedListener(int position, TblDocument item, ImageView img) {
-        listner.onItemImgMoreClickListner(position, (TblDocument) list.get(position).getDocuments(), img);
+        listner.onItemImgMoreClickListner(position,  list.get(position), img);
     }
 
     public class WalletViewHolder extends RecyclerView.ViewHolder {
@@ -107,7 +106,6 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
                 @Override
                 public boolean onTouch(View view, MotionEvent motionEvent) {
                    boolean b= listner.onLongPressClickListner(getAdapterPosition(), list.get(getAdapterPosition()), rlRoot, cardView, lblTitle,lblTitleFull, motionEvent);
-
                     return true;
                 }
             });
@@ -116,6 +114,6 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
     public interface cardOnLongPressListerner {
 
         boolean  onLongPressClickListner(int position, TblMeeting list, RelativeLayout view, CardView cradView, TextView textView, TextView lblTitleFull, MotionEvent motionEvent);
-        void  onItemImgMoreClickListner(int position, TblDocument document, ImageView img);
+        void  onItemImgMoreClickListner(int position, TblMeeting meeting  , ImageView img);
     }
 }
