@@ -121,14 +121,14 @@ public class ImportMessageDetailActivity extends AppCompatActivity implements Vi
                 startActivity(new Intent(getApplicationContext(), DocumentMeetingActivity.class));
                 break;
             case R.id.img_edit:
-                callMeetingActivityForEdith();
+                callMeetingActivityForEdit();
                 break;
         }
     }
 
-    private void callMeetingActivityForEdith() {
+    private void callMeetingActivityForEdit() {
         Intent intent = new Intent(ImportMessageDetailActivity.this, MeetingActivity.class);
-        intent.putParcelableArrayListExtra(CommonMethod.MEETING, (ArrayList<? extends Parcelable>) new DaoMeetingInteractor(ImportMessageDetailActivity.this).getMeetings());
+//        intent.putParcelableArrayListExtra(CommonMethod.MEETING, (ArrayList<? extends Parcelable>) new DaoMeetingInteractor(ImportMessageDetailActivity.this).getMeetings());
         startActivityForResult(intent, RC_MEETING_EDIT);
 
     }

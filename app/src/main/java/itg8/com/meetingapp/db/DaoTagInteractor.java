@@ -21,29 +21,17 @@ public class DaoTagInteractor {
         helper=DBManager.getInstance().getHelper();
     }
 
-    public void insert(TblTAG tag){
-        try {
+    public void insert(TblTAG tag) throws SQLException {
             helper.getTagDao().create(tag);
             Log.d(TAG,"InsertData InDb:"+new Gson().toJson(tag));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
-    public void update(TblTAG meeting){
-        try {
+    public void update(TblTAG meeting) throws SQLException {
             helper.getTagDao().update(meeting);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
-    public void delete(TblTAG meeting){
-        try {
+    public void delete(TblTAG meeting) throws SQLException {
             helper.getTagDao().delete(meeting);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
     }
 
 //    public List<TblTAG> getTAGByDate(Date date){
@@ -55,13 +43,8 @@ public class DaoTagInteractor {
 //        return null;
 //    }
 
-    public List<TblTAG> getTags(){
-        try {
+    public List<TblTAG> getTags() throws SQLException {
             return helper.getTagDao().queryForAll();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
 }

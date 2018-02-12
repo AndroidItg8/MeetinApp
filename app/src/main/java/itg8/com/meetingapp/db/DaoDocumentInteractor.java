@@ -18,35 +18,19 @@ public class DaoDocumentInteractor {
         helper=DBManager.getInstance().getHelper();
     }
 
-    public void insert(TblDocument document){
-        try {
+    public void insert(TblDocument document) throws SQLException {
             helper.getDocumentDao().create(document);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
-    public void update(TblDocument document){
-        try {
+    public void update(TblDocument document) throws SQLException {
             helper.getDocumentDao().update(document);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
-    public void delete(TblDocument document){
-        try {
+    public void delete(TblDocument document) throws SQLException {
             helper.getDocumentDao().delete(document);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
-    }  public List<TblDocument> getAll(){
-        try {
+    }
+    public List<TblDocument> getAll() throws SQLException {
            return helper.getDocumentDao().queryForAll();
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
-        return null;
     }
 
 

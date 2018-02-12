@@ -9,7 +9,9 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import itg8.com.meetingapp.common.Helper;
 
@@ -28,6 +30,9 @@ public class TblMeeting implements Parcelable {
     public static final String PRIORITY="priority";
     public static final String DATE="dateonly";
     public static final String CREATED="created";
+    public static final String LATITUDE="latitude";
+    public static final String LONGITUDE="longitude";
+    public static final String ADDRESS="address";
 
     @DatabaseField(columnName = FIELD_ID,generatedId = true)
     private long pkid;
@@ -50,6 +55,40 @@ public class TblMeeting implements Parcelable {
     @DatabaseField(columnName = CREATED, dataType = DataType.DATE_LONG)
     private Date created;
 
+    @DatabaseField(columnName = LATITUDE)
+    private double latitude;
+
+    @DatabaseField(columnName = LONGITUDE)
+    private double longitude;
+
+    @DatabaseField(columnName = ADDRESS)
+    private String address;
+
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     @ForeignCollectionField
     private ForeignCollection<TblDocument> documents;
 
@@ -64,11 +103,9 @@ public class TblMeeting implements Parcelable {
     public TblMeeting() {
     }
 
-    public ForeignCollection<TblDocument> getDocuments() {
-        return documents;
+    public List<TblDocument> getDocuments() {
+        return new ArrayList<>(documents);
     }
-
-
 
     public void setDocuments(ForeignCollection<TblDocument> documents) {
         this.documents = documents;
@@ -142,6 +179,9 @@ public class TblMeeting implements Parcelable {
         dest.writeLong(this.startTime != null ? this.startTime.getTime() : -1);
         dest.writeLong(this.endTime != null ? this.endTime.getTime() : -1);
         dest.writeInt(this.priority);
+        dest.writeDouble(this.latitude);
+        dest.writeDouble(this.longitude);
+        dest.writeString(this.address);
         dest.writeLong(this.date != null ? this.date.getTime() : -1);
         dest.writeLong(this.created != null ? this.created.getTime() : -1);
     }
@@ -155,6 +195,9 @@ public class TblMeeting implements Parcelable {
         this.endTime = tmpEndTime == -1 ? null : new Date(tmpEndTime);
         this.priority = in.readInt();
         long tmpDate = in.readLong();
+        this.latitude = in.readDouble();
+        this.longitude = in.readDouble();
+        this.address = in.readString();
         this.date = tmpDate == -1 ? null : new Date(tmpDate);
         long tmpCreated = in.readLong();
         this.created = tmpCreated == -1 ? null : new Date(tmpCreated);
@@ -172,16 +215,16 @@ public class TblMeeting implements Parcelable {
         }
     };
 
-    public ForeignCollection<TblTAG> getTags() {
-        return tags;
+    public List<TblTAG> getTags() {
+        return new ArrayList<>(tags);
     }
 
     public void setTags(ForeignCollection<TblTAG> tags) {
         this.tags = tags;
     }
 
-    public ForeignCollection<TblContact> getContacts() {
-        return contacts;
+    public List<TblContact> getContacts() {
+        return new ArrayList<>(contacts);
     }
 
     public void setContacts(ForeignCollection<TblContact> contacts) {

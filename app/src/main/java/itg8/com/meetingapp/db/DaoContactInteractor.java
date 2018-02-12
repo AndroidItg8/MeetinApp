@@ -16,28 +16,16 @@ public class DaoContactInteractor {
         helper=DBManager.getInstance().getHelper();
     }
 
-    public void insert(TblContact contact){
-        try {
+    public void insert(TblContact contact) throws SQLException {
             helper.getContactDao().create(contact);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
-    public void update(TblContact contact){
-        try {
+    public void update(TblContact contact) throws SQLException {
             helper.getContactDao().update(contact);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
-    public void delete(TblContact contact){
-        try {
+    public void delete(TblContact contact) throws SQLException {
             helper.getContactDao().delete(contact);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
     }
 
 //    public List<TblContact> getTAGByDate(Date date){
@@ -49,12 +37,7 @@ public class DaoContactInteractor {
 //        return null;
 //    }
 
-    public List<TblContact> getContacts(){
-        try {
+    public List<TblContact> getContacts() throws SQLException {
             return helper.getContactDao().queryForAll();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 }

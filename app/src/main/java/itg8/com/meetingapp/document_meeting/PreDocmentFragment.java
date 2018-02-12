@@ -19,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.net.URI;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -133,7 +134,12 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
         document.setFileName("PPT FILE");
         document.setFileExt(CommonMethod.EXT_PPT);
         list.add(document);
-        return new DaoDocumentInteractor(getActivity()).getAll();
+        try {
+            return new DaoDocumentInteractor(getActivity()).getAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return list;
+        }
     }
 
 

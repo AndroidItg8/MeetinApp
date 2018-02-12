@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,7 +68,11 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     private void init() {
         tagInteractor = new DaoTagInteractor(TAGActivity.this);
         btnAdd.setOnClickListener(this);
-        tagList = tagInteractor.getTags();
+        try {
+            tagList = tagInteractor.getTags();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         if (tagList != null && tagList.size() > 0) {
             showHideView(recyclerView, rlNoTag);
             createRecyclerView();
@@ -95,7 +100,11 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     private void updateTAGItem() {
         tag = new TblTAG();
         tag.setName(edtDocumentTitle.getText().toString().trim());
-        tagInteractor.insert(tag);
+        try {
+            tagInteractor.insert(tag);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         showHideView(recyclerView, rlNoTag);
 //        tagList.add(tag);

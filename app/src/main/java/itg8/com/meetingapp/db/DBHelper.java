@@ -16,7 +16,7 @@ import java.sql.SQLException;
 
 public class DBHelper extends OrmLiteSqliteOpenHelper {
     private static final String DB_NAME="meetingDb";
-    private static final int DB_VERSION=1;
+    private static final int DB_VERSION=2;
 
     private Dao<TblDocument,Integer> documentDao=null;
     private Dao<TblMeeting,Integer> meetingDao=null;

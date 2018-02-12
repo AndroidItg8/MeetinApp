@@ -17,6 +17,8 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -25,8 +27,10 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -60,6 +64,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -219,6 +224,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private TAGAddAdapter tagAddAdapter;
     private DaoTagInteractor tagInteractor;
     private TblTAG tag;
+    private DaoContactInteractor daoContact;
+    private DaoDocumentInteractor daoDocument;
+    private DaoMeetingInteractor daoMeeting;
+    private DaoTagInteractor daoTag;
 
     /**
      * Helper method to format information about a place nicely.
@@ -296,12 +305,20 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void init() {
+        initDaoInteractors();
         setDefaultInfo();
         setOnClickedListener();
         setContacRecyclerView();
         createRecyclerViewForTAG();
 
 
+    }
+
+    private void initDaoInteractors() {
+        daoContact=new DaoContactInteractor(this);
+        daoDocument=new DaoDocumentInteractor(this);
+        daoMeeting=new DaoMeetingInteractor(this);
+        daoTag=new DaoTagInteractor(this);
     }
 
     private void setDefaultInfo() {
@@ -355,17 +372,93 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void storeToDb() {
-        TblMeeting meeting = getCompleteDetailForMeeting();
-        DaoMeetingInteractor interactor = new DaoMeetingInteractor(MeetingActivity.this);
-        interactor.insert(meeting);
+        if(!validateMeetingDetails()){
+            return;
+        }
+        boolean isInserted = getCompleteDetailForMeeting();
+        if(isInserted){
+            Toast.makeText(this, "Meeting stored successfully", Toast.LENGTH_SHORT).show();
+            onBackPressed();
+        }else {
+            Toast.makeText(this, "Fail to store meeting.", Toast.LENGTH_SHORT).show();
+        }
+//        DaoMeetingInteractor interactor = new DaoMeetingInteractor(MeetingActivity.this);
+//        interactor.insert(meeting);
 
     }
 
-    private TblMeeting getCompleteDetailForMeeting() {
-        TblMeeting meeting = new TblMeeting();
+    private boolean validateMeetingDetails() {
+        if(TextUtils.isEmpty(edtAgenda.getText().toString())){
+            String error = "Please enter meeting agenda";
+            ForegroundColorSpan fgcspan = new ForegroundColorSpan(ContextCompat.getColor(this,R.color.colorWhite));
+            SpannableStringBuilder ssbuilder = new SpannableStringBuilder(error);
+            ssbuilder.setSpan(fgcspan, 0, error.length(), 0);
+            edtAgenda.setError(ssbuilder);
+            return false;
+        }
+        if(!isReminderDateTimeSet()){
+            toggleDueView(SHOW_DUE);
+            showSnackbar("Set meeting date and time first");
+            return false;
+        }else if(!isPrioritySet()){
+            toggleReminderView(SHOW_REMINDER);
+            showSnackbar("Set meeting priority");
+            return false;
+        }
+        return true;
+    }
 
+    private void showSnackbar(String text) {
+        Snackbar snackbar=Snackbar.make(rlReminder,text,Snackbar.LENGTH_LONG);
+        snackbar.show();
+    }
 
-        return meeting;
+    private boolean getCompleteDetailForMeeting() {
+        meeting.setTitle(edtAgenda.getText().toString());
+        meeting.setCreated(Calendar.getInstance().getTime());
+        meeting.setStartTime(selectedStartTime.getTime());
+        meeting.setEndTime(selectedEndTime.getTime());
+        try {
+            daoMeeting.insert(meeting);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        for (TblContact contact :
+                contactList) {
+            contact.setMeeting(meeting);
+            try {
+                daoContact.insert(contact);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        for (TblDocument document :
+                documents) {
+            if(document==null)
+                continue;
+            document.setMeeting(meeting);
+            try {
+                daoDocument.insert(document);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        for (TblTAG tag :
+                tagList) {
+            tag.setMeeting(meeting);
+            try {
+                daoTag.insert(tag);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -507,7 +600,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                     if (b) {
                         contact.setName(finalLblDocumentNote2.getText().toString().trim());
                         contact.setNumber("NOT AVAILABLE");
-                        contactInteractor.insert(contact);
+//                        contactInteractor.insert(contact);
                         contactList.add(contact);
                         adapterContact.notifyDataSetChanged();
                     } else {
@@ -579,6 +672,13 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 selectedStartTime.set(Calendar.HOUR_OF_DAY, selectedHour);
                 selectedStartTime.set(Calendar.MINUTE, selectedMinute);
                 edtStartTime.setText(Helper.getStringTimeFromDate(selectedStartTime.getTime()));
+                meeting.setStartTime(selectedStartTime.getTime());
+                if((selectedEndTime.getTimeInMillis()-selectedStartTime.getTimeInMillis())<60000){
+                    selectedEndTime.set(Calendar.HOUR_OF_DAY,selectedHour+1);
+                    selectedEndTime.set(Calendar.MINUTE,selectedMinute);
+                    edtEndTime.setText(Helper.getStringTimeFromDate(selectedEndTime.getTime()));
+                }
+                meeting.setEndTime(selectedEndTime.getTime());
             }
         }, hour, minute, false);//Yes 24 hour time
         mTimePicker.setTitle("Select Time");
@@ -594,9 +694,14 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         mTimePicker = new TimePickerDialog(MeetingActivity.this, new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+                if(selectedStartTime.getTimeInMillis()>selectedEndTime.getTimeInMillis()){
+                    showSnackbar("End time should be greater than Start time");
+                    return;
+                }
                 selectedEndTime.set(Calendar.HOUR_OF_DAY, selectedHour);
                 selectedEndTime.set(Calendar.MINUTE, selectedMinute);
                 edtEndTime.setText(Helper.getStringTimeFromDate(selectedEndTime.getTime()));
+
             }
         }, hour, minute, false);//Yes 24 hour time
         mTimePicker.setTitle("Select Time");
@@ -703,7 +808,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 //                lblAddName.setText(formatPlaceDetails(getResources(), place.getName(),
 //                        place.getId(), place.getAddress(), place.getPhoneNumber(),
 //                        place.getWebsiteUri()));
-
+                meeting.setLatitude(place.getLatLng().latitude);
+                meeting.setLongitude(place.getLatLng().longitude);
+                meeting.setAddress(String.valueOf(place.getAddress()));
                 lblAddName.setText(place.getAddress());
 
                 // Display attributions if required.
@@ -901,8 +1008,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         document.setMeeting(meeting);
         documents.add(document);
         adapter.notifyDataSetChanged();
-        DaoDocumentInteractor interactor = new DaoDocumentInteractor(MeetingActivity.this);
-        interactor.insert(document);
+
     }
 
     /**
@@ -999,6 +1105,20 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         }
 
     }
+
+    /**
+     * check if reminder date set or not
+     */
+    private boolean isReminderDateTimeSet(){
+        return rlDue.getVisibility()==View.VISIBLE;
+    }
+    /**
+     * check if priority set or not
+     */
+    private boolean isPrioritySet(){
+        return rlReminder.getVisibility()==View.VISIBLE;
+    }
+
 
     private void showDialogBox() {
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(MeetingActivity.this);

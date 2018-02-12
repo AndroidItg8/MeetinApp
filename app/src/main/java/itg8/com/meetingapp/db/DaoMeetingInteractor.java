@@ -18,47 +18,25 @@ public class DaoMeetingInteractor {
         helper=DBManager.getInstance().getHelper();
     }
 
-    public void insert(TblMeeting meeting){
-        try {
+    public void insert(TblMeeting meeting) throws SQLException{
             helper.getMeetingDao().create(meeting);
             Log.d("TAG","InsertMeeting");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
-    public void update(TblMeeting meeting){
-        try {
+    public void update(TblMeeting meeting) throws SQLException{
             helper.getMeetingDao().update(meeting);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
-    public void delete(TblMeeting meeting){
-        try {
+    public void delete(TblMeeting meeting) throws SQLException{
             helper.getMeetingDao().delete(meeting);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
     }
 
-    public List<TblMeeting> getMeetingsByDate(Date date){
-        try {
+    public List<TblMeeting> getMeetingsByDate(Date date) throws SQLException{
             return helper.getMeetingDao().queryForEq(TblMeeting.DATE,date);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
-    public List<TblMeeting> getMeetings(){
-        try {
+    public List<TblMeeting> getMeetings() throws SQLException{
             return helper.getMeetingDao().queryForAll();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
 }

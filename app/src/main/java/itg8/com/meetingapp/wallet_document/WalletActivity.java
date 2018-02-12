@@ -25,6 +25,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import butterknife.BindView;
@@ -166,7 +167,12 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
     private List<TblMeeting> getTblDocuments() {
 
 
-        List<TblMeeting> listMeeting = new DaoMeetingInteractor(WalletActivity.this).getMeetings();
+        List<TblMeeting> listMeeting = null;
+        try {
+            listMeeting = new DaoMeetingInteractor(WalletActivity.this).getMeetings();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 //
 //        TblDocument document = new TblDocument();
 //        List<TblDocument> list = new ArrayList<>();

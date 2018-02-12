@@ -21,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -119,7 +120,13 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
 //        document.setFileName("PPT FILE");
 //        document.setFileExt(CommonMethod.EXT_PPT);
 //        list.add(document);
-        return  new DaoDocumentInteractor(getActivity()).getAll();
+        try {
+            return  new DaoDocumentInteractor(getActivity()).getAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+
+        }
+        return null;
     }
 
     @Override
