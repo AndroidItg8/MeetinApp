@@ -60,7 +60,8 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
             }
 
         } else {
-            if (mActionMode == null) mActionMode = ((AppCompatActivity) activity).startSupportActionMode(mActionModeCallback);
+            if (mActionMode == null)
+                mActionMode = ((AppCompatActivity) activity).startSupportActionMode(mActionModeCallback);
         }
         if (mActionMode != null) {
             if (checkBoxCount == 1) {
@@ -122,9 +123,6 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
             }
 
             Bundle resultData = new Bundle();
-
-
-
             resultData.putParcelableArrayList("contacts", selectedContacts);
             Intent intent = new Intent();
             intent.putExtras(resultData);

@@ -7,16 +7,14 @@ import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
@@ -26,17 +24,16 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.text.Html;
+import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
-import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.ArrayAdapter;
@@ -72,12 +69,16 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.DocType;
 import itg8.com.meetingapp.common.Helper;
+import itg8.com.meetingapp.custom_tag.MaxHeightScrollView;
+import itg8.com.meetingapp.custom_tag.TagContainerLayout;
+import itg8.com.meetingapp.custom_tag.TagView;
 import itg8.com.meetingapp.db.DaoContactInteractor;
 import itg8.com.meetingapp.db.DaoDocumentInteractor;
 import itg8.com.meetingapp.db.DaoMeetingInteractor;
@@ -93,7 +94,7 @@ import itg8.com.meetingapp.meeting.mvp.MeetingPresenterImp;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
-public class MeetingActivity extends AppCompatActivity implements View.OnClickListener, EasyPermissions.PermissionCallbacks, MeetingDocumentAdapter.OnRecyclerviewItemClickedListener, MeetingMVP.MeetingView, TAGAdapter.TAGItemClickedListner, TAGAddAdapter.onItemClickedListener {
+public class MeetingActivity extends AppCompatActivity implements View.OnClickListener, EasyPermissions.PermissionCallbacks, MeetingDocumentAdapter.OnRecyclerviewItemClickedListener, MeetingMVP.MeetingView, TAGAdapter.TAGItemClickedListner, View.OnTouchListener {
 
 
     private static final boolean SHOW_DUE = true;
@@ -119,12 +120,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private static final int RC_TAG = 800;
     @BindView(R.id.toolbar)
     Toolbar toolbar;
-    @BindView(R.id.toolbar_layout)
-    CollapsingToolbarLayout toolbarLayout;
-    @BindView(R.id.app_bar)
-    AppBarLayout appBar;
-    @BindView(R.id.lbl_due_date)
-    TextView lblDueDate;
+    @BindView(R.id.scrollView)
+    MaxHeightScrollView scrollView;
+    //    @BindView(R.id.app_bar)
+//    RelativeLayout appBar;
+
     @BindView(R.id.lbl_lab)
     TextView lblLab;
     @BindView(R.id.img_due_cross)
@@ -179,10 +179,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     ImageView imgPhoneBook;
     @BindView(R.id.lbl_add_person)
     TextView lblAddPerson;
-    @BindView(R.id.recyclerView)
-    RecyclerView recyclerView;
-    @BindView(R.id.ll_add_person)
-    LinearLayout llAddPerson;
+    //    @BindView(R.id.recyclerView)
+//    RecyclerView recyclerView;
+ ;
     @BindView(R.id.fab)
     FloatingActionButton fab;
     @BindView(R.id.rl_address)
@@ -196,10 +195,24 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     @BindView(R.id.edt_agenda)
     EditText edtAgenda;
-    @BindView(R.id.recyclerViewTAG)
-    RecyclerView recyclerViewTAG;
+    //    @BindView(R.id.recyclerViewTAG)
+//    RecyclerView recyclerViewTAG;
     TblContact contact = new TblContact();
     DaoContactInteractor contactInteractor;
+    EditText lblDocumentNote = null;
+    EditText edtNumber = null;
+    TextInputLayout inputLayout = null;
+    TextInputLayout inputLayoutNumber = null;
+    @BindView(R.id.tag_container_layout)
+    TagContainerLayout tagContainerLayout;
+    @BindView(R.id.rl_tag_container)
+    RelativeLayout rlTagContainer;
+    @BindView(R.id.lbl_due_date)
+    TextView lblDueDate;
+    @BindView(R.id.tag_container_layout_participant)
+    TagContainerLayout tagContainerLayoutParticipant;
+    @BindView(R.id.ll_add_person)
+    LinearLayout llAddPerson;
     private String[] permissions;
     private boolean canAccessCamera;
     private boolean canAccessLocation;
@@ -232,18 +245,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private DaoTagInteractor daoTag;
     private AlertDialog dialog;
 
-    /**
-     * Helper method to format information about a place nicely.
-     */
-    private static Spanned formatPlaceDetails(Resources res, CharSequence name, String id,
-                                              CharSequence address, CharSequence phoneNumber, Uri websiteUri) {
-        Log.e(TAG, res.getString(R.string.place_details, name, id, address, phoneNumber,
-                websiteUri));
-        return Html.fromHtml(res.getString(R.string.place_details, name, id, address, phoneNumber,
-                websiteUri));
-
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -253,7 +254,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         toolbar.setTitle(null);
+        toolbar.setTitleTextColor(Color.WHITE);
+        toolbar.setSubtitleTextColor(Color.WHITE);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_black_24dp);
         collapsed();
+
+//        adapterTAG = new TAGAdapter(tagList, this);
 
         presenter = new MeetingPresenterImp(this);
 
@@ -268,17 +274,25 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void createRecyclerViewForTAG() {
-        StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(3, LinearLayoutManager.HORIZONTAL);
-        recyclerViewTAG.setLayoutManager(staggeredGridLayoutManager);
-        adapterTAG = new TAGAdapter(tagList, this);
-        recyclerViewTAG.setAdapter(adapterTAG);
+        if (tagList.size() > 0) {
+            int size = tagList.size();
+
+            List<int[]> colors = new ArrayList<int[]>();
+            for (int i = 0; i < size; i++) {
+                int[] col1 = {Color.parseColor("#00000000"), Color.parseColor("#ffffff"), Color.parseColor("#ffffff")};
+                colors.add(col1);
+            }
+
+            tagContainerLayout.setTags(tagList, colors);
+        }
+
 
     }
 
     private void collapsed() {
-        AppBarLayout.LayoutParams params = (AppBarLayout.LayoutParams) toolbarLayout.getLayoutParams();
-        params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP); // list other flags here by |
-        toolbarLayout.setLayoutParams(params);
+//        AppBarLayout.LayoutParams params = (AppBarLayout.LayoutParams) toolbarLayout.getLayoutParams();
+//        params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP); // list other flags here by |
+//        toolbarLayout.setLayoutParams(params);
     }
 
     private void checkEveryPermissions() {
@@ -288,11 +302,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         canStorage = hasStoragePermission();
     }
 
-
     private void createRecyclerviewForDocuments() {
         documents.add(null);
         adapter = new MeetingDocumentAdapter(documents, this);
         rvDocuments.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, true));
+
         rvDocuments.setAdapter(adapter);
     }
 
@@ -308,13 +322,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         super.onStop();
     }
 
+
     private void init() {
         initDaoInteractors();
         setDefaultInfo();
         setOnClickedListener();
-        setContacRecyclerView();
-        createRecyclerViewForTAG();
-
+        setParticipantTAG();
 
     }
 
@@ -359,6 +372,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_home, menu);
+        MenuItem item = menu.findItem(R.id.action_save);
+        SpannableString s = new SpannableString("SAVE");
+        s.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), 0);
+        item.setTitle(s);
         return true;
     }
 
@@ -514,7 +531,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 openPhoneBook2();
                 break;
             case R.id.fab:
-                startActivityForResult(new Intent(MeetingActivity.this,TAGActivity.class),RC_TAG);
+                startActivityForResult(new Intent(MeetingActivity.this, TAGActivity.class), RC_TAG);
                 break;
         }
     }
@@ -533,16 +550,13 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         startActivityForResult(intent, RC_PHONE_BOOK);
 
     }
-    EditText lblDocumentNote = null;
-    EditText edtNumber = null;
-    TextInputLayout inputLayout = null;
-    TextInputLayout inputLayoutNumber = null;
+
     private void showDialogConatctBox() {
 
         View mView = null;
 
 
-     final    AlertDialog.Builder builderSingle = new AlertDialog.Builder(MeetingActivity.this);
+        final AlertDialog.Builder builderSingle = new AlertDialog.Builder(MeetingActivity.this);
 //        builderSingle.setIcon(R.drawable.ic_mode_edit);
         //  AlertDialog dialog = new AlertDialog(DocumentMeetingActivity.this);
 
@@ -552,16 +566,13 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         LayoutInflater layoutInflaterAndroid = LayoutInflater.from(MeetingActivity.this);
 
 
-            builderSingle.setTitle("Add Person:-");
-            mView = layoutInflaterAndroid.inflate(R.layout.add_participant, null);
-            edtNumber = (EditText) mView.findViewById(R.id.edt_person_number);
-            lblDocumentNote = (EditText) mView.findViewById(R.id.edt_document_title);
+        builderSingle.setTitle("Add Person:-");
+        mView = layoutInflaterAndroid.inflate(R.layout.add_participant, null);
+        edtNumber = (EditText) mView.findViewById(R.id.edt_person_number);
+        lblDocumentNote = (EditText) mView.findViewById(R.id.edt_document_title);
         inputLayout = (TextInputLayout) mView.findViewById(R.id.input_layout_name);
         inputLayoutNumber = (TextInputLayout) mView.findViewById(R.id.input_layout_number);
         builderSingle.setCancelable(false);
-
-
-
 
 
 //        else {
@@ -590,7 +601,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         });
 
 
-
 //            btnAdd.setOnClickListener(new View.OnClickListener() {
 //                @Override
 //                public void onClick(View view) {
@@ -601,8 +611,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 //
 //                }
 //            });
-
-
 
 
         builderSingle.setPositiveButton("Add", new DialogInterface.OnClickListener() {
@@ -621,12 +629,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 addPersonFromDialog();
             }
         });
-         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
-             @Override
-             public void onClick(View view) {
-                 dialog.dismiss();
-             }
-         });
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
 
 
     }
@@ -650,8 +658,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                     adapterContact.notifyDataSetChanged();
                     AddContactToPhoneContactList(lblDocumentNote.getText().toString().trim(), edtNumber.getText().toString().trim());
                     dialog.dismiss();
-                }else
-                {
+                } else {
 
                     inputLayoutNumber.setError("Add 10 digit Number");
                 }
@@ -712,49 +719,31 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
 
-    @Override
-    public void onTagItemDelete(int position, TblTAG tag) {
-        if (tag.isSelected()) {
-            tagList.remove(tag);
-            tagAddAdapter.notifyItemRemoved(position);
-            tagAddAdapter.notifyDataSetChanged();
-        } else {
 //
-// tagAddAdapter.notifyItemRemoved(position);
-            tagAddAdapter.notifyDataSetChanged();
-
-
-        }
-//             tagInteractor.delete(tag);
-
-
-    }
-
-
-    private void createRecyclerView(RecyclerView recyclerViewTag) {
-
-        recyclerViewTag.setHasFixedSize(true);
-
-        // use a linear layout manager
-        StaggeredGridLayoutManager linearLayoutManager = new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.HORIZONTAL);
-        recyclerViewTag.setLayoutManager(linearLayoutManager);
-
-        // specify an adapter (see also next example)
-        tagAddAdapter = new TAGAddAdapter(this, tagList, this);
-        recyclerViewTag.setAdapter(tagAddAdapter);
-    }
-
-    private void updateTAGItem(String value, EditText lblDocumentNote) {
-        tag = new TblTAG();
-        tag.setName(value);
-        //     tagInteractor.insert(tag);
-
-        tagList.add(tag);
-        tagAddAdapter.notifyDataSetChanged();
-        lblDocumentNote.setText("");
-
-
-    }
+//    private void createRecyclerView(RecyclerView recyclerViewTag) {
+//
+//        recyclerViewTag.setHasFixedSize(true);
+//
+//        // use a linear layout manager
+//        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+//        recyclerViewTag.setLayoutManager(linearLayoutManager);
+//
+//        // specify an adapter (see also next example)
+//        tagAddAdapter = new TAGAddAdapter(this, tagList, this);
+//        recyclerViewTag.setAdapter(tagAddAdapter);
+//    }
+//
+//    private void updateTAGItem(String value, EditText lblDocumentNote) {
+//        tag = new TblTAG();
+//        tag.setName(value);
+//        //     tagInteractor.insert(tag);
+//
+//        tagList.add(tag);
+//        tagAddAdapter.notifyDataSetChanged();
+//        lblDocumentNote.setText("");
+//
+//
+//    }
 
 
     private void openStartTimePicker() {
@@ -1027,33 +1016,32 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                     contact = new TblContact();
                     contact.setName(c.getName());
                     contact.setNumber(c.getNumber());
+                    contact.setSelected(true);
                     contactList.add(contact);
 //                    adapterContact.notifyItemInserted(contactList.size()-1);
                 }
 
-                adapterContact.notifyItemRangeInserted(itemCountOld, contactList.size());
-                recyclerView.invalidate();
-                //data.
-                // A contact was picked.  Here we will just display it
-                // to the user.
+            setParticipantTAG();
+
             }
         } else if (requestCode == RC_TAG) {
 //            getContactDetail(resultCode, data);
             if (resultCode == RESULT_OK) {
                 ArrayList<TblTAG> contacts = new ArrayList<TblTAG>();
+                tagList.clear();
+
+
                 contacts = data.getParcelableArrayListExtra("tag");
                 int itemCountOld = tagList.size();
+
                 for (TblTAG c : contacts) {
-//                    Log.d("Selected contact = ", c.getEmail());
                     tagModel = new TblTAG();
                     tagModel.setName(c.getName());
-//                    contact.setNumber(c.getNumber());
-                    tagList.add(tagModel);
-//                    adapterContact.notifyItemInserted(contactList.size()-1);
-                }
 
-                adapterTAG.notifyItemRangeInserted(itemCountOld, tagList.size());
-                recyclerViewTAG.invalidate();
+                    tagList.add(tagModel);
+                }
+                contacts.clear();
+                createRecyclerViewForTAG();
 
             }
         }
@@ -1088,13 +1076,55 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     }
 
-    public void setContacRecyclerView() {
-        StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(3, LinearLayoutManager.HORIZONTAL);
+    public void setParticipantTAG() {
+        if (contactList.size() > 0) {
+            int size = contactList.size();
 
-        recyclerView.setLayoutManager(staggeredGridLayoutManager);
+            List<int[]> colors = new ArrayList<int[]>();
+            for (int i = 0; i < size; i++) {
+             int   randomColor = new Random().nextInt(R.array.androidcolors);
 
-        adapterContact = new ParticipantTagAdapter(contactList);
-        recyclerView.setAdapter(adapterContact);
+
+                int[] col1 = {randomColor, Color.parseColor("#ffffff"), Color.parseColor("#ffffff")};
+                colors.add(col1);
+            }
+            tagContainerLayoutParticipant.setEnableCross(true);
+            tagContainerLayoutParticipant.setParticipantTags(contactList, colors);
+
+            tagContainerLayoutParticipant.setOnTagClickListener(new TagView.OnTagClickListener() {
+            @Override
+            public void onTagClick(int position, Object object) {
+//                try {
+////                    TblContact text= (TblContact) object;
+////                    text.setSelected(!text.isSelected());
+////                    contactInteractor.update(text);
+////                    tagContainerLayoutParticipant.changeSelectColor(position, text);
+//                } catch (SQLException e) {
+//                    e.printStackTrace();
+//                }
+
+            }
+
+            @Override
+            public void onTagLongClick(int position, Object text) {
+
+            }
+
+            @Override
+            public void onTagCrossClick(int position, Object object) {
+                TblContact test= (TblContact) object;
+                if (test.isSelected()) {
+                    tagContainerLayoutParticipant.removeTag(position);
+                    contactList.remove(position);
+                    test.setSelected(false);
+//                    tagContainerLayoutParticipant.changeSelectColor(position, test);
+
+                }
+
+            }
+        });
+    }
+
     }
 
     private void createDocumentFile(String mCurrentPhotoPath) {
@@ -1483,14 +1513,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
 
     @Override
-    public void onItemClicked(int position, TblTAG item) {
-
-
-        item.setSelected(true);
-        tagAddAdapter.notifyDataSetChanged();
-    }
-
-    @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
 
     }
@@ -1501,4 +1523,27 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 //        adapterTAG.notifyDataSetChanged();
 
     }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+
+        int action = event.getAction();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                // Disallow ScrollView to intercept touch events.
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+                break;
+
+            case MotionEvent.ACTION_UP:
+                // Allow ScrollView to intercept touch events.
+                v.getParent().requestDisallowInterceptTouchEvent(false);
+                break;
+        }
+
+        // Handle ScrollView touch events.
+        v.onTouchEvent(event);
+        return false;
+    }
+
+
 }

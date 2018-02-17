@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginTop="200dp"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="itg8.com.meetingapp.meeting.MeetingActivity"
     tools:showIn="@layout/activity_meeting">
@@ -545,13 +546,44 @@
                         android:visibility="visible" />
 
 
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/recyclerView"
+                    <!--<android.support.v7.widget.RecyclerView-->
+                        <!--android:id="@+id/recyclerView"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_below="@+id/lbl_add_person"-->
+                        <!--android:layout_marginBottom="8dp"-->
+                        <!--android:layout_marginTop="8dp" />-->
+
+                    <itg8.com.meetingapp.custom_tag.MaxHeightScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/lbl_add_person"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginTop="8dp" />
+                        android:id="@+id/scrollView"
+                        app:layout_scrollFlags="scroll|enterAlways|snap"
+                        android:scrollbars="vertical"
+                        android:layout_marginBottom="10dp"
+                        >
+
+                        <itg8.com.meetingapp.custom_tag.TagContainerLayout
+                            android:id="@+id/tag_container_layout_participant"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:visibility="visible"
+                            app:container_background_color="#00000000"
+                            app:container_border_color="#00000000"
+                            app:container_border_radius="0dp"
+                            app:container_enable_drag="false"
+                            app:container_gravity="left"
+                            app:horizontal_interval="10dp"
+                            app:tag_background_color="#ffffffff"
+                            app:tag_clickable="true"
+                            app:tag_corner_radius="15dp"
+                            app:tag_enable_cross="false"
+                            app:tag_ripple_alpha="47"
+                            app:vertical_interval="10dp"
+                            android:layout_marginBottom="10dp"/>
+                    </itg8.com.meetingapp.custom_tag.MaxHeightScrollView>
                 </RelativeLayout>
 
 

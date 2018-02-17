@@ -36,8 +36,9 @@ public class TAGAdapter extends RecyclerView.Adapter<TAGAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(TAGAdapter.ViewHolder holder, int position) {
-        holder.txtParticipantName.setText(contactList.get(position).getName());
         holder.setTextViewDrawableColor();
+        holder.txtParticipantName.setText(contactList.get(position).getName());
+
     }
 
     @Override

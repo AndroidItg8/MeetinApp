@@ -28,6 +28,7 @@ public class TblContact implements Parcelable {
 
     @DatabaseField(columnName = FIELD_MEETING_ID,foreign = true,foreignAutoRefresh = true)
     private TblMeeting meeting;
+    private boolean selected;
 
     public long getPkid() {
         return pkid;
@@ -101,4 +102,12 @@ public class TblContact implements Parcelable {
             return new TblContact[size];
         }
     };
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
 }

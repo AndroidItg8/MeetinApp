@@ -32,6 +32,8 @@ public class DaoTagInteractor {
 
     public void delete(TblTAG meeting) throws SQLException {
             helper.getTagDao().delete(meeting);
+    }    public void deleteAll(List<TblTAG> meeting) throws SQLException {
+            helper.getTagDao().delete(meeting);
     }
 
 //    public List<TblTAG> getTAGByDate(Date date){

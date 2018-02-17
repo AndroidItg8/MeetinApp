@@ -50,6 +50,7 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
 
         tabLayout.setupWithViewPager(viewPager);
 
+
     }
 
     private void setupViewPager(ViewPager viewPager) {

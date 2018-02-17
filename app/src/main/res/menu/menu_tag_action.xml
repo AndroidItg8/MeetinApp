@@ -3,21 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/m_search"
-
         android:icon="@drawable/ic_search_black_24dp"
-        android:orderInCategory="1"
         android:title="@string/search_title"
-        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:actionLayout="@layout/search_view_action_layout"
         app:showAsAction="always" />
 
-    <item
-        android:id="@+id/menu_ok"
-        android:actionLayout="@layout/action_ok_view"
+    <item android:id="@+id/menu_ok"
         android:orderInCategory="2"
-        android:title="@string/ok"
         android:icon="@drawable/button_ab_ok"
+        android:title="@string/ok"
         app:showAsAction="always" />
 
     <!--|collapseActionView-->
-    <!--app:actionLayout="@layout/search_view_layout"-->
 </menu>

@@ -7,71 +7,101 @@
     android:fitsSystemWindows="true"
     tools:context="itg8.com.meetingapp.meeting.MeetingActivity">
 
-    <android.support.design.widget.AppBarLayout
-        android:id="@+id/app_bar"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/app_bar_height"
-        android:fitsSystemWindows="true"
-        android:layout_marginBottom="16dp"
-        app:expandedTitleTextAppearance="@android:color/transparent"
-        android:theme="@style/AppTheme.AppBarOverlay">
+    <!--<RelativeLayout-->
+        <!--android:id="@+id/app_bar"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="200dp"-->
+        <!--android:background="@color/theme_primary"-->
+        <!--&gt;-->
 
-        <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/toolbar_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
-            app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
-            app:expandedTitleTextAppearance="@style/CollapsingToolbarLayoutExpandedTextStyle"
-            app:toolbarId="@+id/toolbar">
+        <!--<android.support.design.widget.CollapsingToolbarLayout-->
+            <!--android:id="@+id/toolbar_layout"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:fitsSystemWindows="true"-->
+            <!--app:contentScrim="?attr/colorPrimary"-->
+            <!--app:expandedTitleTextAppearance="@style/CollapsingToolbarLayoutExpandedTextStyle"-->
+            <!--app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"-->
+            <!--app:toolbarId="@+id/toolbar">-->
 
+        <!--android:fitsSystemWindows="true"-->
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin"
-                app:popupTheme="@style/AppTheme.PopupOverlay" />
+                android:background="@color/theme_primary"
 
+
+                app:popupTheme="@style/AppTheme.PopupOverlay" >
+
+            </android.support.v7.widget.Toolbar>
             <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginLeft="16dp"
+                android:id="@+id/rl_tag_container"
                 android:layout_marginTop="?attr/actionBarSize"
-                android:layout_marginBottom="16dp"
-                android:layout_marginRight="16dp">
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:paddingBottom="16dp"
+                android:paddingRight="16dp"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                android:paddingLeft="16dp"
+                android:background="@color/theme_primary"
+                android:scrollbars="vertical">
 
 
                 <EditText
                     android:id="@+id/edt_agenda"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/colorWhite"
-                    android:inputType="textCapCharacters"
-                    android:textSize="22sp"
-                    android:lines="2"
-                    android:gravity="top"
                     android:layout_marginTop="10dp"
+                    android:gravity="top"
                     android:hint="@string/ajenda"
-                    android:textColorHint="@color/colorWhite" />
+                    android:inputType="textCapCharacters"
+                    android:lines="2"
+                    android:textColor="@color/colorWhite"
+                    android:textColorHint="@color/colorWhite"
+                    android:textSize="22sp" />
 
-                <android.support.v7.widget.RecyclerView
+                <!--<android.support.v7.widget.RecyclerView-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:id="@+id/recyclerViewTAG"-->
+                <!--android:clipToPadding="false"-->
+                <!--android:padding="@dimen/item_offset"-->
+                <!--android:layout_below="@+id/edt_agenda"/>-->
+                <itg8.com.meetingapp.custom_tag.MaxHeightScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/recyclerViewTAG"
-                    android:layout_margin="05dp"
-                    android:layout_below="@+id/edt_agenda"/>
+                    android:layout_below="@+id/edt_agenda"
+                    android:id="@+id/scrollView"
+                    app:layout_scrollFlags="scroll|enterAlways|snap"
+                    android:scrollbars="vertical"
+                    android:layout_marginBottom="10dp"
+                 >
 
-
-
-
+                    <itg8.com.meetingapp.custom_tag.TagContainerLayout
+                        android:id="@+id/tag_container_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp"
+                        android:visibility="visible"
+                        app:container_background_color="#00000000"
+                        app:container_border_color="#00000000"
+                        app:container_border_radius="0dp"
+                        app:container_enable_drag="false"
+                        app:container_gravity="left"
+                        app:horizontal_interval="10dp"
+                        app:tag_background_color="#ffffffff"
+                        app:tag_clickable="true"
+                        app:tag_corner_radius="15dp"
+                        app:tag_enable_cross="false"
+                        app:tag_ripple_alpha="47"
+                        app:vertical_interval="10dp"
+                        android:layout_marginBottom="10dp"/>
+                </itg8.com.meetingapp.custom_tag.MaxHeightScrollView>
 
             </RelativeLayout>
 
-        </android.support.design.widget.CollapsingToolbarLayout>
-    </android.support.design.widget.AppBarLayout>
 
     <include layout="@layout/content_meeting" />
 
@@ -80,8 +110,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
-        app:layout_anchor="@id/app_bar"
         android:visibility="visible"
+        app:layout_anchor="@id/rl_tag_container"
         app:layout_anchorGravity="bottom|end"
         app:srcCompat="@drawable/ic_add_black_24dp" />
 

@@ -70,7 +70,7 @@ public class NotificationBroadcast extends BroadcastReceiver {
         NotificationManager managerCompat= (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if(managerCompat!=null && builder!=null)
             managerCompat.notify(CommonMethod.STATIC_NOTIFICATION_ID,builder.build());
-        else
-            throw new NullPointerException("NotificationService not available.");
+//        else
+//            throw new NullPointerException("NotificationService not available.");
     }
 }

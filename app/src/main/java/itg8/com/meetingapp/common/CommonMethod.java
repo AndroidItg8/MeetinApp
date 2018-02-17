@@ -1,5 +1,6 @@
 package itg8.com.meetingapp.common;
 
+import android.content.Context;
 import android.widget.ImageView;
 
 /**
@@ -68,6 +69,17 @@ public class CommonMethod {
 
     public  interface ItemClickListner{
         void onItemClcikedListener(int position, String item, ImageView img);
+    }
+
+
+    public static float dp2px(Context context, float dp) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return dp * scale + 0.5f;
+    }
+
+    public static float sp2px(Context context, float sp) {
+        final float scale = context.getResources().getDisplayMetrics().scaledDensity;
+        return sp * scale;
     }
 
 }

@@ -23,7 +23,7 @@
             android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:tabBackground="@color/colorPrimary"
+            app:tabBackground="@drawable/tab_color_selector"
             app:tabGravity="fill"
             app:tabIndicatorColor="@color/colorWhite"
             app:tabMode="fixed"
@@ -31,10 +31,12 @@
             app:tabTextColor="@color/colorWhite" />
 
     </android.support.design.widget.AppBarLayout>
+    <!--app:tabIndicatorColor="@drawable/tab_indicator_color_selector"-->
 
 
 
-        <android.support.v4.view.ViewPager
+
+    <android.support.v4.view.ViewPager
             android:id="@+id/viewPager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

@@ -4,8 +4,5 @@
     <corners android:radius="25dp"/>
 <!--<stroke android:color="@color/colorPrimary" android:width="1dp"/>-->
     <!--<solid android:color="@color/colorFacebook"/>-->
-    <padding android:right="04dp"
-        android:left="04dp"
-        android:top="4dp"
-        android:bottom="4dp"/>
+
 </shape>

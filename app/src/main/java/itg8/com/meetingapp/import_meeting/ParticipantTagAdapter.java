@@ -1,12 +1,9 @@
 package itg8.com.meetingapp.import_meeting;
 
-import android.content.Context;
+
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
-import android.support.v4.content.ContextCompat;
+
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,6 +37,7 @@ public class ParticipantTagAdapter extends RecyclerView.Adapter<ParticipantTagAd
     public void onBindViewHolder(ViewHolder holder, int position) {
             holder.setTextViewDrawableColor();
             holder.txtParticipantName.setText(contactList.get(position).getName());
+//            holder.txtParticipantName.setTextColor(Color.WHITE);
     }
 
     @Override
