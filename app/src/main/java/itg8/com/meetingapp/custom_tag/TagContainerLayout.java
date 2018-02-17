@@ -28,6 +28,7 @@ import android.support.annotation.DrawableRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -124,7 +125,7 @@ public class TagContainerLayout extends ViewGroup {
     /**
      * Horizontal padding for TagView, include left & right padding(left & right padding are equal, default 10dp)
      */
-    private int mTagHorizontalPadding = 8;
+    private int mTagHorizontalPadding = 10;
     /**
      * Vertical padding for TagView, include top & bottom padding(top & bottom padding are equal, default 8dp)
      */
@@ -536,7 +537,8 @@ public class TagContainerLayout extends ViewGroup {
 
         int[] colors;
         if (mColorArrayList != null && mColorArrayList.size() > 0) {
-            if (mColorArrayList.size() == size) {
+            if (mColorArrayList.size() == size &&
+                    mColorArrayList.get(position).length >= 3) {
                 colors = mColorArrayList.get(position);
             } else {
                 throw new RuntimeException("Illegal color list!");
@@ -546,20 +548,19 @@ public class TagContainerLayout extends ViewGroup {
         }
 
         if (isSelected) {
-            tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
+
+            tagView.setEnableCross(true);
 
              if (isFromContact) {
-                 tagView.setTagBackgroundColor(colors[0]);
-            }
 
+                 tagView.setTagBackgroundColor(colors[0]);
+            }else
+                 tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
 
 
         } else {
             tagView.setTagBackgroundColor(colors[0]);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                tagView.setTextAlignment(TEXT_ALIGNMENT_GRAVITY);
-            }
-
+            tagView.setEnableCross(false);
         }
 
         tagView.setTagBorderColor(colors[1]);
@@ -578,13 +579,16 @@ public class TagContainerLayout extends ViewGroup {
         tagView.setRippleAlpha(mRippleAlpha);
         tagView.setRippleColor(mRippleColor);
         tagView.setRippleDuration(mRippleDuration);
-        tagView.setEnableCross(mEnableCross);
+//        tagView.setEnableCross(mEnableCross);
         tagView.setCrossAreaWidth(mCrossAreaWidth);
         tagView.setCrossAreaPadding(mCrossAreaPadding);
         tagView.setCrossColor(mCrossColor);
         tagView.setCrossLineWidth(mCrossLineWidth);
         tagView.setTagSupportLettersRTL(mTagSupportLettersRTL);
         tagView.setBackgroundResource(mTagBackgroundResource);
+
+
+
 
 }
 
@@ -1447,12 +1451,10 @@ public class TagContainerLayout extends ViewGroup {
         if (getSelectedInfo(tag)) {
             tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
             tagView.setEnableCross(true);
-//            invalidate();
 
         } else {
             tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGoogle));
             tagView.setEnableCross(false);
-//            invalidate();
 
         }
     }

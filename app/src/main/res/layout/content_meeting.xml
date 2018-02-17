@@ -554,7 +554,7 @@
                         <!--android:layout_marginBottom="8dp"-->
                         <!--android:layout_marginTop="8dp" />-->
 
-                    <itg8.com.meetingapp.custom_tag.MaxHeightScrollView
+                    <ScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/lbl_add_person"
@@ -579,11 +579,12 @@
                             app:tag_background_color="#ffffffff"
                             app:tag_clickable="true"
                             app:tag_corner_radius="15dp"
-                            app:tag_enable_cross="false"
+                            app:tag_enable_cross="true"
                             app:tag_ripple_alpha="47"
                             app:vertical_interval="10dp"
+                            app:tag_theme="pure_teal"
                             android:layout_marginBottom="10dp"/>
-                    </itg8.com.meetingapp.custom_tag.MaxHeightScrollView>
+                    </ScrollView>
                 </RelativeLayout>
 
 

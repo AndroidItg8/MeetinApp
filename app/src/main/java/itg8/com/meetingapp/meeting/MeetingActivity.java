@@ -655,7 +655,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                     contact.setName(lblDocumentNote.getText().toString().trim());
                     contact.setNumber(edtNumber.getText().toString().trim());
                     contactList.add(contact);
-                    adapterContact.notifyDataSetChanged();
+//                    adapterContact.notifyDataSetChanged();
                     AddContactToPhoneContactList(lblDocumentNote.getText().toString().trim(), edtNumber.getText().toString().trim());
                     dialog.dismiss();
                 } else {
@@ -1085,10 +1085,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
              int   randomColor = new Random().nextInt(R.array.androidcolors);
 
 
-                int[] col1 = {randomColor, Color.parseColor("#ffffff"), Color.parseColor("#ffffff")};
+                int[] col1 = {randomColor, Color.parseColor("#6b6969"), Color.parseColor("#6b6969")};
                 colors.add(col1);
             }
             tagContainerLayoutParticipant.setEnableCross(true);
+            tagContainerLayoutParticipant.setCrossColor(Color.GRAY);
             tagContainerLayoutParticipant.setParticipantTags(contactList, colors);
 
             tagContainerLayoutParticipant.setOnTagClickListener(new TagView.OnTagClickListener() {

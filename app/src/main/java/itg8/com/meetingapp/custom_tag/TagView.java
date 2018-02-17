@@ -191,6 +191,8 @@ public class TagView extends View {
 
     public TagView(Context context, Object text) {
         super(context);
+        Log.d(TAG, "onDraw: ");
+
 
         init(context, text);
     }
@@ -202,6 +204,8 @@ public class TagView extends View {
         mRipplePaint.setStyle(Paint.Style.FILL);
         mRectF = new RectF();
         mPath = new Path();
+        Log.d(TAG, "init: ");
+
 
         mOriginText = text;
         mMoveSlop = (int) dp2px(context, mMoveSlop);
@@ -210,7 +214,7 @@ public class TagView extends View {
 
 
     private void onDealText() {
-
+        Log.d(TAG, "onDealText: ");
         if (!TextUtils.isEmpty(getName())) {
 
             mAbstractText = getName().length() <= mTagMaxLength ? getName()
@@ -244,24 +248,27 @@ public class TagView extends View {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
+        Log.d(TAG, "onMeasure: ");
         int height = mVerticalPadding * 2 + (int) fontH;
         int width = mHorizontalPadding * 2 + (int) fontW + (isEnableCross() ? height : 0);
         if (getSelectedInfo()) {
             mCrossAreaWidth = Math.min(Math.max(mCrossAreaWidth, height), width);
             setMeasuredDimension(width, height);
 //            Log.d(TAG, "onMeasure width mCrossAreaWidth: width " + width + " height" + height);
+
         } else {
 
-            setMeasuredDimension((int) fontW  + mHorizontalPadding * 2, height);
+            setMeasuredDimension((int) fontW  + mHorizontalPadding * 5, height);
 //            Log.d(TAG, "onMeasure width: width" + (int) fontW + mHorizontalPadding * 2 + "height" + height);
-            ///
+
+
         }
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
+        Log.d(TAG, "onSizeChanged: ");
 //        if (getText().isSelected()) {
             mRectF.set(mBorderWidth, mBorderWidth, w - mBorderWidth, h - mBorderWidth);
 //            Log.d(TAG, "onSizeChanged getText().isSelected()  : new width" + w + "new height" + h + "oldw" + oldw + "oldh" + oldh);
@@ -278,7 +285,7 @@ public class TagView extends View {
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setColor(mBackgroundColor);
         canvas.drawRoundRect(mRectF, mBorderRadius, mBorderRadius, mPaint);
-
+        Log.d(TAG, "onDraw: ");
         // draw border
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeWidth(mBorderWidth);
@@ -291,6 +298,7 @@ public class TagView extends View {
         // draw text
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setColor(mTextColor);
+        
 
         if (mTextDirection == View.TEXT_DIRECTION_RTL) {
             if (mTagSupportLettersRTL) {
@@ -308,8 +316,10 @@ public class TagView extends View {
             }
         } else {
             canvas.drawText(mAbstractText,
-                    (isEnableCross() ? getWidth() - getHeight() : getWidth()) / 2 - fontW / 2 +mHorizontalPadding,
+                    (isEnableCross() ? getWidth() - getHeight() : getWidth()) / 2 - fontW / 2,
+//                    (isEnableCross() ? getWidth() - getHeight() :fontW+mHorizontalPadding),
                     getHeight() / 2 + fontH / 2 - bdDistance, mPaint);
+            Log.d(TAG, "onDraw2: ");
         }
 
         // draw cross
@@ -319,6 +329,7 @@ public class TagView extends View {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
+        
         if (isViewClickable) {
             int y = (int) event.getY();
             int x = (int) event.getX();
@@ -326,7 +337,9 @@ public class TagView extends View {
             switch (action) {
                 case MotionEvent.ACTION_DOWN:
                     if (getParent() != null) {
+                        Log.d(TAG, "dispatchTouchEvent: ");
                         getParent().requestDisallowInterceptTouchEvent(true);
+                        
                     }
                     mLastY = y;
                     mLastX = x;
@@ -355,6 +368,7 @@ public class TagView extends View {
             mTouchX = event.getX();
             mTouchY = event.getY();
             splashRipple();
+            Log.d(TAG, "onTouchEvent ACTION_UP: ");
         }
         if (isEnableCross() && isClickCrossArea(event) && mOnTagClickListener != null) {
             if (action == MotionEvent.ACTION_UP) {
@@ -385,6 +399,7 @@ public class TagView extends View {
 
                 case MotionEvent.ACTION_UP:
                     isUp = true;
+                    Log.d(TAG, "onTouchEvent ACTION_UP: ");
                     if (!isExecLongClick && !isMoved) {
                         mOnTagClickListener.onTagClick((int) getTag(), getText());
                     }
@@ -397,6 +412,7 @@ public class TagView extends View {
 
     private boolean isClickCrossArea(MotionEvent event) {
         if (mTextDirection == View.TEXT_DIRECTION_RTL) {
+            Log.d(TAG, "isClickCrossArea: ");
             return event.getX() <= mCrossAreaWidth;
         }
         return event.getX() >= getWidth() - mCrossAreaWidth;
@@ -404,6 +420,7 @@ public class TagView extends View {
 
     private void drawCross(Canvas canvas) {
         if (isEnableCross()) {
+            Log.d(TAG, "drawCross: ");
             mCrossAreaPadding = mCrossAreaPadding > getHeight() / 2 ? getHeight() / 2 :
                     mCrossAreaPadding;
             int ltX, ltY, rbX, rbY, lbX, lbY, rtX, rtY;
@@ -446,6 +463,7 @@ public class TagView extends View {
     private void drawRipple(Canvas canvas) {
         if (isViewClickable && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB &&
                 canvas != null && !unSupportedClipPath) {
+            Log.d(TAG, "drawRipple: ");
 
             // Disable hardware acceleration for 'Canvas.clipPath()' when running on API from 11 to 17
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {

@@ -62,10 +62,11 @@ public class ColorFactory {
 
     public static int[] onRandomBuild(){
         int random = (int)(Math.random() * COLORS.length);
-        int bgColor = Color.parseColor("#" + BG_COLOR_ALPHA + COLORS[random]);
-        int bdColor = Color.parseColor("#" + BD_COLOR_ALPHA + COLORS[random]);
+        int bgColor = Color.parseColor("#"+ COLORS[random]);
+        int bdColor = Color.parseColor("#" + COLORS[random]);
         int tColor = SHARP666666;
         return new int[]{bgColor, bdColor, tColor};
+        // + BD_COLOR_ALPHA
     }
 
     public static int[] onPureBuild(PURE_COLOR type){

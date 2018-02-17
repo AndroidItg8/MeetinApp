@@ -94,7 +94,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     private MenuItem myActionMenuItem;
 
     private ActionMode.Callback mActionModeCallback;
-    private boolean searchViewClosed;
+    private boolean searchViewClosed=true;
 
     private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
                                               CharSequence doc_name) {
@@ -311,8 +311,8 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
             if (tagList != null && tagList.size() > 0) {
                 showHideView(tagContainerLayout, rlNoTag);
 
+                createRecyclerViewForTAG();
             }
-            createRecyclerViewForTAG();
 //            tagAddAdapter.notifyDataSetChanged();
 
         } catch (SQLException e) {
@@ -332,13 +332,14 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
                 colors.add(col1);
             }
 
-            tagContainerLayout.setTags(tagList, colors);
-        }
-        tagOnClickListener(FROM_TAG);
-        if (tagContainerLayout.isEnableCross()) {
+            if (tagContainerLayout.isEnableCross()) {
 
-            updateActionBar(FROM_TAG, false);
+                updateActionBar(FROM_TAG, false);
+            }
+            tagContainerLayout.setTags(tagList, colors);
+            tagOnClickListener(FROM_TAG);
         }
+
 
     }
 
@@ -371,7 +372,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 //                    tagList.remove(position);
                     test.setSelected(false);
                     tagContainerLayout.changeSelectColor(position, test);
-
                 }
                 updateActionBar(from, false);
 
