@@ -2,12 +2,15 @@ package itg8.com.meetingapp.home;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -47,6 +50,8 @@ public class HomeActivity extends AppCompatActivity
     @BindView(R.id.drawer_layout)
     DrawerLayout drawerLayout;
     private HashMap<Integer,Boolean> prioritiesByFilter=new HashMap<>();
+    private Menu mPopupMenu;
+    private PopupMenu popupMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +66,7 @@ public class HomeActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                testMeetingNotification();
+//                testMeetingNotification();
             }
         });
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -86,26 +91,11 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void callFragment() {
-        android.support.v4.app.FragmentManager fm = getSupportFragmentManager();
-        fm.beginTransaction().add(R.id.frame_container,  HomeFragment.newInstance(prioritiesByFilter),HomeFragment.class.getSimpleName()).commit();
+        FragmentManager fm = getSupportFragmentManager();
+        fm.beginTransaction().replace(R.id.frame_container,  HomeFragment.newInstance(prioritiesByFilter),HomeFragment.class.getSimpleName()).commit();
     }
 
-    //TODO DELETE:
-    private void testMeetingNotification() {
-        TblMeeting meeting = new TblMeeting();
-        meeting.setDateOnly(Calendar.getInstance().getTime());
-        meeting.setTitle("MEETING TEST1");
-        meeting.setPriority(CommonMethod.PRIORITY_INT_HIGH);
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 15);
-        calendar.set(Calendar.MINUTE, 44);
-        meeting.setStartTime(calendar.getTime());
-        calendar.add(Calendar.MINUTE, 1);
-        meeting.setEndTime(calendar.getTime());
-        meeting.setCreated(Calendar.getInstance().getTime());
-        meeting.setPkid(1);
 
-    }
 
     @Override
     public void onBackPressed() {
@@ -131,7 +121,6 @@ public class HomeActivity extends AppCompatActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.menu_search) {
             Intent intent = new Intent(this, SearchActivity.class);
@@ -139,10 +128,53 @@ public class HomeActivity extends AppCompatActivity
 
             return true;
         }   if (id == R.id.menu_filter) {
+            showDropdownMenu(findViewById(R.id.menu_filter));
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+        private void showDropdownMenu(View view) {
+            popupMenu = new PopupMenu(this,view);
+            popupMenu.getMenuInflater().inflate(R.menu.filter_pop_menu,popupMenu.getMenu());
+            mPopupMenu=popupMenu.getMenu();
+            popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    item.setChecked(!item.isChecked());
+                    switch (item.getItemId()){
+                        case R.id.menu_high:
+                            prioritiesByFilter.put(CommonMethod.PRIORITY_INT_HIGH,item.isChecked());
+                            break;
+                        case R.id.menu_medium:
+                            prioritiesByFilter.put(CommonMethod.PRIORITY_INT_MEDIUM,item.isChecked());
+                            break;
+                        case R.id.menu_low:
+                            prioritiesByFilter.put(CommonMethod.PRIORITY_INT_LOW,item.isChecked());
+                            break;
+                    }
+                    item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+                    item.setActionView(new View(HomeActivity.this));
+                    callFragment();
+                    return false;
+                }
+            });
+            prepareMenuAndShow();
+        }
+
+    private void prepareMenuAndShow() {
+        prepareMenuItems();
+        popupMenu.show();
+    }
+
+    private void prepareMenuItems() {
+        MenuItem highItem=mPopupMenu.findItem(R.id.menu_high);
+        highItem.setChecked(prioritiesByFilter.get(CommonMethod.PRIORITY_INT_HIGH));
+        MenuItem mediumItem=mPopupMenu.findItem(R.id.menu_medium);
+        mediumItem.setChecked(prioritiesByFilter.get(CommonMethod.PRIORITY_INT_MEDIUM));
+        MenuItem lowItem=mPopupMenu.findItem(R.id.menu_low);
+        lowItem.setChecked(prioritiesByFilter.get(CommonMethod.PRIORITY_INT_LOW));
     }
 
     @SuppressWarnings("StatementWithEmptyBody")

@@ -2,6 +2,7 @@ package itg8.com.meetingapp.import_meeting;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.content.ContextCompat;
@@ -92,6 +93,8 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
     Button btnComplete;
     @BindView(R.id.btn_delete)
     Button btnDelete;
+    @BindView(R.id.img_navigate)
+    ImageView imgNavigate;
     private DaoContactInteractor daoContact;
     private DaoDocumentInteractor daoDocument;
     private DaoMeetingInteractor daoMeeting;
@@ -115,6 +118,7 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
         lblMoreDocument.setOnClickListener(this);
         btnDelete.setOnClickListener(this);
         imgEdit.setOnClickListener(this);
+        imgNavigate.setOnClickListener(this);
         if (getIntent().hasExtra(CommonMethod.EXTRA_MEETING)) {
             changeActionbarName();
 
@@ -250,7 +254,16 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
             case R.id.btn_delete:
                 deleteMeeting();
                 break;
+            case R.id.img_navigate:
+                navigateToMap();
+                break;
         }
+    }
+
+    private void navigateToMap() {
+        final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://maps.google.com/maps?" + "saddr="+ meeting.getLatitude() + "," + meeting.getLongitude() + "&daddr=" + meeting.getLatitude() + "," + meeting.getLongitude()));
+        intent.setClassName("com.google.android.apps.maps","com.google.android.maps.MapsActivity");
+        startActivity(intent);
     }
 
     private void deleteMeeting() {

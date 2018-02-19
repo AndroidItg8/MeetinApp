@@ -70,6 +70,7 @@ public class DaoMeetingInteractor {
         }
         if(conditions>0)
            where.or(conditions);
+
         PreparedQuery<TblMeeting> preparedQuery=quiryBuilder.prepare();
         return helper.getMeetingDao().query(preparedQuery);
     }

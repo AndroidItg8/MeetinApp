@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:title="Priority"
+        />
+    <group>
+    <item
+        android:id="@+id/menu_high"
+        android:title="High"
+        app:showAsAction="never"
+        android:orderInCategory="2"
+        android:checkable="true"
+        />
+    <item
+        android:id="@+id/menu_medium"
+        android:title="Medium"
+        app:showAsAction="never"
+        android:orderInCategory="3"
+        android:checkable="true"
+        />
+    <item
+        android:id="@+id/menu_low"
+        android:title="Low"
+        app:showAsAction="never"
+        android:orderInCategory="4"
+        android:checkable="true"
+        />
+    </group>
+</menu>

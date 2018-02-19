@@ -98,6 +98,8 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             priority = (HashMap<Integer, Boolean>) getArguments().getSerializable(ARG_PARAM1);
+            assert priority != null;
+            Log.d(TAG, "onCreate: Priority: "+priority.toString());
         }
     }
 
@@ -133,7 +135,6 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
 
             @Override
             public void onNext(List<TblMeeting> tblMeetings) {
-                if(tblMeetings.size()>0)
                     calenderStuff(tblMeetings);
             }
 
@@ -153,19 +154,14 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
         return Observable.create(new ObservableOnSubscribe<List<TblMeeting>>() {
             @Override
             public void subscribe(ObservableEmitter<List<TblMeeting>> e) throws Exception {
-                if(tblMeetings.size()<=0)
-                {
-                    e.onComplete();
-                }
+                Log.d(TAG, "subscribe: TblMeetingList: "+tblMeetings.size());
                 Calendar minDate = Calendar.getInstance();
                 Calendar maxDate = Calendar.getInstance();
-
-                minDate.setTime(tblMeetings.get(0).getStartTime());
-
-//        minDate.add(Calendar.MONTH,-2);
-//        minDate.set(Calendar.DAY_OF_MONTH,1);
-
-                maxDate.setTime(tblMeetings.get(tblMeetings.size()-1).getStartTime());
+                if(tblMeetings.size()>0)
+                {
+                    minDate.setTime(tblMeetings.get(0).getStartTime());
+                    maxDate.setTime(tblMeetings.get(tblMeetings.size() - 1).getStartTime());
+                }
 //        maxDate.add(Calendar.YEAR,1);
                 calendarManager = CalendarManager.getInstance(getActivity());
                 calendarManager.buildCal(minDate,maxDate, Locale.getDefault(),new DayItem(), new WeekItem());
