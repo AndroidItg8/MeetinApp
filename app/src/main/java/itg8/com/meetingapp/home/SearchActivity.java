@@ -39,7 +39,8 @@ public class SearchActivity extends AppCompatActivity {
     RelativeLayout rlNoTag;
 
     private DaoMeetingInteractor daoMeetingIntractor;
-    private List<SearchResult> listSearchResult= new ArrayList<>();
+    private List<TblMeeting> listSearchResult= new ArrayList<>();
+    private SearchResultAdapter adapter;
 
 
     @Override
@@ -59,7 +60,7 @@ public class SearchActivity extends AppCompatActivity {
             for (TblMeeting meeting : listMeeting
                     ) {
                 Log.d(TAG, "onCreate: ListMeeting "+  meeting.toString());
-                SearchResult option = new SearchResult(meeting, getResources().getDrawable(R.drawable.ic_history));
+                SearchResult option = new SearchResult(meeting.getTitle(), getResources().getDrawable(R.drawable.ic_history));
                 searchbox.addSearchable(option);
             }
         }
@@ -96,10 +97,12 @@ public class SearchActivity extends AppCompatActivity {
             public void onResultClick(SearchResult result) {
                 //React to a result being clicked
 
-                    Log.d(TAG, "onResultClick: " + result);
-                    listSearchResult.add(result);
-                    setRecyclerView();
+//                    Log.d(TAG, "onResultClick: " + result);
+//
+//                    listSearchResult.add(result);
 
+//                    setRecyclerView();
+                fetchMeetingFromText(result.getTitle());
 
 
 
@@ -132,16 +135,38 @@ public class SearchActivity extends AppCompatActivity {
 //        });
     }
 
+    private void fetchMeetingFromText(String title) {
+        try {
+            List<TblMeeting> list=daoMeetingIntractor.getMeetingByTitleLike(title);
+            listSearchResult.clear();
+            listSearchResult.addAll(list);
+            adapter.notifyDataSetChanged();
+//            boolean isVisible;
+//            if(recyclerView.getVisibility()==View.VISIBLE){
+//                isVisible=true;
+//            }else {
+//                isVisible=false;
+//            }
+//            Log.d(TAG, "fetchMeetingFromText: "+isVisible);
+//            checkIfRecyclerviewToShow();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void setRecyclerView() {
+        adapter=new SearchResultAdapter(this, listSearchResult);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+//        checkIfRecyclerviewToShow();
+    }
+
+    private void checkIfRecyclerviewToShow() {
         if(listSearchResult.size()>0) {
             showHideView(recyclerView, rlNoTag);
-
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));
-            recyclerView.setAdapter(new SearchResultAdapter(this, listSearchResult));
         }
         else{
             showHideView( rlNoTag,recyclerView);
-
         }
     }
 

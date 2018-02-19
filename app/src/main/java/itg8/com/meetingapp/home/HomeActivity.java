@@ -123,6 +123,7 @@ public class HomeActivity extends AppCompatActivity
         int id = item.getItemId();
         //noinspection SimplifiableIfStatement
         if (id == R.id.menu_search) {
+//            Intent intent = new Intent(this, SearchActivity.class);
             Intent intent = new Intent(this, SearchActivity.class);
             startActivity(intent);
 

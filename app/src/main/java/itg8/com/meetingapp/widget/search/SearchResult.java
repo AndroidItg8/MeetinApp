@@ -5,11 +5,11 @@ import android.graphics.drawable.Drawable;
 import itg8.com.meetingapp.db.TblMeeting;
 
 public class SearchResult {
-    public TblMeeting getTitle() {
+    public String getTitle() {
         return title;
     }
 
-    public void setTitle(TblMeeting title) {
+    public void setTitle(String title) {
         this.title = title;
     }
 
@@ -29,7 +29,7 @@ public class SearchResult {
         this.viewType = viewType;
     }
 
-    public TblMeeting title;
+    public String title;
     public Drawable icon;
 
     /**
@@ -37,18 +37,18 @@ public class SearchResult {
      * @param title
      * @param icon
      */
-    public SearchResult(TblMeeting title, Drawable icon) {
+    public SearchResult(String title, Drawable icon) {
        this.title = title;
        this.icon = icon;
     }
 
     public int viewType = 0;
 
-    public SearchResult(TblMeeting title){
+    public SearchResult(String title){
         this.title = title;
     }
 
-    public SearchResult(int viewType, TblMeeting title){
+    public SearchResult(int viewType, String title){
         this.viewType = viewType;
         this.title = title;
     }
@@ -58,7 +58,7 @@ public class SearchResult {
      */
     @Override
     public String toString() {
-        return title.getTitle();
+        return title;
     }
     
 }

@@ -140,6 +140,8 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
         lblDateValue.setText(Helper.getDateFromDate(meeting.getStartTime()));
         lblTitle.setText(meeting.getTitle());
         lblPlaceValue.setText(checkNull(meeting.getAddress()));
+        if(meeting.getLongitude()==0 || meeting.getLatitude()==0)
+            imgNavigate.setVisibility(View.GONE);
         lblPriorityValue.setText(Helper.getPriorityFromType(meeting.getPriority()));
         lblTimeValue.setText(new StringBuilder().append(Helper.getStringTimeFromDate(meeting.getStartTime())).append(" - ").append(Helper.getStringTimeFromDate(meeting.getEndTime())).toString());
         if (Calendar.getInstance().getTimeInMillis() < meeting.getEndTime().getTime() && Calendar.getInstance().getTimeInMillis() > meeting.getStartTime().getTime()) {

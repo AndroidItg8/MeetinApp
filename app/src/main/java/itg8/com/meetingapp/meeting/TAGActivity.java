@@ -275,6 +275,10 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
     }
 
+    private void clearTagList() {
+        tagList.clear();
+    }
+
     private void showHideView(View show, View hide) {
         show.setVisibility(View.VISIBLE);
         hide.setVisibility(View.GONE);

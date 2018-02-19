@@ -82,4 +82,11 @@ public class DaoMeetingInteractor {
     public List<TblMeeting> getMeetingNotNotified(int isNotified) throws SQLException {
         return helper.getMeetingDao().queryForEq(TblMeeting.NOTIFIED, isNotified);
     }
+
+    public List<TblMeeting> getMeetingByTitleLike(String title) throws SQLException {
+        QueryBuilder<TblMeeting, Long> qb = helper.getMeetingDao().queryBuilder();
+        qb.where().like(TblMeeting.TITLE, "%"+title+"%");
+        PreparedQuery<TblMeeting> pq = qb.prepare();
+        return helper.getMeetingDao().query(pq);
+    }
 }

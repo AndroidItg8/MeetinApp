@@ -13,7 +13,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
-import itg8.com.meetingapp.widget.search.SearchResult;
+import itg8.com.meetingapp.db.TblMeeting;
 
 
 
@@ -21,13 +21,13 @@ import itg8.com.meetingapp.widget.search.SearchResult;
  * Created by Android itg 8 on 2/19/2018.
  */
 
-class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapter.SearchViewHolder> {
+public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapter.SearchViewHolder> {
 
     private static final String TAG = SearchResultAdapter.class.getSimpleName();
     private Context context;
-    private List<SearchResult> listSearchResult;
+    private List<TblMeeting> listSearchResult;
 
-    public SearchResultAdapter(Context context, List<SearchResult> listSearchResult) {
+    public SearchResultAdapter(Context context, List<TblMeeting> listSearchResult) {
         this.context = context;
         this.listSearchResult = listSearchResult;
     }
@@ -40,8 +40,9 @@ class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapter.Searc
 
     @Override
     public void onBindViewHolder(SearchViewHolder holder, int position) {
-        holder.txtValue.setText(listSearchResult.get(position).getTitle().getTitle());
-
+        holder.txtValue.setText(listSearchResult.get(position).getTitle());
+//        holder.txtValue.setText("position: "+position);
+        Log.d(TAG, "onBindViewHolder: position: "+position);
     }
 
 
@@ -49,6 +50,7 @@ class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapter.Searc
     public int getItemCount() {
         Log.d(TAG, "getItemCount: size"+listSearchResult.size());
         return listSearchResult.size();
+//        return 20;
     }
 
     public class SearchViewHolder extends RecyclerView.ViewHolder {

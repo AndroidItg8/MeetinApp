@@ -240,7 +240,7 @@ public class SearchBox extends RelativeLayout {
 		mSearchFilter = new SearchFilter() {
 			@Override
 			public boolean onFilter(SearchResult searchResult, String searchTerm) {
-				return searchResult.title.getTitle().toLowerCase()
+				return searchResult.title.toLowerCase()
 						.startsWith(searchTerm.toLowerCase());
 			}
 		};
@@ -758,9 +758,9 @@ return null;
 
 	private void search(SearchResult result, boolean resultClicked) {
 		if(!searchWithoutSuggestions && getNumberOfResults() == 0)return;
-		setSearchString(result.title.getTitle());
+		setSearchString(result.title);
 		if (!TextUtils.isEmpty(getSearchText())) {
-			setLogoTextInt(result.title.getTitle());
+			setLogoTextInt(result.title);
 			if (listener != null) {
 				if (resultClicked)
 					listener.onResultClick(result);
@@ -882,10 +882,7 @@ return null;
 	
 
 	private void search(String text) {
-		TblMeeting meeting = new TblMeeting();
-		meeting.setTitle(text);
-
-		SearchResult option = new SearchResult(meeting, null);
+		SearchResult option = new SearchResult(text, null);
 		search(option, false);
 		
 	}
@@ -929,7 +926,7 @@ return null;
 			}
 			final TextView title = (TextView) convertView
 					.findViewById(R.id.title);
-			title.setText(option.title.getTitle());
+			title.setText(option.title);
 			ImageView icon = (ImageView) convertView.findViewById(R.id.icon);
 			icon.setImageDrawable(option.icon);
 			ImageView up = (ImageView) convertView.findViewById(R.id.up);
