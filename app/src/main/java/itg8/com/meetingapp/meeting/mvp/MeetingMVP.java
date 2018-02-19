@@ -20,6 +20,6 @@ public interface MeetingMVP {
     }
 
     public interface MeetingPresenter {
-        void saveMeeting();
+        void saveMeeting(TblMeeting meeting);
     }
 }

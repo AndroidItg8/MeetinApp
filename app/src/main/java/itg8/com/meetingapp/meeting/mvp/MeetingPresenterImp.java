@@ -9,15 +9,16 @@ import itg8.com.meetingapp.db.TblMeeting;
 
 public class MeetingPresenterImp extends BaseWeakPresenter<MeetingMVP.MeetingView> implements MeetingMVP.MeetingPresenter,MeetingMVP.MeetingListener{
 
-
+    MeetingMVP.MeetingModule module;
 
     public MeetingPresenterImp(MeetingMVP.MeetingView meetingView) {
         super(meetingView);
+        module=new MeetingModule(this);
     }
 
     @Override
-    public void saveMeeting() {
-
+    public void saveMeeting(TblMeeting meeting) {
+        module.onSaveMeeting(meeting);
     }
 
     @Override

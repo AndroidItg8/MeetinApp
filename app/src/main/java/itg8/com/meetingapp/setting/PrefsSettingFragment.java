@@ -17,6 +17,7 @@ import java.util.Arrays;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.common.Prefs;
+import itg8.com.meetingapp.service.NotificationBroadcast;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -129,6 +130,7 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
 
     private void sendBroadcastForStickyToggle(Boolean newValue) {
         Intent intent=new Intent(CommonMethod.ACTION_START_STATIC_NOTIFICATION);
+        intent.setClass(getActivity(), NotificationBroadcast.class);
         intent.putExtra(CommonMethod.EXTRA_STICKY_NOTIFICATION,newValue);
         getActivity().sendBroadcast(intent);
     }

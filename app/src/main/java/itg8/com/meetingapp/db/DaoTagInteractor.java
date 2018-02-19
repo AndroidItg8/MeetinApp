@@ -3,7 +3,6 @@ package itg8.com.meetingapp.db;
 import android.content.Context;
 import android.util.Log;
 
-import com.google.gson.Gson;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -23,7 +22,7 @@ public class DaoTagInteractor {
 
     public void insert(TblTAG tag) throws SQLException {
             helper.getTagDao().create(tag);
-            Log.d(TAG,"InsertData InDb:"+new Gson().toJson(tag));
+//            Log.d(TAG,"InsertData InDb:"+new Gson().toJson(tag));
     }
 
     public void update(TblTAG meeting) throws SQLException {

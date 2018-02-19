@@ -30,8 +30,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import butterknife.BindView;
@@ -40,6 +42,7 @@ import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.common.Prefs;
 import itg8.com.meetingapp.db.DaoMeetingInteractor;
+import itg8.com.meetingapp.db.TblDocument;
 import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.showcase.MaterialIntroView;
 import itg8.com.meetingapp.showcase.animation.MaterialIntroListener;
@@ -65,21 +68,20 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
     @BindView(R.id.fab)
     FloatingActionButton fab;
     private WalletAdapter adapter;
+    private DaoMeetingInteractor daoDocument;
 
-    public static void shareItem(Context context, String title, String body, Uri uri) {
-        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
-        if (uri != null) {
-            sharingIntent.setType("image/*");
-            sharingIntent.putExtra(Intent.EXTRA_STREAM, uri);
+    public void shareItem(Context context, File fileWithinMyDir) {
+        Intent intentShareFile =new Intent(Intent.ACTION_SEND);
+        if(fileWithinMyDir.exists()) {
+            intentShareFile.setType(CommonMethod.getMimetypeFromUri(Uri.fromFile(fileWithinMyDir),getContentResolver()));
+            intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+fileWithinMyDir.getAbsolutePath()));
 
-        } else {
-            sharingIntent.setType("text/plain");
+            intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
+                    "Sharing File...");
+            intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
+
+            startActivity(Intent.createChooser(intentShareFile, "Share File"));
         }
-        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, title);
-        sharingIntent.putExtra(Intent.EXTRA_TEXT, body);
-        sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        context.startActivity(Intent.createChooser(sharingIntent, "Share"));
-
 
     }
 
@@ -91,6 +93,8 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("Meeting Wallet");
+        daoDocument=new DaoMeetingInteractor(WalletActivity.this);
         init();
 
 
@@ -171,7 +175,7 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
     }
 
     @Override
-    public void onItemImgMoreClickListner(int position, TblMeeting document, ImageView img) {
+    public void onItemImgMoreClickListner(int position, final TblDocument document, ImageView img) {
         PopupMenu popup = new PopupMenu(this, img);
         //Inflating the Popup using xml file
         popup.getMenuInflater()
@@ -180,13 +184,13 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
         //registering popup with OnMenuItemClickListener
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
-                Toast.makeText(
-                        WalletActivity.this,
-                        "You Clicked : " + item.getTitle(),
-                        Toast.LENGTH_SHORT
-                ).show();
+//                Toast.makeText(
+//                        WalletActivity.this,
+//                        "You Clicked : " + item.getTitle(),
+//                        Toast.LENGTH_SHORT
+//                ).show();
 
-                shareItem(WalletActivity.this, "TITLE", "BODY", null);
+                shareItem(WalletActivity.this,new File(document.getFileActPath()));
 
                 return true;
             }
@@ -205,9 +209,19 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
     private List<TblMeeting> getTblDocuments() {
 
 
-        List<TblMeeting> listMeeting = new ArrayList<>();
+        List<TblMeeting> listMeeting = null;
+        List<TblMeeting> listMeetingTemp = null;
         try {
-            listMeeting = new DaoMeetingInteractor(WalletActivity.this).getMeetings();
+
+            listMeetingTemp = daoDocument.getMeetingsByDate(Calendar.getInstance().getTime());
+            listMeeting=new ArrayList<>();
+            for (TblMeeting meet :
+                    listMeetingTemp) {
+                List<TblDocument> documents = meet.getDocuments();
+                if(documents.size()>0){
+                    listMeeting.add(meet);
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

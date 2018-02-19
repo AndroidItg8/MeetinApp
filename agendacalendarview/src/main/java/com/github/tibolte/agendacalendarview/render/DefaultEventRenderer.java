@@ -19,19 +19,24 @@ public class DefaultEventRenderer extends EventRenderer<BaseCalendarEvent> {
     public void render(@NonNull View view, @NonNull BaseCalendarEvent event) {
         TextView txtTitle = (TextView) view.findViewById(R.id.view_agenda_event_title);
         TextView txtLocation = (TextView) view.findViewById(R.id.view_agenda_event_location);
+        TextView txtTime = (TextView) view.findViewById(R.id.view_agenda_event_time);
         LinearLayout descriptionContainer = (LinearLayout) view.findViewById(R.id.view_agenda_event_description_container);
         LinearLayout locationContainer = (LinearLayout) view.findViewById(R.id.view_agenda_event_location_container);
+        LinearLayout timeContainer = (LinearLayout) view.findViewById(R.id.view_agenda_event_time_container);
 
         descriptionContainer.setVisibility(View.VISIBLE);
         txtTitle.setTextColor(view.getResources().getColor(android.R.color.black));
 
         txtTitle.setText(event.getTitle());
+        txtTime.setText(event.getDescription());
         txtLocation.setText(event.getLocation());
+
         if (event.getLocation().length() > 0) {
             locationContainer.setVisibility(View.VISIBLE);
             txtLocation.setText(event.getLocation());
         } else {
             locationContainer.setVisibility(View.GONE);
+            timeContainer.setVisibility(View.GONE);
         }
 
         if (event.getTitle().equals(view.getResources().getString(R.string.agenda_event_no_events))) {
@@ -39,8 +44,10 @@ public class DefaultEventRenderer extends EventRenderer<BaseCalendarEvent> {
         } else {
             txtTitle.setTextColor(view.getResources().getColor(R.color.theme_text_icons));
         }
+
         descriptionContainer.setBackgroundColor(event.getColor());
         txtLocation.setTextColor(view.getResources().getColor(R.color.theme_text_icons));
+        txtTime.setTextColor(view.getResources().getColor(R.color.theme_text_icons));
     }
 
     @Override

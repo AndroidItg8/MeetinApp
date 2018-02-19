@@ -5,6 +5,8 @@ import android.content.Context;
 import java.sql.SQLException;
 import java.util.List;
 
+import itg8.com.meetingapp.common.CommonMethod;
+
 /**
  * Created by swapnilmeshram on 01/02/18.
  */
@@ -34,6 +36,15 @@ public class DaoDocumentInteractor {
     }
 
 
+    public List<TblDocument> getDocumentsByMeetingId(long pkid) throws SQLException{
+        return helper.getDocumentDao().queryBuilder().where().eq(TblDocument.FIELD_MEETING_ID,pkid).query();
 
+    }
 
+    public List<TblDocument> getPreDocumentsByMeetingId(long pkid) throws SQLException {
+        return helper.getDocumentDao().queryBuilder().where().eq(TblDocument.FIELD_MEETING_ID,pkid).and().eq(TblDocument.FIELD_MEETING_TYPE, CommonMethod.TYPE_PRE_MEETING).query();
+    }
+    public List<TblDocument> getPostDocumentsByMeetingId(long pkid) throws SQLException {
+        return helper.getDocumentDao().queryBuilder().where().eq(TblDocument.FIELD_MEETING_ID,pkid).and().eq(TblDocument.FIELD_MEETING_TYPE, CommonMethod.TYPE_POST_MEETING).query();
+    }
 }

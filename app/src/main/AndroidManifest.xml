@@ -56,12 +56,13 @@
         <service
             android:name=".service.NotificationService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <receiver
             android:name=".service.NotificationBroadcast"
             android:enabled="true"
-            android:exported="true">
+            >
             <intent-filter>
                 <action android:name="itg8.com.meetingapp.ACTION_START_NOTIFICATION" />
             </intent-filter>
@@ -69,11 +70,20 @@
         <receiver
             android:name=".service.MeetingStartNotificationBroadcast"
             android:enabled="true"
-            android:exported="true" />
+            />
         <receiver
             android:name=".service.NotificationReminderBroadcast"
             android:enabled="true"
-            android:exported="true" />
+            />
+
+        <receiver
+            android:name=".service.RestartBroadcast"
+            android:enabled="true"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.REBOOT" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".service.PostMeetingService"
@@ -93,7 +103,7 @@
             android:label="@string/title_activity_import_meeting"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".import_meeting.ImportMessageDetailActivity"
+            android:name=".import_meeting.MeetingDetailActivity"
             android:label="@string/title_activity_import_message_detail"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
@@ -112,14 +122,12 @@
             android:name=".wallet_document.WalletActivity"
             android:label="@string/title_activity_wallet"
             android:theme="@style/AppTheme.NoActionBar" />
+
         <activity android:name=".meeting.MultipleContactPickerActivity" />
         <activity
             android:name=".meeting.TAGActivity"
-            android:label="@string/title_activity_tag" />
-        <activity
-            android:name=".home.SearchActivity"
-            android:label="@string/title_activity_search"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:label="@string/title_activity_tag"></activity>
+
     </application>
 
 </manifest>

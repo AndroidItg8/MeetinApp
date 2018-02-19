@@ -12,6 +12,7 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.text.method.ScrollingMovementMethod;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,13 +24,28 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.common.CommonMethod;
+import itg8.com.meetingapp.common.Helper;
+import itg8.com.meetingapp.db.DaoMeetingInteractor;
+import itg8.com.meetingapp.db.TblMeeting;
 
 public class ImportMeetingActivity extends AppCompatActivity implements View.OnClickListener {
 
-
+    private static final String TAG = "ImportMeetingActivity";
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.txt_messages)
@@ -65,6 +81,7 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
     Button btnClear;
     @BindView(R.id.btn_import)
     Button btnImport;
+    private TblMeeting meeting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,7 +124,10 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
                 clearPasteData();
                 break;
                 case R.id.btn_detail:
-                startActivity(new Intent(getApplicationContext(),ImportMessageDetailActivity.class));
+                    Intent intent=new Intent(this,MeetingDetailActivity.class);
+                    intent.putExtra(CommonMethod.EXTRA_MEETING,meeting);
+                    startActivity(intent);
+//                startActivity(new Intent(getApplicationContext(),MeetingDetailActivity.class));
                 break;
 
         }
@@ -117,7 +137,118 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
 
     private void importMessage() {
         showProgress();
-        showFinished();
+        Observable.just(txtMessages.getText().toString())
+                .subscribeOn(Schedulers.io())
+                .map(new Function<String, TblMeeting>() {
+                    @Override
+                    public TblMeeting apply(String content) throws Exception {
+                        String[] lines = content.split(System.getProperty("line.separator"));
+                        TblMeeting meeting=new TblMeeting();
+                        boolean hasError=false;
+                        for (String s :
+                                lines) {
+                            if(s.contains("Agenda")){
+                                String[] splited=s.split(":");
+                                if(splited.length>1){
+                                    meeting.setTitle(splited[1]);
+                                }
+                            }else if(s.contains("Date")){
+                                String[] splited=s.split(":");
+                                if(splited.length>1){
+                                    meeting.setDateOnly(Helper.parseDateFromString(splited[1]));
+                                }
+                            }else if(s.contains("Start Time")){
+                                String[] splited=s.split(" : ");
+                                if(splited.length>1){
+                                    try {
+                                        Calendar calendar=Calendar.getInstance();
+                                        calendar.setTime(meeting.getDateOnly());
+                                        Date startTime=Helper.parseTimeFromString(splited[1]);
+                                        Calendar calendar1=Calendar.getInstance();
+                                        calendar1.setTime(startTime);
+                                        calendar.set(Calendar.HOUR_OF_DAY,calendar1.get(Calendar.HOUR_OF_DAY));
+                                        calendar.set(Calendar.MINUTE,calendar1.get(Calendar.MINUTE));
+                                        meeting.setStartTime(calendar.getTime());
+                                    } catch (ParseException e) {
+                                        e.printStackTrace();
+                                        hasError=true;
+                                    }
+                                }
+                            }else if(s.contains("End Time")){
+                                String[] splited=s.split(" : ");
+                                if(splited.length>1){
+                                    Date endTime= null;
+                                    try {
+                                        Calendar calendar=Calendar.getInstance();
+                                        calendar.setTime(meeting.getDateOnly());
+                                        endTime = Helper.parseTimeFromString(splited[1]);
+                                        Calendar calendar1=Calendar.getInstance();
+                                        calendar1.setTime(endTime);
+                                        calendar.set(Calendar.HOUR_OF_DAY,calendar1.get(Calendar.HOUR_OF_DAY));
+                                        calendar.set(Calendar.MINUTE,calendar1.get(Calendar.MINUTE));
+                                        meeting.setEndTime(calendar.getTime());
+                                    } catch (ParseException e) {
+                                        e.printStackTrace();
+                                        hasError=true;
+
+                                    }
+                                }
+                            }else if(s.contains("Location")){
+                                String[] splited=s.split(":");
+                                if(splited.length>1){
+                                    meeting.setAddress((splited[1]));
+                                }
+                            }
+                        }
+                        meeting.setCreated(Calendar.getInstance().getTime());
+                        meeting.setPriority(CommonMethod.PRIORITY_INT_MEDIUM);
+
+                        if(!hasError)
+                            return meeting;
+                        return null;
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<TblMeeting>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(TblMeeting tblMeeting) {
+                        if(tblMeeting==null) {
+                            showError();
+                            return;
+                        }
+                        Log.d(TAG, "onNext: ");
+                        DaoMeetingInteractor interactor = new DaoMeetingInteractor(ImportMeetingActivity.this);
+                        try {
+                            interactor.insert(tblMeeting);
+                            setMeeting(tblMeeting);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                        showFinished();
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d(TAG, "onComplete: ");
+                        showFinished();
+                    }
+                });
+//        showFinished();
+    }
+
+    private void showError() {
+        progress.setVisibility(View.GONE);
+        Toast.makeText(this, "Fail to import Meeting", Toast.LENGTH_SHORT).show();
     }
 
     private void showFinished() {
@@ -218,5 +349,9 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
             onBackPressed();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void setMeeting(TblMeeting meeting) {
+        this.meeting = meeting;
     }
 }

@@ -30,13 +30,7 @@ public class MeetingModule implements MeetingMVP.MeetingModule {
     }
 
     private void setAlarmForMeeting(TblMeeting meeting) {
-        long timeDifference=Helper.getTimeDifferenceFromCurrent(meeting.getStartTime());
-        if(timeDifference>1){
-            long diffByPriority= CommonMethod.getDifferenceFromPriority(meeting.getPriority(),timeDifference);
-            if(diffByPriority>0){
-                sendBroadcastForAlarmScheduling(diffByPriority,meeting);
-            }
-        }
+        sendBroadcastForAlarmScheduling(CommonMethod.diffByPriority(meeting),meeting);
     }
 
     /**

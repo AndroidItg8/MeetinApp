@@ -67,6 +67,7 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
     private String mParam2;
     private MeetingDocumentAdapter adapter;
     private List<TblDocument> documents = new ArrayList<>();
+    private ArrayList<TblDocument> mPreDocuments;
 
 
     public PreDocmentFragment() {
@@ -77,16 +78,13 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
      * @return A new instance of fragment PreDocmentFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static PreDocmentFragment newInstance(String param1, String param2) {
+    public static PreDocmentFragment newInstance(ArrayList<TblDocument> preDocument) {
         PreDocmentFragment fragment = new PreDocmentFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putParcelableArrayList(ARG_PARAM1, preDocument);
         fragment.setArguments(args);
         return fragment;
     }
@@ -95,8 +93,7 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            mPreDocuments = getArguments().getParcelableArrayList(ARG_PARAM1);
         }
     }
 
@@ -111,12 +108,12 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
     }
 
     private void init() {
-        if (getTblDocuments().size() > 0) {
+        if (mPreDocuments.size() > 0) {
             showRecyclerView();
             recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
             DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
             recyclerView.addItemDecoration(itemDecoration);
-            recyclerView.setAdapter(new PreDocAdpater(getActivity(), getTblDocuments(), this));
+            recyclerView.setAdapter(new PreDocAdpater(getActivity(), mPreDocuments, this));
         }else {
             hideRecyclerView();
             txtTitle.setText(formatPlaceDetails(getResources(),"Till Now Not Add Document To meeting","Quickly add document to","DocWallet","to get access fast!!!!"));
@@ -187,6 +184,13 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
         unbinder.unbind();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume: ");
+        ((DocumentMeetingActivity)getActivity()).onPredocumentClick();
+
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

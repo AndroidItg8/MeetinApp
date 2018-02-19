@@ -21,7 +21,7 @@ import static itg8.com.meetingapp.db.TblMeeting.TBL_MEETING;
  * Created by swapnilmeshram on 01/02/18.
  */
 @DatabaseTable(tableName = TBL_MEETING)
-public class TblMeeting implements Parcelable {
+public class TblMeeting implements Parcelable,Cloneable {
     static final String TBL_MEETING="TBL_MEETING";
     public static final String FIELD_ID="pkid";
     public static final String TITLE="title";
@@ -33,6 +33,7 @@ public class TblMeeting implements Parcelable {
     public static final String LATITUDE="latitude";
     public static final String LONGITUDE="longitude";
     public static final String ADDRESS="address";
+    public static final String NOTIFIED="notified";
 
     @DatabaseField(columnName = FIELD_ID,generatedId = true)
     private long pkid;
@@ -50,7 +51,7 @@ public class TblMeeting implements Parcelable {
     private int priority;
 
     @DatabaseField(columnName = DATE, dataType = DataType.DATE_STRING, format = Helper.DATE_FORMAT)
-    private Date date;
+    private Date dateOnly;
 
     @DatabaseField(columnName = CREATED, dataType = DataType.DATE_LONG)
     private Date created;
@@ -63,6 +64,9 @@ public class TblMeeting implements Parcelable {
 
     @DatabaseField(columnName = ADDRESS)
     private String address;
+
+    @DatabaseField(columnName = NOTIFIED)
+    private int notified;
 
 
     public double getLatitude() {
@@ -87,6 +91,14 @@ public class TblMeeting implements Parcelable {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public int getNotified() {
+        return notified;
+    }
+
+    public void setNotified(int notified) {
+        this.notified = notified;
     }
 
     @ForeignCollectionField
@@ -151,12 +163,12 @@ public class TblMeeting implements Parcelable {
         this.priority = priority;
     }
 
-    public Date getDate() {
-        return date;
+    public Date getDateOnly() {
+        return dateOnly;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setDateOnly(Date dateOnly) {
+        this.dateOnly = dateOnly;
     }
 
     public Date getCreated() {
@@ -166,54 +178,6 @@ public class TblMeeting implements Parcelable {
     public void setCreated(Date created) {
         this.created = created;
     }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(this.pkid);
-        dest.writeString(this.title);
-        dest.writeLong(this.startTime != null ? this.startTime.getTime() : -1);
-        dest.writeLong(this.endTime != null ? this.endTime.getTime() : -1);
-        dest.writeInt(this.priority);
-        dest.writeDouble(this.latitude);
-        dest.writeDouble(this.longitude);
-        dest.writeString(this.address);
-        dest.writeLong(this.date != null ? this.date.getTime() : -1);
-        dest.writeLong(this.created != null ? this.created.getTime() : -1);
-    }
-
-    protected TblMeeting(Parcel in) {
-        this.pkid = in.readLong();
-        this.title = in.readString();
-        long tmpStartTime = in.readLong();
-        this.startTime = tmpStartTime == -1 ? null : new Date(tmpStartTime);
-        long tmpEndTime = in.readLong();
-        this.endTime = tmpEndTime == -1 ? null : new Date(tmpEndTime);
-        this.priority = in.readInt();
-        long tmpDate = in.readLong();
-        this.latitude = in.readDouble();
-        this.longitude = in.readDouble();
-        this.address = in.readString();
-        this.date = tmpDate == -1 ? null : new Date(tmpDate);
-        long tmpCreated = in.readLong();
-        this.created = tmpCreated == -1 ? null : new Date(tmpCreated);
-    }
-
-    public static final Creator<TblMeeting> CREATOR = new Creator<TblMeeting>() {
-        @Override
-        public TblMeeting createFromParcel(Parcel source) {
-            return new TblMeeting(source);
-        }
-
-        @Override
-        public TblMeeting[] newArray(int size) {
-            return new TblMeeting[size];
-        }
-    };
 
     public List<TblTAG> getTags() {
         return new ArrayList<>(tags);
@@ -230,4 +194,75 @@ public class TblMeeting implements Parcelable {
     public void setContacts(ForeignCollection<TblContact> contacts) {
         this.contacts = contacts;
     }
+
+
+    @Override
+    public String toString() {
+        return "TblMeeting{" +
+                "pkid=" + pkid +
+                ", title='" + title + '\'' +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", priority=" + priority +
+                ", dateOnly=" + dateOnly +
+                ", created=" + created +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", address='" + address + '\'' +
+                '}';
+    }
+
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(this.pkid);
+        dest.writeString(this.title);
+        dest.writeLong(this.startTime != null ? this.startTime.getTime() : -1);
+        dest.writeLong(this.endTime != null ? this.endTime.getTime() : -1);
+        dest.writeInt(this.priority);
+        dest.writeLong(this.dateOnly != null ? this.dateOnly.getTime() : -1);
+        dest.writeLong(this.created != null ? this.created.getTime() : -1);
+        dest.writeDouble(this.latitude);
+        dest.writeDouble(this.longitude);
+        dest.writeString(this.address);
+        dest.writeInt(this.notified);
+    }
+
+    protected TblMeeting(Parcel in) {
+        this.pkid = in.readLong();
+        this.title = in.readString();
+        long tmpStartTime = in.readLong();
+        this.startTime = tmpStartTime == -1 ? null : new Date(tmpStartTime);
+        long tmpEndTime = in.readLong();
+        this.endTime = tmpEndTime == -1 ? null : new Date(tmpEndTime);
+        this.priority = in.readInt();
+        long tmpDateOnly = in.readLong();
+        this.dateOnly = tmpDateOnly == -1 ? null : new Date(tmpDateOnly);
+        long tmpCreated = in.readLong();
+        this.created = tmpCreated == -1 ? null : new Date(tmpCreated);
+        this.latitude = in.readDouble();
+        this.longitude = in.readDouble();
+        this.address = in.readString();
+        this.notified = in.readInt();
+    }
+
+    public static final Creator<TblMeeting> CREATOR = new Creator<TblMeeting>() {
+        @Override
+        public TblMeeting createFromParcel(Parcel source) {
+            return new TblMeeting(source);
+        }
+
+        @Override
+        public TblMeeting[] newArray(int size) {
+            return new TblMeeting[size];
+        }
+    };
 }

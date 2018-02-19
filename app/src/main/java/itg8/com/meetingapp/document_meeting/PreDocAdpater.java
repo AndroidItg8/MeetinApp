@@ -10,14 +10,15 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.io.File;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
+import itg8.com.meetingapp.common.Helper;
 import itg8.com.meetingapp.db.TblDocument;
-import itg8.com.meetingapp.db.TblMeeting;
 
 /**
  * Created by Android itg 8 on 2/5/2018.
@@ -28,6 +29,7 @@ public class PreDocAdpater extends RecyclerView.Adapter<PreDocAdpater.PreDocView
     private Context activity;
     private List<TblDocument> list;
     private ItemClickListner listner;
+    private File file;
 
     public PreDocAdpater(Context activity, List<TblDocument> list, ItemClickListner listner) {
         this.activity = activity;
@@ -45,12 +47,25 @@ public class PreDocAdpater extends RecyclerView.Adapter<PreDocAdpater.PreDocView
     @Override
     public void onBindViewHolder(PreDocViewHolder holder, int position) {
         holder.document = list.get(position);
+        holder.lblDocumentTitle.setText(list.get(position).getFileName());
+        holder.lblDocumentSize.setText(getFileSize(list.get(position).getFileActPath()));
+        holder.lblDate.setText(getDateFromFile(list.get(position).getFileActPath()));
         setImageDrawable(holder);
 
 
     }
 
+    private String getDateFromFile(String fileActPath) {
+        return Helper.getDateFromMilliseconds(new File(fileActPath).lastModified());
+    }
+
+    private String getFileSize(String fileActPath) {
+        file=new File(fileActPath);
+        return (String.valueOf(file.length()/1024))+" Kb";
+    }
+
     private void setImageDrawable(PreDocViewHolder holder) {
+        holder.lblDocumentType.setText("-"+holder.document.getFileExt());
         if (holder.document.getFileExt().equalsIgnoreCase(CommonMethod.EXT_DOC)) {
             holder.imgFile.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_doc));
         }

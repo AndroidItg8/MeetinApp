@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
@@ -72,6 +73,8 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
     private String mParam1;
     private String mParam2;
     private Context mContext;
+    private ArrayList<TblDocument> postDocuments;
+    private PreDocAdpater adapter;
 
 
     public PostDocumnetFragment() {
@@ -82,16 +85,13 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
      * @return A new instance of fragment PostDocumnetFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static PostDocumnetFragment newInstance(String param1, String param2) {
+    public static PostDocumnetFragment newInstance(ArrayList<TblDocument> postDocuments) {
         PostDocumnetFragment fragment = new PostDocumnetFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putParcelableArrayList(ARG_PARAM1, postDocuments);
         fragment.setArguments(args);
         return fragment;
     }
@@ -100,8 +100,7 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            postDocuments = getArguments().getParcelableArrayList(ARG_PARAM1);
         }
     }
 
@@ -122,7 +121,8 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
             recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
             DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
             recyclerView.addItemDecoration(itemDecoration);
-            recyclerView.setAdapter(new PreDocAdpater(getActivity(), getTblDocuments(), this));
+            adapter=new PreDocAdpater(getActivity(), postDocuments, this);
+            recyclerView.setAdapter(adapter);
         } else {
             hideRecyclerView();
             txtTitle.setText(formatPlaceDetails(getResources(), "Till Now Not Add Document To meeting", "Quickly add document to", "DocWallet", "to get access fast!!!!"));
@@ -170,11 +170,24 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume: ");
+        ((DocumentMeetingActivity)getActivity()).onPostdocumentClick();
+    }
+
+    @Override
     public void sendItemToFragment(String note) {
         if (!TextUtils.isEmpty(note)) {
             lblNoteValue.setText(note);
         }
 
+    }
+
+    @Override
+    public void addNewPostDocument(TblDocument document) {
+        postDocuments.add(document);
+        adapter.notifyDataSetChanged();
     }
 
     @Override

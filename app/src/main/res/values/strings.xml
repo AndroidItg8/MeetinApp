@@ -254,6 +254,10 @@
 ]]>
 
     </string>
+    <string name="meeting_in_progress">Meeting In Progress</string>
+    <string name="meeting_pending">Meeting is Pending</string>
+    <string name="meeting_over">Meeting is Over</string>
+    <string name="title_activity_meeting_detail">Meeting Detail</string>
 
     <string name="no_tag">
         <![CDATA[<font color=\"#000\"> %1$s</font>

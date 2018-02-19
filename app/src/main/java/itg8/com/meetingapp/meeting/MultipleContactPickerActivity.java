@@ -105,6 +105,7 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
                 }
 
             } while (cursor.moveToNext());
+
         }
 
         return c;

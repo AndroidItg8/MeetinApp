@@ -1,15 +1,24 @@
 package itg8.com.meetingapp.common;
 
+import android.content.Context;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
+
+import java.io.FilenameFilter;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+
+import itg8.com.meetingapp.R;
 
 /**
  * Created by swapnilmeshram on 01/02/18.
  */
 
 public class Helper {
+    private static final String TAG = "Helper";
     public static final String DATE_FORMAT = "dd-MM-yyyy";
     public static final String TIME_FORMAT = "hh:mm a";
     private static SimpleDateFormat simpleTimeFormatTime=new SimpleDateFormat(TIME_FORMAT, Locale.getDefault());
@@ -83,5 +92,64 @@ public class Helper {
             return CommonMethod.PRIORITY_INT_LOW;
         }
         return 0;
+    }
+
+    public static String getPriorityFromType(int priority) {
+        switch (priority){
+            case CommonMethod.PRIORITY_INT_HIGH:
+                return "High";
+            case CommonMethod.PRIORITY_INT_MEDIUM:
+                return "Medium";
+            case CommonMethod.PRIORITY_INT_LOW:
+                return "Low";
+        }
+        return "";
+    }
+
+    public static String getDateFromDate(Date startTime) {
+        Calendar calendar=Calendar.getInstance();
+        calendar.setTime(startTime);
+        return simpleTimeFormatDate.format(calendar.getTime());
+    }
+
+    public static String getDateFromMilliseconds(long millies){
+        Calendar calendar=Calendar.getInstance();
+        calendar.setTimeInMillis(millies);
+        return simpleTimeFormatDate.format(calendar.getTime());
+    }
+
+
+    public static String getFileExtFromName(String fileName) {
+        int i = fileName.lastIndexOf('.');
+        String ext="";
+        if (i > 0) {
+            ext= fileName.substring(i+1);
+            Log.d(TAG,"Ext: "+ext);
+        }
+        return ext;
+    }
+
+    public static Date getDateFromString(Date dateOnly) {
+        return null;
+    }
+
+    public static int getColorFromPriority(Context context, int priority) {
+        switch (priority){
+            case CommonMethod.PRIORITY_INT_HIGH:
+                return ContextCompat.getColor(context, R.color.colorGoogle);
+            case CommonMethod.PRIORITY_INT_MEDIUM:
+                return ContextCompat.getColor(context, R.color.colorFire);
+            case CommonMethod.PRIORITY_INT_LOW:
+                return ContextCompat.getColor(context, R.color.colorGreen);
+        }
+        return 0;
+    }
+
+    public static Date parseDateFromString(String s) throws ParseException {
+            return simpleTimeFormatDate.parse(s);
+    }
+
+    public static Date parseTimeFromString(String s) throws ParseException {
+            return simpleTimeFormatTime.parse(s);
     }
 }

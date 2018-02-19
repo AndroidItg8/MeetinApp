@@ -2,6 +2,7 @@ package itg8.com.meetingapp.db;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
@@ -16,12 +17,12 @@ import java.sql.SQLException;
 
 public class DBHelper extends OrmLiteSqliteOpenHelper {
     private static final String DB_NAME="meetingDb";
-    private static final int DB_VERSION=2;
+    private static final int DB_VERSION=3;
 
-    private Dao<TblDocument,Integer> documentDao=null;
-    private Dao<TblMeeting,Integer> meetingDao=null;
-    private Dao<TblTAG,Integer> tagDao=null;
-    private Dao<TblContact,Integer> contactDao=null;
+    private Dao<TblDocument,Long> documentDao=null;
+    private Dao<TblMeeting,Long> meetingDao=null;
+    private Dao<TblTAG,Long> tagDao=null;
+    private Dao<TblContact,Long> contactDao=null;
 
 
 
@@ -45,23 +46,16 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase database, ConnectionSource connectionSource, int oldVersion, int newVersion) {
-        try {
-            switch (oldVersion)
-            {
-                case 1:
-                    dropingTable(connectionSource);
-                case 2:
-                    dropingTable(connectionSource);
-                case 3:
-                    dropingTable(connectionSource);
-                    break;
-
+            try {
+                Log.i(DBManager.class.getName(), "onUpgrade");
+                dropingTable(connectionSource);
+                // after we drop the old databases, we create the new ones
+                onCreate(database, connectionSource);
+            } catch (SQLException e) {
+                Log.e(DBManager.class.getName(), "Can't drop databases", e);
+                throw new RuntimeException(e);
             }
 
-
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
     }
 
     private void dropingTable(ConnectionSource connectionSource) throws SQLException {
@@ -74,7 +68,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
     /**
      * Table_meeting
      */
-    public Dao<TblMeeting,Integer> getMeetingDao() throws SQLException{
+    public Dao<TblMeeting,Long> getMeetingDao() throws SQLException{
         if(meetingDao==null)
             meetingDao=getDao(TblMeeting.class);
         return meetingDao;
@@ -83,7 +77,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
     /**
      * table_document
      */
-    public Dao<TblDocument,Integer> getDocumentDao() throws SQLException{
+    public Dao<TblDocument,Long> getDocumentDao() throws SQLException{
         if(documentDao==null)
             documentDao=getDao(TblDocument.class);
         return documentDao;
@@ -93,7 +87,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
      * table_tag
      */
 
-    public Dao<TblTAG,Integer> getTagDao()throws SQLException{
+    public Dao<TblTAG,Long> getTagDao()throws SQLException{
         if(tagDao==null)
             tagDao=getDao(TblTAG.class);
         return tagDao;
@@ -102,7 +96,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
      * table_contact
      */
 
-    public Dao<TblContact,Integer> getContactDao()throws SQLException{
+    public Dao<TblContact,Long> getContactDao()throws SQLException{
         if(contactDao==null)
             contactDao=getDao(TblContact.class);
         return contactDao;

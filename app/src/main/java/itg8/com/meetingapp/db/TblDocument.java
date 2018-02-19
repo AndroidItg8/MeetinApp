@@ -19,6 +19,7 @@ public class TblDocument implements Parcelable {
     public static final String FIELD_CACHE_PATH="file_cache_path";
     public static final String FIELD_FILE_NAME="file_name";
     public static final String FIELD_FILE_EXT="file_ext";
+    public static final String FIELD_MEETING_TYPE="meeting_type";
 
     @DatabaseField(columnName = FIELD_ID,generatedId = true)
     private long pkId;
@@ -37,6 +38,9 @@ public class TblDocument implements Parcelable {
 
     @DatabaseField(columnName = FIELD_FILE_EXT)
     private String fileExt;
+
+    @DatabaseField(columnName = FIELD_MEETING_TYPE)
+    private int type;
 
 
     public long getPkId() {
@@ -83,29 +87,51 @@ public class TblDocument implements Parcelable {
     }
 
 
+    public String getFileExt() {
+        return fileExt;
+    }
+
+    public void setFileExt(String fileExt) {
+        this.fileExt = fileExt;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
     @Override
     public int describeContents() {
         return 0;
     }
 
+
+
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(this.pkId);
-        dest.writeParcelable(this.meeting, flags);
+//        dest.writeParcelable(this.meeting, flags);
         dest.writeString(this.fileActPath);
         dest.writeString(this.fileCachePath);
         dest.writeString(this.fileName);
+        dest.writeString(this.fileExt);
+        dest.writeInt(this.type);
     }
 
     protected TblDocument(Parcel in) {
         this.pkId = in.readLong();
-        this.meeting = in.readParcelable(TblMeeting.class.getClassLoader());
+//        this.meeting = in.readParcelable(TblMeeting.class.getClassLoader());
         this.fileActPath = in.readString();
         this.fileCachePath = in.readString();
         this.fileName = in.readString();
+        this.fileExt = in.readString();
+        this.type = in.readInt();
     }
 
-    public static final Parcelable.Creator<TblDocument> CREATOR = new Parcelable.Creator<TblDocument>() {
+    public static final Creator<TblDocument> CREATOR = new Creator<TblDocument>() {
         @Override
         public TblDocument createFromParcel(Parcel source) {
             return new TblDocument(source);
@@ -116,12 +142,4 @@ public class TblDocument implements Parcelable {
             return new TblDocument[size];
         }
     };
-
-    public String getFileExt() {
-        return fileExt;
-    }
-
-    public void setFileExt(String fileExt) {
-        this.fileExt = fileExt;
-    }
 }

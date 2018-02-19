@@ -14,11 +14,15 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.Helper;
+import itg8.com.meetingapp.db.DaoDocumentInteractor;
 import itg8.com.meetingapp.db.TblDocument;
 import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.document_meeting.PreDocAdpater;
@@ -30,7 +34,7 @@ import itg8.com.meetingapp.document_meeting.PreDocAdpater;
 public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletViewHolder>  implements PreDocAdpater.ItemClickListner{
 
 
-
+    private final DaoDocumentInteractor daoDocument;
     private Context context;
     private List<TblMeeting> list;
     cardOnLongPressListerner listner;
@@ -39,6 +43,7 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
         this.context = context;
         this.list = list;
         this.listner = listner;
+        daoDocument=new DaoDocumentInteractor(context);
     }
 
     @Override
@@ -54,7 +59,7 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
         itemRowHolder.recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         DividerItemDecoration itemDecoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
         itemRowHolder.recyclerView.addItemDecoration(itemDecoration);
-        itemRowHolder.recyclerView.setAdapter(new PreDocAdpater(context, (List<TblDocument>) list.get(position).getDocuments(),this));
+        itemRowHolder.recyclerView.setAdapter(new PreDocAdpater(context, getDocumentsByMeetingId(list.get(position).getPkid()),this));
         itemRowHolder.lblTitleFull.setVisibility(View.GONE);
         itemRowHolder.lblTitle.setVisibility(View.VISIBLE);
         itemRowHolder.lblTitleFull.setText(list.get(position).getTitle());
@@ -64,15 +69,24 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
 
     }
 
+    private List<TblDocument> getDocumentsByMeetingId(long pkid) {
+        try {
+            return daoDocument.getDocumentsByMeetingId(pkid);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
+    }
+
     @Override
     public int getItemCount() {
-        return 7;
+        return list.size();
 
     }
 
     @Override
     public void onItemClcikedListener(int position, TblDocument item, ImageView img) {
-        listner.onItemImgMoreClickListner(position,  list.get(position), img);
+        listner.onItemImgMoreClickListner(position,  item, img);
     }
 
     public class WalletViewHolder extends RecyclerView.ViewHolder {
@@ -114,6 +128,6 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
     public interface cardOnLongPressListerner {
 
         boolean  onLongPressClickListner(int position, TblMeeting list, RelativeLayout view, CardView cradView, TextView textView, TextView lblTitleFull, MotionEvent motionEvent);
-        void  onItemImgMoreClickListner(int position, TblMeeting meeting  , ImageView img);
+        void  onItemImgMoreClickListner(int position, TblDocument meeting  , ImageView img);
     }
 }

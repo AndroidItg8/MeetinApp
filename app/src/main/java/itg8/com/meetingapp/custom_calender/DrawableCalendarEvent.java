@@ -18,8 +18,8 @@ public class DrawableCalendarEvent extends BaseCalendarEvent {
         this.mDrawableId = drawableId;
     }
 
-    public DrawableCalendarEvent(String title, String description, String location, int color, Calendar startTime, Calendar endTime, boolean allDay, int drawableId) {
-        super(title, description, location, color, startTime, endTime, allDay);
+    public DrawableCalendarEvent(long id,String title, String description, String location, int color, Calendar startTime, Calendar endTime, boolean allDay, int drawableId) {
+        super(id,title, description, location, color, startTime, endTime, allDay);
         this.mDrawableId = drawableId;
     }
 

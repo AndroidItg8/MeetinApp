@@ -17,6 +17,7 @@ import android.view.View;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 
 import butterknife.BindView;
@@ -45,6 +46,7 @@ public class HomeActivity extends AppCompatActivity
     NavigationView navView;
     @BindView(R.id.drawer_layout)
     DrawerLayout drawerLayout;
+    private HashMap<Integer,Boolean> prioritiesByFilter=new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +56,7 @@ public class HomeActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         callFragment();
-
+        setDefaultPriorityFilters();
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,15 +79,21 @@ public class HomeActivity extends AppCompatActivity
 
     }
 
+    private void setDefaultPriorityFilters() {
+        prioritiesByFilter.put(CommonMethod.PRIORITY_INT_HIGH,true);
+        prioritiesByFilter.put(CommonMethod.PRIORITY_INT_MEDIUM,true);
+        prioritiesByFilter.put(CommonMethod.PRIORITY_INT_LOW,true);
+    }
+
     private void callFragment() {
         android.support.v4.app.FragmentManager fm = getSupportFragmentManager();
-        fm.beginTransaction().add(R.id.frame_container,  HomeFragment.newInstance("",""),HomeFragment.class.getSimpleName()).commit();
+        fm.beginTransaction().add(R.id.frame_container,  HomeFragment.newInstance(prioritiesByFilter),HomeFragment.class.getSimpleName()).commit();
     }
 
     //TODO DELETE:
     private void testMeetingNotification() {
         TblMeeting meeting = new TblMeeting();
-        meeting.setDate(Calendar.getInstance().getTime());
+        meeting.setDateOnly(Calendar.getInstance().getTime());
         meeting.setTitle("MEETING TEST1");
         meeting.setPriority(CommonMethod.PRIORITY_INT_HIGH);
         Calendar calendar = Calendar.getInstance();
@@ -96,16 +104,7 @@ public class HomeActivity extends AppCompatActivity
         meeting.setEndTime(calendar.getTime());
         meeting.setCreated(Calendar.getInstance().getTime());
         meeting.setPkid(1);
-        Intent intent = new Intent(this, NotificationService.class);
-        intent.putExtra(CommonMethod.EXTRA_MEETING, meeting);
-        long timeDifference = Helper.getTimeDifferenceFromCurrent(meeting.getStartTime());
-        if (timeDifference > 1) {
-            long diffByPriority = CommonMethod.getDifferenceFromPriority(meeting.getPriority(), timeDifference);
-            if (diffByPriority > 0) {
-                intent.putExtra(CommonMethod.EXTRA_MEETING_TIME_DIFF, diffByPriority);
-            }
-        }
-        startService(intent);
+
     }
 
     @Override

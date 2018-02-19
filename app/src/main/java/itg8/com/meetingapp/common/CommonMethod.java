@@ -1,7 +1,12 @@
 package itg8.com.meetingapp.common;
 
 import android.content.Context;
+import android.content.ContentResolver;
+import android.net.Uri;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
+
+import itg8.com.meetingapp.db.TblMeeting;
 
 /**
  * Created by swapnilmeshram on 30/01/18.
@@ -43,6 +48,13 @@ public class CommonMethod {
     public  static final String EXT_ZIP ="zip";
     public static final String FIRST_TIME_WALLET = "FIRST_TIME_WALLET";
     public static final String MEETING = "MEETING";
+    public static final String EXTRA_PRE_DOCUMENTS = "EXTRA_PRE_DOCUMENT";
+    public static final String EXTRA_POST_DOCUMENTS = "EXTRA_POST_DOCUMENT";
+    public static final int TYPE_PRE_MEETING=0;
+    public static final int TYPE_POST_MEETING=1;
+    public static final String EXTRA_MEETING_CANCELED = "extra_meeting_canceled";
+    public static final int NOT_NOTIFIED = 0;
+    public static final int NOTIFIED = 1;
 
     public static long getDifferenceFromPriority(int priority, long timeDifference) {
         int priorityDiff=getPriorityDifferenceFromSetting(priority);
@@ -66,6 +78,29 @@ public class CommonMethod {
         return priorityDiff;
     }
 
+    public static String getMimetypeFromUri(Uri uri,ContentResolver cr) {
+        String mimeType = null;
+        if (uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
+            mimeType = cr.getType(uri);
+        } else {
+            String fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri
+                    .toString());
+            mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                    fileExtension.toLowerCase());
+        }
+        return mimeType;
+    }
+
+    public static long diffByPriority(TblMeeting meeting) {
+        long timeDifference=Helper.getTimeDifferenceFromCurrent(meeting.getStartTime());
+        if(timeDifference>1){
+            long diffByPriority= CommonMethod.getDifferenceFromPriority(meeting.getPriority(),timeDifference);
+            if(diffByPriority>0){
+                return diffByPriority;
+            }
+        }
+        return 0;
+    }
 
     public  interface ItemClickListner{
         void onItemClcikedListener(int position, String item, ImageView img);

@@ -194,7 +194,7 @@ public class CalendarManager {
                 for (CalendarEvent event : eventList) {
                     if (DateHelper.isBetweenInclusive(dayItem.getDate(), event.getStartTime(), event.getEndTime())) {
                         CalendarEvent copy = event.copy();
-
+                        dayItem.setMeeting(true);
                         Calendar dayInstance = Calendar.getInstance();
                         dayInstance.setTime(dayItem.getDate());
                         copy.setInstanceDay(dayInstance);
@@ -250,11 +250,11 @@ public class CalendarManager {
         for (int c = 0; c < 7; c++) {
             IDayItem dayItem = mCleanDay.copy();
             dayItem.buildDayItemFromCal(cal);
-            if (c == 0 || c == 2 || c == 4) {
-                dayItem.setMeeting(true);
-            } else {
-                dayItem.setMeeting(false);
-            }
+//            if (c == 0 || c == 2 || c == 4) {
+//                dayItem.setMeeting(true);
+//            } else {
+//                dayItem.setMeeting(false);
+//            }
             dayItems.add(dayItem);
             cal.add(Calendar.DATE, 1);
         }

@@ -125,7 +125,8 @@ public class BaseCalendarEvent implements CalendarEvent {
      * @param endTime The end time of the event.
      * @param allDay Indicates if the event lasts the whole day.
      */
-    public BaseCalendarEvent(String title, String description, String location, int color, Calendar startTime, Calendar endTime, boolean allDay) {
+    public BaseCalendarEvent(long id,String title, String description, String location, int color, Calendar startTime, Calendar endTime, boolean allDay) {
+        this.mId=id;
         this.mTitle = title;
         this.mDescription = description;
         this.mLocation = location;

@@ -7,6 +7,7 @@ import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
@@ -25,8 +26,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
@@ -74,6 +77,7 @@ import java.util.Random;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.common.DocType;
 import itg8.com.meetingapp.common.Helper;
 import itg8.com.meetingapp.custom_tag.MaxHeightScrollView;
@@ -91,6 +95,7 @@ import itg8.com.meetingapp.import_meeting.ParticipantTagAdapter;
 import itg8.com.meetingapp.meeting.model.Contact;
 import itg8.com.meetingapp.meeting.mvp.MeetingMVP;
 import itg8.com.meetingapp.meeting.mvp.MeetingPresenterImp;
+import itg8.com.meetingapp.service.NotificationService;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
@@ -108,14 +113,14 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private static final int RC_LOCATION = 234;
     private static final int REQUEST_CODE_AUTOCOMPLETE = 9001;
     private static final String TAG = MeetingActivity.class.getSimpleName();
-    private static final int RC_STORAGE = 11;
-    private static final int RC_CAMERAWITHSTORAGE = 12;
+    public static final int RC_STORAGE = 11;
+    public static final int RC_CAMERAWITHSTORAGE = 12;
     private static final int RC_CONCTACT = 13;
-    private static final int REQUEST_TAKE_PHOTO = 30;
-    private static final int READ_REQUEST_CODE = 34;
-    private static final String MIME_TYPE_IMAGE = "image/*";
-    private static final String MIME_TYPE_PDF = "application/pdf";
-    private static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
+    public static final int REQUEST_TAKE_PHOTO = 30;
+    public static final int READ_REQUEST_CODE = 34;
+    public static final String MIME_TYPE_IMAGE = "image/*";
+    public static final String MIME_TYPE_PDF = "application/pdf";
+    public static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
     private static final int RC_PHONE_BOOK = 900;
     private static final int RC_TAG = 800;
     @BindView(R.id.toolbar)
@@ -243,6 +248,20 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private DaoDocumentInteractor daoDocument;
     private DaoMeetingInteractor daoMeeting;
     private DaoTagInteractor daoTag;
+
+    private boolean isFromEdit = false;
+
+    /**
+     * Helper method to format information about a place nicely.
+     */
+    private static Spanned formatPlaceDetails(Resources res, CharSequence name, String id,
+                                              CharSequence address, CharSequence phoneNumber, Uri websiteUri) {
+        Log.e(TAG, res.getString(R.string.place_details, name, id, address, phoneNumber,
+                websiteUri));
+        return Html.fromHtml(res.getString(R.string.place_details, name, id, address, phoneNumber,
+                websiteUri));
+
+    }
     private AlertDialog dialog;
 
     @Override
@@ -259,6 +278,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_black_24dp);
         collapsed();
 
+
 //        adapterTAG = new TAGAdapter(tagList, this);
 
         presenter = new MeetingPresenterImp(this);
@@ -266,12 +286,67 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         mClient = new GoogleApiClient.Builder(this).addApi(Places.GEO_DATA_API).addApi(Places.PLACE_DETECTION_API).build();
         contactInteractor = new DaoContactInteractor(MeetingActivity.this);
 
+        initDaoInteractors();
         init();
         checkEveryPermissions();
         createRecyclerviewForDocuments();
-
+        checkIfFromEdit();
 
     }
+
+    private void checkIfFromEdit() {
+        if (getIntent().hasExtra(CommonMethod.EXTRA_MEETING)) {
+            long pkid = getIntent().getLongExtra(CommonMethod.EXTRA_MEETING, 0);
+            if (pkid > 0) {
+                try {
+                    isFromEdit = true;
+                    meeting = daoMeeting.getMeetingById(pkid);
+                    setMeetingContent();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+        }
+    }
+
+    private void setMeetingContent() {
+        edtAgenda.setText(meeting.getTitle());
+        selectedEndTime.setTime(meeting.getEndTime());
+        edtEndTime.setText(Helper.getStringTimeFromDate(selectedEndTime.getTime()));
+//        selectedDate.setTime(Helper.getDateFromString(meeting.getDateOnly()));
+        selectedDate.setTime((meeting.getDateOnly()));
+        edtDate.setText(Helper.getDateFromDate(selectedDate.getTime()));
+
+        selectedStartTime.setTime(meeting.getStartTime());
+        edtStartTime.setText(Helper.getStringTimeFromDate(selectedStartTime.getTime()));
+        expandDue();
+
+        lblReminder.setText(Helper.getPriorityFromType(meeting.getPriority()));
+        hideShowView(lblReminderLbl, rlReminder);
+
+        if (!TextUtils.isEmpty(meeting.getAddress())) {
+            lblAddName.setText(meeting.getAddress());
+            hideShowView(lblAddPlace, rlAddress);
+        }
+        try {
+            documents.addAll(daoDocument.getDocumentsByMeetingId(meeting.getPkid()));
+            adapter.notifyDataSetChanged();
+            if (documents.size() > 0) {
+                toggleDocumentView(SHOW_DOCUMENT);
+            }
+            contactList.addAll(daoContact.getContactsByMeetingId(meeting.getPkid()));
+            adapterContact.notifyDataSetChanged();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void expandDue() {
+        toggleDueView(SHOW_DUE);
+    }
+
 
     private void createRecyclerViewForTAG() {
         if (tagList.size() > 0) {
@@ -306,7 +381,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         documents.add(null);
         adapter = new MeetingDocumentAdapter(documents, this);
         rvDocuments.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, true));
-
         rvDocuments.setAdapter(adapter);
     }
 
@@ -324,7 +398,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
 
     private void init() {
-        initDaoInteractors();
         setDefaultInfo();
         setOnClickedListener();
         setParticipantTAG();
@@ -332,10 +405,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void initDaoInteractors() {
-        daoContact = new DaoContactInteractor(this);
-        daoDocument = new DaoDocumentInteractor(this);
-        daoMeeting = new DaoMeetingInteractor(this);
-        daoTag = new DaoTagInteractor(this);
+        daoContact=new DaoContactInteractor(this);
+        daoDocument=new DaoDocumentInteractor(this);
+        daoMeeting=new DaoMeetingInteractor(this);
+        daoTag=new DaoTagInteractor(this);
     }
 
     private void setDefaultInfo() {
@@ -393,14 +466,15 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void storeToDb() {
-        if (!validateMeetingDetails()) {
+        if(!validateMeetingDetails()){
             return;
         }
         boolean isInserted = getCompleteDetailForMeeting();
         if (isInserted) {
+            presenter.saveMeeting(meeting);
             Toast.makeText(this, "Meeting stored successfully", Toast.LENGTH_SHORT).show();
             onBackPressed();
-        } else {
+        }else {
             Toast.makeText(this, "Fail to store meeting.", Toast.LENGTH_SHORT).show();
         }
 //        DaoMeetingInteractor interactor = new DaoMeetingInteractor(MeetingActivity.this);
@@ -436,11 +510,16 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     private boolean getCompleteDetailForMeeting() {
         meeting.setTitle(edtAgenda.getText().toString());
+        meeting.setDateOnly(selectedDate.getTime());
         meeting.setCreated(Calendar.getInstance().getTime());
         meeting.setStartTime(selectedStartTime.getTime());
         meeting.setEndTime(selectedEndTime.getTime());
+        meeting.setNotified(CommonMethod.NOT_NOTIFIED);
         try {
-            daoMeeting.insert(meeting);
+            if (isFromEdit) {
+                daoMeeting.update(meeting);
+            } else
+                daoMeeting.insert(meeting);
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -455,6 +534,15 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 return false;
             }
         }
+        if (isFromEdit)
+            for (TblDocument document :
+                    meeting.getDocuments()) {
+                try {
+                    daoDocument.delete(document);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
 
         for (TblDocument document :
                 documents) {
@@ -756,6 +844,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
                 selectedStartTime.set(Calendar.HOUR_OF_DAY, selectedHour);
                 selectedStartTime.set(Calendar.MINUTE, selectedMinute);
+                if (selectedStartTime.getTimeInMillis() < Calendar.getInstance().getTimeInMillis()) {
+                    showSnackbar("Past time cannot allowed!!!");
+                    return;
+                }
                 edtStartTime.setText(Helper.getStringTimeFromDate(selectedStartTime.getTime()));
                 meeting.setStartTime(selectedStartTime.getTime());
                 if ((selectedEndTime.getTimeInMillis() - selectedStartTime.getTimeInMillis()) < 60000) {
@@ -798,13 +890,22 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         DatePickerDialog datePickerDialog = new DatePickerDialog(MeetingActivity.this, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker datePicker, int year, int month, int dayOfMonth) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.YEAR, year);
+                calendar.set(Calendar.MONTH, month);
+                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                Log.d(TAG, "onDateSet: " + Calendar.getInstance().getTimeInMillis() + " - " + calendar.getTimeInMillis());
+                if (calendar.getTimeInMillis() < Calendar.getInstance().getTimeInMillis()) {
+                    showSnackbar("Date cannot be less than today");
+                    return;
+                }
                 setYearInAllCalander(year);
                 setMonthInAllCalander(month);
                 setDateInAllCalander(dayOfMonth);
                 String getSelectedDateFromCalander = Helper.getStringDateFromCalander(selectedDate);
                 edtDate.setText(getSelectedDateFromCalander);
             }
-        }, selectedDate.get(Calendar.YEAR), selectedDate.get(Calendar.MONTH) + 1, selectedDate.get(Calendar.DAY_OF_MONTH));
+        }, selectedDate.get(Calendar.YEAR), selectedDate.get(Calendar.MONTH), selectedDate.get(Calendar.DAY_OF_MONTH));
         datePickerDialog.setTitle("SELECT DATE");
         datePickerDialog.show();
     }
@@ -816,9 +917,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void setMonthInAllCalander(int month) {
-        selectedDate.set(Calendar.MONTH, month + 1);
-        selectedStartTime.set(Calendar.MONTH, month + 1);
-        selectedEndTime.set(Calendar.MONTH, month + 1);
+        selectedDate.set(Calendar.MONTH, month);
+        selectedStartTime.set(Calendar.MONTH, month);
+        selectedEndTime.set(Calendar.MONTH, month);
     }
 
     private void setYearInAllCalander(int year) {
@@ -929,7 +1030,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                     uri = data.getData();
                     assert uri != null;
                     Log.i(TAG, "Uri: " + uri.toString());
-                    String selectedMimeType = getMimetypeFromUri(uri);
+                    String selectedMimeType = CommonMethod.getMimetypeFromUri(uri, getContentResolver());
                     Log.d(TAG, "SelectedMimeType:" + selectedMimeType);
                     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
                     String newFileName = timeStamp + getFilenameFromMimetype(selectedMimeType);
@@ -1133,6 +1234,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         TblDocument document = new TblDocument();
         document.setFileActPath(mCurrentPhotoPath);
         document.setFileName(new File(mCurrentPhotoPath).getName());
+        document.setFileExt(Helper.getFileExtFromName(document.getFileName()));
         document.setMeeting(meeting);
         documents.add(document);
         adapter.notifyDataSetChanged();
@@ -1178,19 +1280,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         return null;
     }
 
-    private String getMimetypeFromUri(Uri uri) {
-        String mimeType = null;
-        if (uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
-            ContentResolver cr = getContentResolver();
-            mimeType = cr.getType(uri);
-        } else {
-            String fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri
-                    .toString());
-            mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                    fileExtension.toLowerCase());
-        }
-        return mimeType;
-    }
 
     private void showPlaceCross() {
         imgPlaceCross.setVisibility(View.VISIBLE);
@@ -1510,7 +1599,15 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public void startServiceToSetAlarm(long diffByPriority, TblMeeting meeting) {
-
+        Intent intent = new Intent(this, NotificationService.class);
+        intent.putExtra(CommonMethod.EXTRA_MEETING, meeting);
+        long timeDifference = Helper.getTimeDifferenceFromCurrent(meeting.getStartTime());
+        if (timeDifference > 1) {
+            if (diffByPriority > 0) {
+                intent.putExtra(CommonMethod.EXTRA_MEETING_TIME_DIFF, diffByPriority);
+            }
+        }
+        startService(intent);
     }
 
 
