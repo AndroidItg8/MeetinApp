@@ -1028,8 +1028,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 //            getContactDetail(resultCode, data);
             if (resultCode == RESULT_OK) {
                 ArrayList<TblTAG> contacts = new ArrayList<TblTAG>();
-                tagList.clear();
 
+                tagList.clear();
 
                 contacts = data.getParcelableArrayListExtra("tag");
                 int itemCountOld = tagList.size();
@@ -1041,6 +1041,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                     tagList.add(tagModel);
                 }
                 contacts.clear();
+
                 createRecyclerViewForTAG();
 
             }
@@ -1085,11 +1086,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
              int   randomColor = new Random().nextInt(R.array.androidcolors);
 
 
-                int[] col1 = {randomColor, Color.parseColor("#6b6969"), Color.parseColor("#6b6969")};
+                int[] col1 = {Color.parseColor("#ffffff"), Color.parseColor("#C1562E"), Color.parseColor("#C1562E")};
                 colors.add(col1);
             }
             tagContainerLayoutParticipant.setEnableCross(true);
-            tagContainerLayoutParticipant.setCrossColor(Color.GRAY);
+            tagContainerLayoutParticipant.setCrossColor(Color.parseColor("#C1562E"));
             tagContainerLayoutParticipant.setParticipantTags(contactList, colors);
 
             tagContainerLayoutParticipant.setOnTagClickListener(new TagView.OnTagClickListener() {

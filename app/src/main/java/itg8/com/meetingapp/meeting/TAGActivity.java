@@ -77,8 +77,8 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     TagContainerLayout tagContainerLayout;
     @BindView(R.id.edt_document_title)
     EditText edtDocumentTitle;
-    @BindView(R.id.scrollView)
-    ScrollView scrollView;
+//    @BindView(R.id.scrollView)
+//    ScrollView scrollView;
     @BindView(R.id.rl_top)
     RelativeLayout rlTop;
     private boolean isFromCancel = false;
@@ -378,6 +378,11 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
             }
         });
     }
+    private void clearTagList()
+    {
+        tagList.clear();
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -437,10 +442,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
         }
-
-
-
-
         return false;
     }
 

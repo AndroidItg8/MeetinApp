@@ -2,17 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/m_search"
+        android:id="@+id/menu_search"
         android:icon="@drawable/ic_search_black_24dp"
         android:title="@string/search_title"
-        app:actionLayout="@layout/search_view_action_layout"
         app:showAsAction="always" />
 
-    <item android:id="@+id/menu_ok"
+    <item android:id="@+id/menu_filter"
         android:orderInCategory="2"
-        android:icon="@drawable/button_ab_ok"
-        android:title="@string/ok"
+        android:icon="@drawable/ic_filter_list_black_24dp"
+        android:title="@string/filter"
         app:showAsAction="always" />
 
-    <!--|collapseActionView-->
+
 </menu>

@@ -112,11 +112,14 @@
             android:name=".wallet_document.WalletActivity"
             android:label="@string/title_activity_wallet"
             android:theme="@style/AppTheme.NoActionBar" />
-
         <activity android:name=".meeting.MultipleContactPickerActivity" />
         <activity
             android:name=".meeting.TAGActivity"
-            android:label="@string/title_activity_tag"/>
+            android:label="@string/title_activity_tag" />
+        <activity
+            android:name=".home.SearchActivity"
+            android:label="@string/title_activity_search"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

@@ -265,6 +265,8 @@
     </string>
     <string name="add_person_name">Add Person Name</string>
     <string name="search_title">search</string>
+    <string name="filter">filter</string>
+    <string name="title_activity_search">SearchActivity</string>
 
 
     <!--<![CDATA[-->
