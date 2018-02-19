@@ -553,6 +553,7 @@ public class TagContainerLayout extends ViewGroup {
 
              if (isFromContact) {
 
+
                  tagView.setTagBackgroundColor(colors[0]);
             }else
                  tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGreen));

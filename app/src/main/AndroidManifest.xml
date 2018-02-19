@@ -126,10 +126,12 @@
         <activity android:name=".meeting.MultipleContactPickerActivity" />
         <activity
             android:name=".meeting.TAGActivity"
-            android:label="@string/title_activity_tag"></activity>
-
+            android:label="@string/title_activity_tag"/>
         <activity android:name=".home.SearchActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+        />
+
+
 
     </application>
 

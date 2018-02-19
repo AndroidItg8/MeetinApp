@@ -1,21 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Description -->
+<LinearLayout android:id="@+id/view_agenda_event_description_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp">
+    android:orientation="vertical"
+    android:padding="10dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <TextView
-        android:id="@+id/txt_value"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/colorBlack"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textAllCaps="true"
-        android:text="HII"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginRight="10dp"/>
+        android:id="@+id/view_agenda_event_title"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:textColor="@android:color/black"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingRight="16dp"
+        android:paddingLeft="16dp"
+        android:textSize="16dp" />
 
-</RelativeLayout>
+
+
+    <LinearLayout
+        android:id="@+id/view_agenda_event_time_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingRight="16dp"
+        android:paddingLeft="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_timer" />
+
+        <TextView
+            android:id="@+id/view_agenda_event_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginStart="4dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textColor="@color/calendar_text_default" />
+
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/view_agenda_event_location_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingRight="16dp"
+        android:paddingLeft="16dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/img_location" />
+
+
+
+
+        <TextView
+            android:id="@+id/view_agenda_event_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp"
+            android:textColor="@color/calendar_text_default"
+            android:textSize="11dp" />
+
+    </LinearLayout>
+
+</LinearLayout>
+<!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:id="@+id/rl_meeting"-->
+    <!--android:layout_margin="10dp">-->
+
+    <!--<TextView-->
+        <!--android:id="@+id/txt_value"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginBottom="04dp"-->
+        <!--android:layout_marginEnd="10dp"-->
+        <!--android:layout_marginLeft="10dp"-->
+        <!--android:layout_marginRight="10dp"-->
+        <!--android:layout_marginStart="10dp"-->
+        <!--android:text="HII"-->
+        <!--android:textAllCaps="true"-->
+        <!--android:textColor="@color/colorBlack"-->
+        <!--android:textSize="@dimen/import_meeting_ext"-->
+        <!--android:textStyle="bold" />-->
+
+    <!--<TextView-->
+        <!--android:id="@+id/txt_time"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_below="@+id/txt_value"-->
+        <!--android:layout_marginBottom="04dp"-->
+        <!--android:layout_marginEnd="10dp"-->
+        <!--android:layout_marginLeft="10dp"-->
+        <!--android:layout_marginRight="10dp"-->
+        <!--android:layout_marginStart="10dp"-->
+        <!--android:drawableLeft="@drawable/ic_access_time_24dp"-->
+        <!--android:drawablePadding="4dp"-->
+        <!--android:text="Time"-->
+        <!--android:textAllCaps="true"-->
+        <!--android:textColor="@color/colorBlack"-->
+        <!--android:textSize="@dimen/txt_meeting_detail_value"-->
+   <!--/>-->
+
+    <!--<TextView-->
+        <!--android:id="@+id/txt_place"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_below="@+id/txt_time"-->
+        <!--android:layout_marginEnd="10dp"-->
+        <!--android:layout_marginLeft="10dp"-->
+        <!--android:layout_marginRight="10dp"-->
+        <!--android:layout_marginStart="10dp"-->
+        <!--android:drawableLeft="@drawable/ic_place_24dp"-->
+        <!--android:drawablePadding="4dp"-->
+        <!--android:ellipsize="end"-->
+        <!--android:text="Place"-->
+        <!--android:textAllCaps="true"-->
+        <!--android:textColor="@color/colorBlack"-->
+        <!--android:textSize="@dimen/txt_meeting_detail_heading"-->
+    <!--/>-->
+
+
+<!--</RelativeLayout>-->

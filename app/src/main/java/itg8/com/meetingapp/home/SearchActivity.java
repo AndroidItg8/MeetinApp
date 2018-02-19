@@ -1,7 +1,9 @@
 package itg8.com.meetingapp.home;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -19,12 +21,14 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.db.DaoMeetingInteractor;
 import itg8.com.meetingapp.db.TblMeeting;
+import itg8.com.meetingapp.import_meeting.MeetingDetailActivity;
 import itg8.com.meetingapp.widget.search.SearchBox;
 import itg8.com.meetingapp.widget.search.SearchResult;
 
-public class SearchActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity implements SearchResultAdapter.MeetingItemClicked {
 
     private static final String TAG = SearchActivity.class.getSimpleName();
     @BindView(R.id.searchbox)
@@ -53,7 +57,6 @@ public class SearchActivity extends AppCompatActivity {
 
     private void init() {
         setRecyclerView();
-
         searchbox = (SearchBox) findViewById(R.id.searchbox);
         List<TblMeeting> listMeeting = getMeetingFromDatabase();
         if (listMeeting != null) {
@@ -155,9 +158,11 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     private void setRecyclerView() {
-        adapter=new SearchResultAdapter(this, listSearchResult);
+        adapter=new SearchResultAdapter(this, listSearchResult, this);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+//      DividerItemDecoration itemDecoration = new DividerItemDecoration(this,DividerItemDecoration.VERTICAL);
+//        recyclerView.addItemDecoration(itemDecoration);
 //        checkIfRecyclerviewToShow();
     }
 
@@ -200,4 +205,10 @@ public class SearchActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onItemClicked(int position, TblMeeting meeting) {
+        Intent intent = new Intent(SearchActivity.this, MeetingDetailActivity.class);
+        intent.putExtra(CommonMethod.EXTRA_MEETING,meeting);
+        startActivity(intent);
+    }
 }

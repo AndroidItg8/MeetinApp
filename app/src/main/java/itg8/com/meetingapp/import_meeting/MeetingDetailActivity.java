@@ -32,12 +32,16 @@ import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.common.Helper;
+import itg8.com.meetingapp.custom_tag.MaxHeightScrollView;
+import itg8.com.meetingapp.custom_tag.TagContainerLayout;
 import itg8.com.meetingapp.db.DaoContactInteractor;
 import itg8.com.meetingapp.db.DaoDocumentInteractor;
 import itg8.com.meetingapp.db.DaoMeetingInteractor;
+import itg8.com.meetingapp.db.DaoTagInteractor;
 import itg8.com.meetingapp.db.TblContact;
 import itg8.com.meetingapp.db.TblDocument;
 import itg8.com.meetingapp.db.TblMeeting;
+import itg8.com.meetingapp.db.TblTAG;
 import itg8.com.meetingapp.document_meeting.DocumentMeetingActivity;
 import itg8.com.meetingapp.meeting.MeetingActivity;
 import itg8.com.meetingapp.service.NotificationService;
@@ -95,9 +99,14 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
     Button btnDelete;
     @BindView(R.id.img_navigate)
     ImageView imgNavigate;
+    @BindView(R.id.tag_container_layout)
+    TagContainerLayout tagContainerLayout;
+    @BindView(R.id.scrollView)
+    MaxHeightScrollView scrollView;
     private DaoContactInteractor daoContact;
     private DaoDocumentInteractor daoDocument;
     private DaoMeetingInteractor daoMeeting;
+    private DaoTagInteractor daoTag;
     TblMeeting meeting = null;
 
     @Override
@@ -111,6 +120,7 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
         daoContact = new DaoContactInteractor(this);
         daoDocument = new DaoDocumentInteractor(this);
         daoMeeting = new DaoMeetingInteractor(this);
+        daoTag = new DaoTagInteractor(this);
         init();
     }
 
@@ -176,12 +186,28 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(MeetingDetailActivity.this, DocumentMeetingActivity.class);
-                    intent.putExtra(CommonMethod.EXTRA_MEETING,meeting.getPkid());
+                    intent.putExtra(CommonMethod.EXTRA_MEETING, meeting.getPkid());
                     intent.putParcelableArrayListExtra(CommonMethod.EXTRA_PRE_DOCUMENTS, (ArrayList<? extends Parcelable>) preDocuments);
                     intent.putParcelableArrayListExtra(CommonMethod.EXTRA_POST_DOCUMENTS, (ArrayList<? extends Parcelable>) postDocuments);
                     startActivity(intent);
                 }
             });
+
+
+            final List<TblTAG> tagsList = daoTag.getTagByMeetingId(meeting.getPkid());
+            if(tagsList.size()>0)
+            {
+                List<int[]> colors = new ArrayList<int[]>();
+                for (int i = 0; i < tagsList.size(); i++) {
+
+
+                    int[] col1 = {Color.parseColor("#C5E1A5"), Color.parseColor("#C5E1A5"), Color.parseColor("#000000")};
+                    colors.add(col1);
+                }
+                tagContainerLayout.setEnableCross(false);
+                tagContainerLayout.setTags(tagsList, colors);
+
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -221,18 +247,18 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
-        }else if(item.getItemId() == R.id.action_share){
+        } else if (item.getItemId() == R.id.action_share) {
             shareMeeting();
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void shareMeeting() {
-        String content=createMeetingContentForSharing();
-        Intent intent=new Intent(Intent.ACTION_SEND);
+        String content = createMeetingContentForSharing();
+        Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("text/plain");
-        intent.putExtra(Intent.EXTRA_SUBJECT,"Meeting App:");
-        intent.putExtra(Intent.EXTRA_TEXT,content);
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Meeting App:");
+        intent.putExtra(Intent.EXTRA_TEXT, content);
         startActivity(intent);
 
     }
@@ -263,15 +289,15 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
     }
 
     private void navigateToMap() {
-        final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://maps.google.com/maps?" + "saddr="+ meeting.getLatitude() + "," + meeting.getLongitude() + "&daddr=" + meeting.getLatitude() + "," + meeting.getLongitude()));
-        intent.setClassName("com.google.android.apps.maps","com.google.android.maps.MapsActivity");
+        final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://maps.google.com/maps?" + "saddr=" + meeting.getLatitude() + "," + meeting.getLongitude() + "&daddr=" + meeting.getLatitude() + "," + meeting.getLongitude()));
+        intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
         startActivity(intent);
     }
 
     private void deleteMeeting() {
         try {
-            TblMeeting tempMeeting= (TblMeeting) meeting.clone();
-            Log.d(TAG, "deleteMeeting: "+tempMeeting.toString());
+            TblMeeting tempMeeting = (TblMeeting) meeting.clone();
+            Log.d(TAG, "deleteMeeting: " + tempMeeting.toString());
             passToService();
             daoMeeting.delete(meeting);
             finish();
@@ -285,7 +311,7 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
     private void passToService() {
         Intent intent = new Intent(this, NotificationService.class);
         intent.putExtra(CommonMethod.EXTRA_MEETING, meeting);
-        intent.putExtra(CommonMethod.EXTRA_MEETING_CANCELED,meeting.getPkid());
+        intent.putExtra(CommonMethod.EXTRA_MEETING_CANCELED, meeting.getPkid());
         startService(intent);
 
     }

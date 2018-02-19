@@ -256,7 +256,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     private void init() {
         tagInteractor = new DaoTagInteractor(TAGActivity.this);
 
-        clearTagList();
         btnAdd.setOnClickListener(this);
         try {
             tagList.addAll(tagInteractor.getTags());

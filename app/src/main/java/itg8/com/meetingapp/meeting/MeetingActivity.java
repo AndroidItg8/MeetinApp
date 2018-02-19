@@ -336,7 +336,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 toggleDocumentView(SHOW_DOCUMENT);
             }
             contactList.addAll(daoContact.getContactsByMeetingId(meeting.getPkid()));
-            adapterContact.notifyDataSetChanged();
+//            adapterContact.notifyDataSetChanged();
+            setParticipantTAG();
+
+            tagList.addAll(daoTag.getTagByMeetingId(meeting.getPkid()));
+            createRecyclerViewForTAG();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -360,6 +364,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
             tagContainerLayout.setTags(tagList, colors);
         }
+
 
 
     }

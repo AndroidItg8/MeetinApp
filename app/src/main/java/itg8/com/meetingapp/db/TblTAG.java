@@ -16,7 +16,7 @@ public class TblTAG implements Parcelable {
     public static final String FIELD_ID="pkid";
     public static final String FIELD_NAME="name";
     public static final String FIELD_SELECT ="value_select";
-    private static final String FIELD_MEETING_ID = "meeting_id";
+    public static final String FIELD_MEETING_ID = "meeting_id";
 
 
 

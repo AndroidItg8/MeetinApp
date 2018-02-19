@@ -25,10 +25,7 @@ public class ScrollingActivity extends AppCompatActivity {
         setContentView(R.layout.content_scrolling);
 //        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        adapter=new SearchResultAdapter(this, new ArrayList<TblMeeting>());
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
 
     }
 }

@@ -48,4 +48,12 @@ public class DaoTagInteractor {
             return helper.getTagDao().queryForAll();
     }
 
+    public List<TblTAG> getTagByMeetingId(long pkid) {
+        try {
+            return helper.getTagDao().queryBuilder().where().eq(TblTAG.FIELD_MEETING_ID,pkid).query();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
