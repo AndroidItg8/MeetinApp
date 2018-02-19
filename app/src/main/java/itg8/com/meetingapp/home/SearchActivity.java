@@ -1,15 +1,26 @@
 package itg8.com.meetingapp.home;
 
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.db.DaoMeetingInteractor;
+import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.widget.search.SearchBox;
 import itg8.com.meetingapp.widget.search.SearchResult;
 
@@ -18,6 +29,17 @@ public class SearchActivity extends AppCompatActivity {
     private static final String TAG = SearchActivity.class.getSimpleName();
     @BindView(R.id.searchbox)
     SearchBox searchbox;
+    @BindView(R.id.recyclerView)
+    RecyclerView recyclerView;
+    @BindView(R.id.img_icon)
+    ImageView imgIcon;
+    @BindView(R.id.txt_lbl)
+    TextView txtLbl;
+    @BindView(R.id.rl_no_tag)
+    RelativeLayout rlNoTag;
+
+    private DaoMeetingInteractor daoMeetingIntractor;
+    private List<SearchResult> listSearchResult= new ArrayList<>();
 
 
     @Override
@@ -25,15 +47,25 @@ public class SearchActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         ButterKnife.bind(this);
+        init();
+    }
+
+    private void init() {
+        setRecyclerView();
 
         searchbox = (SearchBox) findViewById(R.id.searchbox);
-//        searchbox.enableVoiceRecognition(this);
-        for(int x = 0; x < 10; x++){
-            SearchResult option = new SearchResult("Result " + Integer.toString(x), getResources().getDrawable(R.drawable.ic_history));
-            searchbox.addSearchable(option);
+        List<TblMeeting> listMeeting = getMeetingFromDatabase();
+        if (listMeeting != null) {
+            for (TblMeeting meeting : listMeeting
+                    ) {
+                Log.d(TAG, "onCreate: ListMeeting "+  meeting.toString());
+                SearchResult option = new SearchResult(meeting, getResources().getDrawable(R.drawable.ic_history));
+                searchbox.addSearchable(option);
+            }
         }
 
-        searchbox.setSearchListener(new SearchBox.SearchListener(){
+
+        searchbox.setSearchListener(new SearchBox.SearchListener() {
 
             @Override
             public void onSearchOpened() {
@@ -48,24 +80,28 @@ public class SearchActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onSearchTermChanged(String term) {
-                //React to the search term changing
-                //Called after it has updated results
-                Log.d(TAG, "onSearchTermChanged: "+term);
+            public void onSearchTermChanged(SearchResult term) {
+                Log.d(TAG, "onSearchTermChanged: " + term);
 
             }
 
             @Override
-            public void onSearch(String searchTerm) {
-                Log.d(TAG, "onSearch: "+searchTerm);
-
+            public void onSearch(SearchResult result) {
+                Log.d(TAG, "onSearch: " + result);
 
             }
+
 
             @Override
             public void onResultClick(SearchResult result) {
                 //React to a result being clicked
-                Log.d(TAG, "onResultClick: "+result);
+
+                    Log.d(TAG, "onResultClick: " + result);
+                    listSearchResult.add(result);
+                    setRecyclerView();
+
+
+
 
             }
 
@@ -96,8 +132,34 @@ public class SearchActivity extends AppCompatActivity {
 //        });
     }
 
+    private void setRecyclerView() {
+        if(listSearchResult.size()>0) {
+            showHideView(recyclerView, rlNoTag);
 
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            recyclerView.setAdapter(new SearchResultAdapter(this, listSearchResult));
+        }
+        else{
+            showHideView( rlNoTag,recyclerView);
 
+        }
+    }
+
+    private void showHideView(View show, View hide) {
+        show.setVisibility(View.VISIBLE);
+        hide.setVisibility(View.GONE);
+
+    }
+
+    private List<TblMeeting> getMeetingFromDatabase() {
+        daoMeetingIntractor = new DaoMeetingInteractor(SearchActivity.this);
+        try {
+            return daoMeetingIntractor.getMeetings();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 
     @Override

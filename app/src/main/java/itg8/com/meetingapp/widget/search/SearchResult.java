@@ -2,8 +2,34 @@ package itg8.com.meetingapp.widget.search;
 
 import android.graphics.drawable.Drawable;
 
+import itg8.com.meetingapp.db.TblMeeting;
+
 public class SearchResult {
-    public String title;
+    public TblMeeting getTitle() {
+        return title;
+    }
+
+    public void setTitle(TblMeeting title) {
+        this.title = title;
+    }
+
+    public Drawable getIcon() {
+        return icon;
+    }
+
+    public void setIcon(Drawable icon) {
+        this.icon = icon;
+    }
+
+    public int getViewType() {
+        return viewType;
+    }
+
+    public void setViewType(int viewType) {
+        this.viewType = viewType;
+    }
+
+    public TblMeeting title;
     public Drawable icon;
 
     /**
@@ -11,18 +37,18 @@ public class SearchResult {
      * @param title
      * @param icon
      */
-    public SearchResult(String title, Drawable icon) {
+    public SearchResult(TblMeeting title, Drawable icon) {
        this.title = title;
        this.icon = icon;
     }
 
     public int viewType = 0;
 
-    public SearchResult(String title){
+    public SearchResult(TblMeeting title){
         this.title = title;
     }
 
-    public SearchResult(int viewType, String title){
+    public SearchResult(int viewType, TblMeeting title){
         this.viewType = viewType;
         this.title = title;
     }
@@ -32,7 +58,7 @@ public class SearchResult {
      */
     @Override
     public String toString() {
-        return title;
+        return title.getTitle();
     }
     
 }

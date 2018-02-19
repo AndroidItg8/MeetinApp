@@ -235,6 +235,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 //                setTagCount();
                 mActionMode = null;
                 updateActionBar(FROM_TAG, isFromCancel);
+                createRecyclerViewForTAG();
             }
         });
     }
@@ -255,7 +256,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     private void init() {
         tagInteractor = new DaoTagInteractor(TAGActivity.this);
 
-
+        clearTagList();
         btnAdd.setOnClickListener(this);
         try {
             tagList.addAll(tagInteractor.getTags());
@@ -354,7 +355,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
                     e.printStackTrace();
                 }
 
-                updateActionBar(from, false);
+                updateActionBar(FROM_TAG, false);
             }
 
             @Override

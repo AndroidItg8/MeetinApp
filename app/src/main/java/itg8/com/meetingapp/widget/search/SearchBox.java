@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.speech.RecognizerIntent;
 import android.support.annotation.MenuRes;
 import android.text.Editable;
@@ -22,7 +21,6 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
@@ -47,6 +45,7 @@ import java.util.List;
 
 
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.db.TblMeeting;
 
 public class SearchBox extends RelativeLayout {
 
@@ -57,8 +56,8 @@ public class SearchBox extends RelativeLayout {
 	private EditText search;
 	private Context context;
 	private ListView results;
-	private ArrayList<SearchResult> resultList;
-	private ArrayList<SearchResult> searchables;
+	private List<SearchResult> resultList;
+	private List<SearchResult> searchables;
 	private boolean searchOpen;
 	private boolean animate;
 	private View tint;
@@ -144,12 +143,10 @@ public class SearchBox extends RelativeLayout {
 		isVoiceRecognitionIntentSupported = isIntentAvailable(context, new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH));
 		toggleSearch();
 
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
-			RelativeLayout searchRoot = (RelativeLayout) findViewById(R.id.search_root);
-			LayoutTransition lt = new LayoutTransition();
-			lt.setDuration(100);
-			searchRoot.setLayoutTransition(lt);
-		}
+		RelativeLayout searchRoot = (RelativeLayout) findViewById(R.id.search_root);
+		LayoutTransition lt = new LayoutTransition();
+		lt.setDuration(100);
+		searchRoot.setLayoutTransition(lt);
 		searchables = new ArrayList<SearchResult>();
 		search.setOnEditorActionListener(new OnEditorActionListener() {
 			public boolean onEditorAction(TextView v, int actionId,
@@ -216,11 +213,12 @@ public class SearchBox extends RelativeLayout {
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before,
 									  int count) {
+				SearchResult result = null;
 				if (s.length() > 0) {
 					micStateChanged(false);
 					mic.setImageDrawable(getContext().getResources().getDrawable(
 							R.drawable.ic_close_24dp));
-					updateResults();
+					result=updateResults();
 				}
 //				} else {
 //					micStateChanged(true);
@@ -234,7 +232,7 @@ public class SearchBox extends RelativeLayout {
 //				}
 
 				if (listener != null)
-					listener.onSearchTermChanged(s.toString());
+					listener.onSearchTermChanged(result);
 
 			}
 		});
@@ -242,7 +240,7 @@ public class SearchBox extends RelativeLayout {
 		mSearchFilter = new SearchFilter() {
 			@Override
 			public boolean onFilter(SearchResult searchResult, String searchTerm) {
-				return searchResult.title.toLowerCase()
+				return searchResult.title.getTitle().toLowerCase()
 						.startsWith(searchTerm.toLowerCase());
 			}
 		};
@@ -487,11 +485,12 @@ public class SearchBox extends RelativeLayout {
 	/***
 	 * Force an update of the results
 	 */
-	public void updateResults() {
+	public SearchResult updateResults() {
 		resultList.clear();
+		SearchResult searchable = null;
 		int count = 0;
 		for (int x = 0; x < searchables.size(); x++) {
-			SearchResult searchable = searchables.get(x);
+			 searchable = searchables.get(x);
 
 			if(mSearchFilter.onFilter(searchable,getSearchText()) && count < 5) {
 				addResult(searchable);
@@ -502,8 +501,9 @@ public class SearchBox extends RelativeLayout {
 			results.setVisibility(View.GONE);
 		} else {
 			results.setVisibility(View.VISIBLE);
+			return searchable;
 		}
-
+return null;
 	}
 	
 	/***
@@ -607,7 +607,7 @@ public class SearchBox extends RelativeLayout {
      * Get result list
      * @return Results
      */
-    public ArrayList<SearchResult> getResults() {
+    public List<SearchResult> getResults() {
         return resultList;
     }
 
@@ -712,7 +712,7 @@ public class SearchBox extends RelativeLayout {
 	 * Get all searchable items
 	 * @return ArrayList of SearchResults
 	 */
-	public ArrayList<SearchResult> getSearchables() {
+	public List<SearchResult> getSearchables() {
 		return searchables;
 	}
 
@@ -758,14 +758,14 @@ public class SearchBox extends RelativeLayout {
 
 	private void search(SearchResult result, boolean resultClicked) {
 		if(!searchWithoutSuggestions && getNumberOfResults() == 0)return;
-		setSearchString(result.title);
+		setSearchString(result.title.getTitle());
 		if (!TextUtils.isEmpty(getSearchText())) {
-			setLogoTextInt(result.title);
+			setLogoTextInt(result.title.getTitle());
 			if (listener != null) {
 				if (resultClicked)
 					listener.onResultClick(result);
 				else
-					listener.onSearch(result.title);
+					listener.onSearch(result);
 			}
 		} else {
 			setLogoTextInt(logoText);
@@ -882,7 +882,10 @@ public class SearchBox extends RelativeLayout {
 	
 
 	private void search(String text) {
-		SearchResult option = new SearchResult(text, null);
+		TblMeeting meeting = new TblMeeting();
+		meeting.setTitle(text);
+
+		SearchResult option = new SearchResult(meeting, null);
 		search(option, false);
 		
 	}
@@ -892,7 +895,7 @@ public class SearchBox extends RelativeLayout {
     public static class SearchAdapter extends ArrayAdapter<SearchResult> {
         private boolean mAnimate;
         private EditText mSearch;
-		public SearchAdapter(Context context, ArrayList<SearchResult> options, EditText search) {
+		public SearchAdapter(Context context, List<SearchResult> options, EditText search) {
 			super(context, 0, options);
             mSearch = search;
 		}
@@ -926,7 +929,7 @@ public class SearchBox extends RelativeLayout {
 			}
 			final TextView title = (TextView) convertView
 					.findViewById(R.id.title);
-			title.setText(option.title);
+			title.setText(option.title.getTitle());
 			ImageView icon = (ImageView) convertView.findViewById(R.id.icon);
 			icon.setImageDrawable(option.icon);
 			ImageView up = (ImageView) convertView.findViewById(R.id.up);
@@ -974,13 +977,13 @@ public class SearchBox extends RelativeLayout {
 		/**
 		 * Called when the searchbox's edittext changes
 		 */
-		public void onSearchTermChanged(String term);
+		public void onSearchTermChanged(SearchResult term);
 
 		/**
 		 * Called when a search happens, with a result
 		 * @param result
 		 */
-		public void onSearch(String result);
+		public void onSearch(SearchResult result);
 		
 		/**
 		 * Called when a search result is clicked, with the result
