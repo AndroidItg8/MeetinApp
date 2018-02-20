@@ -13,6 +13,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Parcelable;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -292,6 +293,13 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         createRecyclerviewForDocuments();
         checkIfFromEdit();
 
+
+        try {
+            List<TblTAG> list = daoTag.getTags();
+            Log.d(TAG, "onCreate: List");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private void checkIfFromEdit() {
@@ -624,7 +632,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 openPhoneBook2();
                 break;
             case R.id.fab:
-                startActivityForResult(new Intent(MeetingActivity.this, TAGActivity.class), RC_TAG);
+               Intent intent= new Intent(MeetingActivity.this, TAGActivity.class);
+               intent.putParcelableArrayListExtra(CommonMethod.SELECTED_TAG, (ArrayList<? extends Parcelable>) tagList);
+                startActivityForResult(intent, RC_TAG);
                 break;
         }
     }
@@ -1143,6 +1153,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 for (TblTAG c : contacts) {
                     tagModel = new TblTAG();
                     tagModel.setName(c.getName());
+                    tagModel.setPkid(c.getPkid());
+                    tagModel.setSelected(c.isSelected());
 
                     tagList.add(tagModel);
                 }
