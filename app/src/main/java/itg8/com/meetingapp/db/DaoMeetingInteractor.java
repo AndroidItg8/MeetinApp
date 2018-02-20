@@ -3,11 +3,13 @@ package itg8.com.meetingapp.db;
 import android.content.Context;
 import android.util.Log;
 
+import com.j256.ormlite.stmt.ColumnArg;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -68,10 +70,10 @@ public class DaoMeetingInteractor {
             where.eq(TblMeeting.PRIORITY, CommonMethod.PRIORITY_INT_LOW);
             conditions++;
         }
-        if(conditions>0)
-           where.or(conditions);
+        if (conditions > 0)
+            where.or(conditions);
 
-        PreparedQuery<TblMeeting> preparedQuery=quiryBuilder.prepare();
+        PreparedQuery<TblMeeting> preparedQuery = quiryBuilder.prepare();
         return helper.getMeetingDao().query(preparedQuery);
     }
 
@@ -85,8 +87,29 @@ public class DaoMeetingInteractor {
 
     public List<TblMeeting> getMeetingByTitleLike(String title) throws SQLException {
         QueryBuilder<TblMeeting, Long> qb = helper.getMeetingDao().queryBuilder();
-        qb.where().like(TblMeeting.TITLE, "%"+title+"%");
+        qb.where().like(TblMeeting.TITLE, "%" + title + "%");
         PreparedQuery<TblMeeting> pq = qb.prepare();
         return helper.getMeetingDao().query(pq);
     }
+
+    public List<TblMeeting> getMeetingByTagsLike(List<TblTAG> tag) throws SQLException {
+        QueryBuilder<TblMeetingTag, Long> qbMeetingTAg = helper.getMeetingTagDao().queryBuilder();
+        QueryBuilder<TblMeeting, Long> qbMeeting = helper.getMeetingDao().queryBuilder();
+        QueryBuilder<TblTAG, Long> qbTag = helper.getTagDao().queryBuilder();
+        qbMeeting.join(qbTag);
+
+        for (TblTAG t : tag) {
+
+           Where<TblMeetingTag, Long> ld=  qbMeetingTAg.where().eq(TblMeetingTag.FIELD_TAG_ID, t.getPkid());
+           ld.eq(TblMeetingTag.FIELD_MEETING_ID ,TblMeeting.FIELD_ID).query();
+
+        }
+
+
+//
+//        return helper.getMeetingDao().query(qb);
+        return null;
+    }
+
+
 }

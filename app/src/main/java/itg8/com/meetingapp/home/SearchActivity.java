@@ -24,13 +24,17 @@ import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.db.DaoMeetingInteractor;
 import itg8.com.meetingapp.db.TblMeeting;
+import itg8.com.meetingapp.db.TblMeetingTag;
+import itg8.com.meetingapp.db.TblTAG;
 import itg8.com.meetingapp.import_meeting.MeetingDetailActivity;
+import itg8.com.meetingapp.meeting.TAGActivity;
 import itg8.com.meetingapp.widget.search.SearchBox;
 import itg8.com.meetingapp.widget.search.SearchResult;
 
 public class SearchActivity extends AppCompatActivity implements SearchResultAdapter.MeetingItemClicked {
 
     private static final String TAG = SearchActivity.class.getSimpleName();
+    private static final int RC_FILTER_TAG = 987;
     @BindView(R.id.searchbox)
     SearchBox searchbox;
     @BindView(R.id.recyclerView)
@@ -63,7 +67,9 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
             for (TblMeeting meeting : listMeeting
                     ) {
                 Log.d(TAG, "onCreate: ListMeeting "+  meeting.toString());
-                SearchResult option = new SearchResult(meeting.getTitle(), getResources().getDrawable(R.drawable.ic_history));
+                Log.d(TAG, "onCreate: ListMeeting "+  meeting.toString());
+
+                SearchResult option = new SearchResult(meeting.getTitle(),getResources().getDrawable(R.drawable.ic_history));
                 searchbox.addSearchable(option);
             }
         }
@@ -117,6 +123,11 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
             }
 
             @Override
+            public void onFilterTagClicked() {
+                startActivityForResult(new Intent(SearchActivity.this, TAGActivity.class),RC_FILTER_TAG);
+            }
+
+            @Override
             public void onSearchCleared() {
                 //Called when the clear button is clicked
                 Log.d(TAG, "onSearchCleared: ");
@@ -141,10 +152,13 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     private void fetchMeetingFromText(String title) {
         try {
             List<TblMeeting> list=daoMeetingIntractor.getMeetingByTitleLike(title);
-            listSearchResult.clear();
-            listSearchResult.addAll(list);
-            adapter.notifyDataSetChanged();
-//            boolean isVisible;
+            if(list.size()>0) {
+                listSearchResult.clear();
+                listSearchResult.addAll(list);
+                adapter.notifyDataSetChanged();
+
+
+                //            boolean isVisible;
 //            if(recyclerView.getVisibility()==View.VISIBLE){
 //                isVisible=true;
 //            }else {
@@ -152,6 +166,11 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 //            }
 //            Log.d(TAG, "fetchMeetingFromText: "+isVisible);
 //            checkIfRecyclerviewToShow();
+
+
+            }
+
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -161,9 +180,12 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         adapter=new SearchResultAdapter(this, listSearchResult, this);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-//      DividerItemDecoration itemDecoration = new DividerItemDecoration(this,DividerItemDecoration.VERTICAL);
+
+        //      DividerItemDecoration itemDecoration = new DividerItemDecoration(this,DividerItemDecoration.VERTICAL);
 //        recyclerView.addItemDecoration(itemDecoration);
 //        checkIfRecyclerviewToShow();
+
+
     }
 
     private void checkIfRecyclerviewToShow() {
@@ -210,5 +232,34 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         Intent intent = new Intent(SearchActivity.this, MeetingDetailActivity.class);
         intent.putExtra(CommonMethod.EXTRA_MEETING,meeting);
         startActivity(intent);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode==RC_FILTER_TAG && resultCode==RESULT_OK)
+        {
+            List<TblTAG> tag = data.getParcelableArrayListExtra("tag");
+            try {
+                fetchMeetingFromTAGS(tag);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void fetchMeetingFromTAGS(List<TblTAG> tag) throws SQLException {
+        List<TblMeeting> list = new ArrayList<>();
+
+
+             list = daoMeetingIntractor.getMeetingByTagsLike(tag);
+        if (list.size() > 0) {
+            listSearchResult.clear();
+            listSearchResult.addAll(list);
+            adapter.notifyDataSetChanged();
+
+
+        }
     }
 }

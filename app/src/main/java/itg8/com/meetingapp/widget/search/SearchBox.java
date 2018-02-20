@@ -51,6 +51,7 @@ public class SearchBox extends RelativeLayout {
 
 	public static final int VOICE_RECOGNITION_CODE = 1234;
 	private final ImageView back;
+	private final ImageView filter;
 
 	private TextView logo;
 	private EditText search;
@@ -121,6 +122,7 @@ public class SearchBox extends RelativeLayout {
 		this.pb = (ProgressBar) findViewById(R.id.pb);
 		this.mic = (ImageView) findViewById(R.id.img_cross);
 		this.back = (ImageView) findViewById(R.id.img_back);
+		this.filter = (ImageView) findViewById(R.id.img_filter_tag);
 //		this.overflow = (ImageView) findViewById(R.id.overflow);
 //		this.drawerLogo = (ImageView) findViewById(R.id.drawer_logo);
 //		materialMenu.setOnClickListener(new OnClickListener() {
@@ -189,6 +191,12 @@ public class SearchBox extends RelativeLayout {
 				listener.onBackPressClick();
 			}
 		});
+		filter.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				listener.onFilterTagClicked();
+			}
+		});
 
 //		overflow.setOnClickListener(new OnClickListener() {
 //
@@ -197,6 +205,7 @@ public class SearchBox extends RelativeLayout {
 //				popupMenu.show();
 //			}
 //		});
+
 
 		search.addTextChangedListener(new TextWatcher() {
 
@@ -754,6 +763,8 @@ return null;
 //
 //        });
 //		animator.start();
+
+
 	}
 
 	private void search(SearchResult result, boolean resultClicked) {
@@ -988,6 +999,8 @@ return null;
 		 */
 		public void onResultClick(SearchResult result);
 		 public void onBackPressClick();
+
+		void onFilterTagClicked();
 	}
 
 	public interface MenuListener {

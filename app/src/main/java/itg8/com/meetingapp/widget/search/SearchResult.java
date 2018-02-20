@@ -2,7 +2,10 @@ package itg8.com.meetingapp.widget.search;
 
 import android.graphics.drawable.Drawable;
 
+import java.util.List;
+
 import itg8.com.meetingapp.db.TblMeeting;
+import itg8.com.meetingapp.db.TblMeetingTag;
 
 public class SearchResult {
     public String getTitle() {
@@ -30,6 +33,7 @@ public class SearchResult {
     }
 
     public String title;
+    private Drawable drawable;
     public Drawable icon;
 
     /**
@@ -44,9 +48,7 @@ public class SearchResult {
 
     public int viewType = 0;
 
-    public SearchResult(String title){
-        this.title = title;
-    }
+
 
     public SearchResult(int viewType, String title){
         this.viewType = viewType;
