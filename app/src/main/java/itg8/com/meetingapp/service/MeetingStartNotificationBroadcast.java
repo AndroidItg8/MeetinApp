@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.CountDownTimer;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.widget.RemoteViews;
 
@@ -78,7 +79,9 @@ public class MeetingStartNotificationBroadcast extends BroadcastReceiver {
         }
         NotificationManager managerCompat = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (managerCompat != null && builder != null) {
-            setNotificationChannel(managerCompat);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                setNotificationChannel(managerCompat);
+            }
             managerCompat.notify(CommonMethod.MEETING_NOTIFICATION_ID, builder.build());
         } else
             throw new NullPointerException("NotificationService not available.");
@@ -86,7 +89,7 @@ public class MeetingStartNotificationBroadcast extends BroadcastReceiver {
 
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.O)
     private void setNotificationChannel(NotificationManager managerCompat) {
         int importance = NotificationManager.IMPORTANCE_LOW;
         NotificationChannel notificationChannel = new NotificationChannel(MY_STATIC_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME, importance);

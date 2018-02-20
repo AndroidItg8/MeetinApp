@@ -13,6 +13,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.CountDownTimer;
+import android.support.annotation.RequiresApi;
 
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
@@ -91,7 +92,7 @@ public class NotificationReminderBroadcast extends BroadcastReceiver {
                     }
 //                }
                 Notification noti= null;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                     noti = builder.build();
                 }
                 else
@@ -100,7 +101,9 @@ public class NotificationReminderBroadcast extends BroadcastReceiver {
                 // hide the notification after its selected
                 noti.flags |= Notification.FLAG_AUTO_CANCEL;
                 if (notificationManager != null) {
-                    setNotificationChannel(notificationManager);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        setNotificationChannel(notificationManager);
+                    }
                     notificationManager.notify((int) (REMINDER_NOTIFICATION*meeting.getPkid()), noti);
                 }
 
@@ -110,7 +113,7 @@ public class NotificationReminderBroadcast extends BroadcastReceiver {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.O)
     private void setNotificationChannel(NotificationManager managerCompat) {
         int importance = NotificationManager.IMPORTANCE_LOW;
         NotificationChannel notificationChannel = new NotificationChannel(MY_STATIC_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME, importance);

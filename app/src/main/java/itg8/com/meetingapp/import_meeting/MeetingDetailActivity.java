@@ -41,6 +41,7 @@ import itg8.com.meetingapp.db.DaoTagInteractor;
 import itg8.com.meetingapp.db.TblContact;
 import itg8.com.meetingapp.db.TblDocument;
 import itg8.com.meetingapp.db.TblMeeting;
+import itg8.com.meetingapp.db.TblMeetingTag;
 import itg8.com.meetingapp.db.TblTAG;
 import itg8.com.meetingapp.document_meeting.DocumentMeetingActivity;
 import itg8.com.meetingapp.meeting.MeetingActivity;
@@ -194,7 +195,12 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
             });
 
 
-            final List<TblTAG> tagsList = daoTag.getTagByMeetingId(meeting.getPkid());
+            final List<TblTAG> tagsList=new ArrayList<>();
+            for (TblMeetingTag mTag :
+                    meeting.getTags()) {
+                tagsList.add(mTag.getTag());
+            }
+
             if(tagsList.size()>0)
             {
                 List<int[]> colors = new ArrayList<int[]>();

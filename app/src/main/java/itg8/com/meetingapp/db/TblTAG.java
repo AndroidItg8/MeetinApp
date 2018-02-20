@@ -20,7 +20,7 @@ public class TblTAG implements Parcelable {
 
 
 
-    @DatabaseField(columnName = FIELD_ID,generatedId = true)
+    @DatabaseField(columnName = FIELD_ID, generatedId = true)
     private long pkid;
 
     @DatabaseField(columnName = FIELD_MEETING_ID,foreign = true,foreignAutoRefresh = true)

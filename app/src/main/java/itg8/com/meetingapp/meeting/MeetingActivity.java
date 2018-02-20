@@ -13,7 +13,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Parcelable;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -72,6 +71,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -87,10 +87,12 @@ import itg8.com.meetingapp.custom_tag.TagView;
 import itg8.com.meetingapp.db.DaoContactInteractor;
 import itg8.com.meetingapp.db.DaoDocumentInteractor;
 import itg8.com.meetingapp.db.DaoMeetingInteractor;
+import itg8.com.meetingapp.db.DaoMeetingTagInteractor;
 import itg8.com.meetingapp.db.DaoTagInteractor;
 import itg8.com.meetingapp.db.TblContact;
 import itg8.com.meetingapp.db.TblDocument;
 import itg8.com.meetingapp.db.TblMeeting;
+import itg8.com.meetingapp.db.TblMeetingTag;
 import itg8.com.meetingapp.db.TblTAG;
 import itg8.com.meetingapp.import_meeting.ParticipantTagAdapter;
 import itg8.com.meetingapp.meeting.model.Contact;
@@ -249,8 +251,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private DaoDocumentInteractor daoDocument;
     private DaoMeetingInteractor daoMeeting;
     private DaoTagInteractor daoTag;
+    private DaoMeetingTagInteractor daoMeetingTag;
 
     private boolean isFromEdit = false;
+    private HashMap<Long, TblTAG> tagHashMap=new HashMap<>();
+    private TblMeetingTag meetingTag;
 
     /**
      * Helper method to format information about a place nicely.
@@ -280,6 +285,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         collapsed();
 
 
+
 //        adapterTAG = new TAGAdapter(tagList, this);
 
         presenter = new MeetingPresenterImp(this);
@@ -293,11 +299,18 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         createRecyclerviewForDocuments();
         checkIfFromEdit();
 
+    }
 
+    private void initTagHashmap() {
         try {
-            List<TblTAG> list = daoTag.getTags();
-            Log.d(TAG, "onCreate: List");
-        } catch (SQLException e) {
+//            List<TblTAG> tagList=daoTag.getTags();
+            tagHashMap.clear();
+            for (TblTAG tag :
+                    this.tagList) {
+                tag.setSelected(true);
+                tagHashMap.put(tag.getPkid(),tag);
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -346,13 +359,33 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             contactList.addAll(daoContact.getContactsByMeetingId(meeting.getPkid()));
 //            adapterContact.notifyDataSetChanged();
             setParticipantTAG();
-
-            tagList.addAll(daoTag.getTagByMeetingId(meeting.getPkid()));
+            List<TblMeetingTag> tags=meeting.getTags();
+            for (TblMeetingTag tagMeeting :
+                    tags) {
+                tagList.add(tagMeeting.getTag());
+            }
+//            tagList.addAll(daoMeetingTag.getTagsMyMeetingId(meeting));
+//            changeHashmapValueFromUpdatedTagList();
+            initTagHashmap();
             createRecyclerViewForTAG();
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+//        for (TblTAG tag :
+//                tag) {
+//
+//        }
+
+    }
+
+    private void changeHashmapValueFromUpdatedTagList() {
+        for (TblTAG tag :
+                tagList) {
+            TblTAG tempTag=tagHashMap.get(tag.getPkid());
+            tempTag.setSelected(true);
+            tagHashMap.put(tag.getPkid(),tag);
+        }
     }
 
     private void expandDue() {
@@ -422,6 +455,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         daoDocument=new DaoDocumentInteractor(this);
         daoMeeting=new DaoMeetingInteractor(this);
         daoTag=new DaoTagInteractor(this);
+        daoMeetingTag=new DaoMeetingTagInteractor(this);
     }
 
     private void setDefaultInfo() {
@@ -572,9 +606,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
         for (TblTAG tag :
                 tagList) {
-            tag.setMeeting(meeting);
+            meetingTag=new TblMeetingTag();
+            meetingTag.setMeeting(meeting);
+            meetingTag.setTag(tag);
+//            tag.setMeeting(meeting);
             try {
-                daoTag.insert(tag);
+                daoMeetingTag.insert(meetingTag);
             } catch (SQLException e) {
                 e.printStackTrace();
                 return false;
@@ -632,9 +669,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 openPhoneBook2();
                 break;
             case R.id.fab:
-               Intent intent= new Intent(MeetingActivity.this, TAGActivity.class);
-               intent.putParcelableArrayListExtra(CommonMethod.SELECTED_TAG, (ArrayList<? extends Parcelable>) tagList);
-                startActivityForResult(intent, RC_TAG);
+                initTagHashmap();
+//                changeHashmapValueFromUpdatedTagList();
+                Intent intent=new Intent(MeetingActivity.this, TAGActivity.class);
+                intent.putExtra(CommonMethod.EXTRA_TAGS,tagHashMap);
+                startActivityForResult(intent,RC_TAG);
                 break;
         }
     }
@@ -995,7 +1034,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+//        super.onActivityResult(requestCode, resultCode, data);
 
         // Check that the result was from the autocomplete widget.
 
@@ -1152,12 +1191,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
                 for (TblTAG c : contacts) {
                     tagModel = new TblTAG();
-                    tagModel.setName(c.getName());
                     tagModel.setPkid(c.getPkid());
-                    tagModel.setSelected(c.isSelected());
-
+                    tagModel.setName(c.getName());
                     tagList.add(tagModel);
                 }
+                initTagHashmap();
+//                changeHashmapValueFromUpdatedTagList();
                 contacts.clear();
 
                 createRecyclerViewForTAG();

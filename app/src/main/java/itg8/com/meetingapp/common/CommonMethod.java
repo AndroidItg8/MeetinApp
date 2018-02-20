@@ -55,7 +55,7 @@ public class CommonMethod {
     public static final String EXTRA_MEETING_CANCELED = "extra_meeting_canceled";
     public static final int NOT_NOTIFIED = 0;
     public static final int NOTIFIED = 1;
-    public static final String SELECTED_TAG = "SELECTED_TAG";
+    public static final String EXTRA_TAGS = "extra_tags";
 
     public static long getDifferenceFromPriority(int priority, long timeDifference) {
         int priorityDiff=getPriorityDifferenceFromSetting(priority);

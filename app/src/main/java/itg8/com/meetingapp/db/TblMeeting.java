@@ -106,7 +106,7 @@ public class TblMeeting implements Parcelable,Cloneable {
 
 
     @ForeignCollectionField
-    private ForeignCollection<TblTAG> tags;
+    private ForeignCollection<TblMeetingTag> tags;
 
     @ForeignCollectionField
     private ForeignCollection<TblContact> contacts;
@@ -179,11 +179,11 @@ public class TblMeeting implements Parcelable,Cloneable {
         this.created = created;
     }
 
-    public List<TblTAG> getTags() {
+    public List<TblMeetingTag> getTags() {
         return new ArrayList<>(tags);
     }
 
-    public void setTags(ForeignCollection<TblTAG> tags) {
+    public void setTags(ForeignCollection<TblMeetingTag> tags) {
         this.tags = tags;
     }
 

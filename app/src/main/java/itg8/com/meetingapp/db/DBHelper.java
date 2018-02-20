@@ -22,6 +22,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
     private Dao<TblDocument,Long> documentDao=null;
     private Dao<TblMeeting,Long> meetingDao=null;
     private Dao<TblTAG,Long> tagDao=null;
+    private Dao<TblMeetingTag,Long> meetingTagDao=null;
     private Dao<TblContact,Long> contactDao=null;
 
 
@@ -38,6 +39,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTableIfNotExists(connectionSource,TblDocument.class);
             TableUtils.createTableIfNotExists(connectionSource,TblTAG.class);
             TableUtils.createTableIfNotExists(connectionSource,TblContact.class);
+            TableUtils.createTableIfNotExists(connectionSource,TblMeetingTag.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -63,6 +65,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
         TableUtils.dropTable(connectionSource,TblDocument.class,true);
         TableUtils.dropTable(connectionSource,TblTAG.class,true);
         TableUtils.dropTable(connectionSource,TblContact.class,true);
+        TableUtils.dropTable(connectionSource,TblMeetingTag.class,true);
     }
 
     /**
@@ -101,6 +104,12 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
             contactDao=getDao(TblContact.class);
         return contactDao;
 
+    }
+
+    public Dao<TblMeetingTag,Long> getMeetingTagDao() throws SQLException{
+        if(meetingTagDao==null)
+            meetingTagDao=getDao(TblMeetingTag.class);
+        return meetingTagDao;
     }
 
     @Override

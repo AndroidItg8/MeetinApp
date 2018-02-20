@@ -56,4 +56,7 @@ public class DaoTagInteractor {
         }
         return null;
     }
+    public List<TblTAG> getUniqueTags() throws SQLException{
+        return helper.getTagDao().queryBuilder().distinct().selectColumns(TblTAG.FIELD_NAME).query();
+    }
 }

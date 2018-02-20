@@ -6,9 +6,9 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.view.MenuItemCompat;
@@ -29,13 +29,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +47,6 @@ import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.custom_tag.TagContainerLayout;
 import itg8.com.meetingapp.custom_tag.TagView;
 import itg8.com.meetingapp.db.DaoTagInteractor;
-import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.db.TblTAG;
 
 public class TAGActivity extends AppCompatActivity implements View.OnClickListener, TAGAddAdapter.onItemClickedListener, SearchView.OnQueryTextListener {
@@ -96,10 +96,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
     private ActionMode.Callback mActionModeCallback;
     private boolean searchViewClosed=true;
-    private List<TblTAG> selectedListTag;
-    private HashMap<Long,TblTAG> hashMapSelectedTAG= new HashMap<>();
-    private HashMap<Long,TblTAG> hashMapUnselectedTAG= new HashMap<>();
-    private List<TblTAG> tempTAGList;
+    private HashMap<Long, TblTAG> tagHashMap;
 
     private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
                                               CharSequence doc_name) {
@@ -255,135 +252,56 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         createActionMenuCallback();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 //        tagAddAdapter = new TAGAddAdapter(this, tagList, this);
+        tagInteractor=new DaoTagInteractor(this);
+        initTagList();
+        getDataFromIntent();
         init();
 
 
     }
 
-    private void init() {
-        tagInteractor = new DaoTagInteractor(TAGActivity.this);
-
-        btnAdd.setOnClickListener(this);
-        checkIntent();
-
-
-
-    }
-
-    private void addTagItemFromDatabase() {
-        tagList.clear();
-
+    private void initTagList() {
         try {
-            tagList.addAll(tagInteractor.getTags());
-            compareTagItem();
+            tagList=tagInteractor.getTags();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private void getDataFromIntent() {
+        if(getIntent().hasExtra(CommonMethod.EXTRA_TAGS)){
+           tagHashMap= (HashMap<Long, TblTAG>) getIntent().getSerializableExtra(CommonMethod.EXTRA_TAGS);
+           setHashmapToList();
+//            for(Map.Entry<Long, TblTAG> entry : tagHashMap.entrySet()) {
+//                tagList.add(entry.getValue());
+//            }
+        }
+    }
+
+    private void setHashmapToList() {
+        for (TblTAG tag :
+                tagList) {
+            if (tagHashMap.containsKey(tag.getPkid())){
+                tag.setSelected(true);
+            }
+        }
+    }
+
+    private void init() {
+
+
+        btnAdd.setOnClickListener(this);
+
         if (tagList != null && tagList.size() > 0) {
             showHideView(rlTop, rlNoTag);
-
+            createRecyclerViewForTAG();
         } else {
             showHideView(rlNoTag, rlTop);
             txtLbl.setText(formatPlaceDetails(getResources(), "Yet No", "TAG", "Available"));
 
         }
-    }
-
-    private void compareTagItem() {
-        for (TblTAG tag:selectedListTag) {
-            if(tag.isSelected())
-            {
-
-                    hashMapSelectedTAG.put(tag.getPkid(),tag);
-                Log.d(TAG, "compareTagItem: selectedListTag"+ hashMapSelectedTAG.get("selectedKey"));
-            }
-        }
-        for(TblTAG tag:tagList)
-        {
-//            if(!hashMapUnselectedTAG.containsKey("UnselectedKey"))
-                    hashMapUnselectedTAG.put(tag.getPkid(),tag);
-                Log.d(TAG, "compareTagItem: tagList"+hashMapUnselectedTAG.get("UnselectedKey"));
-        }
-
-         compareTwoHashMapValue(hashMapSelectedTAG,hashMapUnselectedTAG);
 
 
-
-
-
-    }
-
-
-
-    private void compareTwoHashMapValue(HashMap<Long, TblTAG> hashMapSelectedTAG, HashMap<Long, TblTAG> hashMapUnselectedTAG) {
-        // both maps should be non-empty for comparison.
-        tempTAGList = new ArrayList<>();
-
-        if (hashMapSelectedTAG != null && hashMapUnselectedTAG != null) {
-            Iterator mapAIterator = hashMapSelectedTAG.keySet().iterator();
-            for(Map.Entry<Long, TblTAG> entry : hashMapUnselectedTAG.entrySet()) {
-                long key = entry.getKey();
-                TblTAG value = entry.getValue();
-//                String keys = mapAIterator.next().toString();
-                if (hashMapSelectedTAG.containsKey(key)) {
-                    System.out.println(value);
-
-                    Log.d(TAG, "compareTwoHashMap Value: "+value.getName());
-                    Log.d(TAG, "compareTwoHashMap PKID: "+value.getPkid());
-                    tempTAGList.remove(value);
-                    tempTAGList.add(value);
-
-
-                }else
-                {
-                    Log.d(TAG, "compareTwoHashMap Value Else: "+value.getName());
-                    Log.d(TAG, "compareTwoHashMap PKID Else: "+value.getPkid());
-                    Log.d(TAG, "compareTwoHashMap PKID Else:  return hashMapUnselectedTAG hasMap");
-                    tempTAGList.add(value);
-
-
-                }
-
-
-            }
-
-
-
-        }
-//            createRecyclerViewForTAG();
-
-    }
-
-    private void checkIntent() {
-        if(getIntent().hasExtra(CommonMethod.SELECTED_TAG))
-        {
-            setSelectedTag();
-        }
-
-    }
-
-    private void setSelectedTag() {
-      selectedListTag = getIntent().getParcelableArrayListExtra(CommonMethod.SELECTED_TAG);
-//         if(selectedListTag.size()>0) {
-//
-////             List<int[]> colors = new ArrayList<int[]>();
-////             for (int i = 0; i < selectedListTag.size(); i++) {
-////
-////
-////                 int[] col1 = {Color.parseColor("#631109"), Color.parseColor("#ffffff"), Color.parseColor("#ffffff")};
-////                 colors.add(col1);
-////             }
-////             if (tagContainerLayout.isEnableCross()) {
-////
-////                 updateActionBar(FROM_TAG, false);
-////             }
-////             tagContainerLayout.setTags(selectedListTag, colors);
-////             tagOnClickListener(FROM_TAG);
-//
-//         }else
-//         {
-             createRecyclerViewForTAG();
-//         }
     }
 
     private void clearTagList() {
@@ -420,10 +338,18 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
     private void updateTagList() {
         try {
+//            tagHashMap.clear();
+            for (TblTAG tag :
+                    tagList) {
+                if(tag.isSelected())
+                    tagHashMap.put(tag.getPkid(), tag);
+            }
             tagList.clear();
             tagList.addAll(tagInteractor.getTags());
+//            setHashmapToList();
             if (tagList != null && tagList.size() > 0) {
                 showHideView(tagContainerLayout, rlNoTag);
+
                 createRecyclerViewForTAG();
             }
 //            tagAddAdapter.notifyDataSetChanged();
@@ -434,9 +360,8 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     }
 
     private void createRecyclerViewForTAG() {
-        addTagItemFromDatabase();
-        if (tempTAGList.size() > 0) {
-            int size = tempTAGList.size();
+        if (tagList.size() > 0) {
+            int size = tagList.size();
 
             List<int[]> colors = new ArrayList<int[]>();
             for (int i = 0; i < size; i++) {
@@ -446,11 +371,11 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
                 colors.add(col1);
             }
 
-//            if (tagContainerLayout.isEnableCross()) {
-//
-//                updateActionBar(FROM_TAG, false);
-//            }
-            tagContainerLayout.setTags(tempTAGList, colors);
+            if (tagContainerLayout.isEnableCross()) {
+
+                updateActionBar(FROM_TAG, false);
+            }
+            tagContainerLayout.setTags(tagList, colors);
             tagOnClickListener(FROM_TAG);
         }
 
@@ -464,9 +389,9 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
                 try {
                      TblTAG text= (TblTAG) object;
                     text.setSelected(!text.isSelected());
-                    tagInteractor.update(text);
+//                    tagInteractor.update(text);
                     tagContainerLayout.changeSelectColor(position, text);
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -656,10 +581,11 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         tag.setSelected(!tag.isSelected());
         if (tag.isSelected()) {
             try {
-                tagInteractor.update(tag);
+                tagHashMap.put(tag.getPkid(),tag);
+//                tagInteractor.update(tag);
 //                tagAddAdapter.notifyDataSetChanged();
 //                Log.d(TAG, new Gson().toJson(tag));
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
