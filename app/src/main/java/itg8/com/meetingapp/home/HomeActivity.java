@@ -132,6 +132,11 @@ public class HomeActivity extends AppCompatActivity
             showDropdownMenu(findViewById(R.id.menu_filter));
             return true;
         }
+         if(id== android.R.id.home)
+         {
+             Log.d(TAG, "onOptionsItemSelected: HomeActivity");
+             onBackPressed();
+         }
 
         return super.onOptionsItemSelected(item);
     }

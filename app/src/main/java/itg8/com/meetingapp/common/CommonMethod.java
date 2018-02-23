@@ -56,6 +56,8 @@ public class CommonMethod {
     public static final int NOT_NOTIFIED = 0;
     public static final int NOTIFIED = 1;
     public static final String EXTRA_TAGS = "extra_tags";
+    public static final int FROM_ARROW_DOWN = 1;
+    public static final int FROM_ARROW_UP = 2;
 
     public static long getDifferenceFromPriority(int priority, long timeDifference) {
         int priorityDiff=getPriorityDifferenceFromSetting(priority);

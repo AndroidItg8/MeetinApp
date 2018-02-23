@@ -84,7 +84,7 @@ public class NotificationBroadcast extends BroadcastReceiver {
             NotificationChannel androidChannel = null;
 
             androidChannel = new NotificationChannel(MY_STATIC_CHANNEL_ID,
-                    NOTIFICATION_CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+                    NOTIFICATION_CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
         // Sets whether notifications posted to this channel should display notification lights
         androidChannel.enableLights(true);
         // Sets whether notification posted to this channel should vibrate.
@@ -113,7 +113,7 @@ public class NotificationBroadcast extends BroadcastReceiver {
             builder = new NotificationCompat.Builder(context,MY_STATIC_CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_add_black_24dp)
                     .setOngoing(true)
-                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
 //                    .setCustomHeadsUpContentView(staticNotificationView)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setCustomContentView(staticNotificationView);

@@ -23,7 +23,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.ViewDragHelper;
@@ -38,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.db.TblContact;
 import itg8.com.meetingapp.db.TblTAG;
 
@@ -50,6 +50,7 @@ import static itg8.com.meetingapp.common.CommonMethod.sp2px;
  */
 public class TagContainerLayout extends ViewGroup {
 
+    private static final String TAG = "TagContainerLayout";
     /**
      * Default interval(dp)
      */
@@ -66,6 +67,7 @@ public class TagContainerLayout extends ViewGroup {
      * The list to store the tags color info
      */
     private List<int[]> mColorArrayList;
+    private int FROM_SEARCH;
     /**
      * Horizontal interval, default 5(dp)
      */
@@ -236,6 +238,8 @@ public class TagContainerLayout extends ViewGroup {
     private int mTagBackgroundResource;
     private TblTAG tbleTag;
     private TblContact tblePartcipant;
+    private float tagHeight;
+    private OnHeightAvailbleListner listner;
 
     public TagContainerLayout(Context context) {
         this(context, null);
@@ -350,6 +354,7 @@ public class TagContainerLayout extends ViewGroup {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         mRectF.set(0, 0, w, h);
+        Log.d(TAG, "onSizeChanged: Height:"+h+" DP PADDING:"+ CommonMethod.dp2px(getContext(),10 ));
     }
 
     @Override
@@ -505,7 +510,16 @@ public class TagContainerLayout extends ViewGroup {
             throw new RuntimeException("Illegal position!");
         }
         TagView tagView = new TagView(getContext(), tag);
+
+        tagView.setCallback(new OnHeightAvailbleListner() {
+            @Override
+            public void onHeightAvailble(float height) {
+                if(listner!=null)
+                    listner.onHeightAvailble(height);
+            }
+        });
         initTagView(tagView, position, tag);
+
         mChildViews.add(position, tagView);
         if (position < mChildViews.size()) {
             for (int i = position; i < mChildViews.size(); i++) {
@@ -515,8 +529,29 @@ public class TagContainerLayout extends ViewGroup {
             tagView.setTag(position);
         }
         addView(tagView, position);
+        Log.d(TAG, "onAddTag: tagHeight:"+tagView.getViewHeight());
+//        if (tagHeight == 0) {
+
+            tagHeight = tagView.getViewHeight();
+//        }
     }
 
+    public void setOnHeightAvailableListner(OnHeightAvailbleListner listner){
+        this.listner = listner;
+    }
+
+    public float getNumberOfTagLines(View view) {
+        if (tagHeight <= 0)
+            throw new IllegalStateException("NO TAG Added!!!,tagHeight zero ");
+        Log.d(TAG, "getNumberOfTagLines: getHeight :" + getHeight() + " tagHeight:" + tagHeight);
+        return getHeight() / tagHeight;
+//        return getHeightOfView(view) / tagHeight;
+    }
+
+    private float getHeightOfView(View contentview) {
+        contentview.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        return contentview.getMeasuredHeight();
+    }
 
 
     private void initTagView(TagView tagView, int position, Object object) {
@@ -524,14 +559,15 @@ public class TagContainerLayout extends ViewGroup {
 //        mColorArrayList.get(position).length >= 3
         boolean isSelected = false;
         boolean isFromContact = false;
-        int size=0;
+        int size = 0;
         if (object instanceof TblTAG) {
             isSelected = ((TblTAG) object).isSelected();
-            size =mTags.size();
+
+            size = mTags.size();
         } else if (object instanceof TblContact) {
             isSelected = ((TblContact) object).isSelected();
-            isFromContact=true;
-            size=mParticipant.size();
+            isFromContact = true;
+            size = mParticipant.size();
         }
 
 
@@ -548,15 +584,15 @@ public class TagContainerLayout extends ViewGroup {
         }
 
         if (isSelected) {
-
             tagView.setEnableCross(true);
 
-             if (isFromContact) {
+
+            if (isFromContact) {
 
 
-                 tagView.setTagBackgroundColor(colors[0]);
-            }else
-                 tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
+                tagView.setTagBackgroundColor(colors[0]);
+            } else
+                tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
 
 
         } else {
@@ -589,9 +625,7 @@ public class TagContainerLayout extends ViewGroup {
         tagView.setBackgroundResource(mTagBackgroundResource);
 
 
-
-
-}
+    }
 
     private void invalidateTags() {
         for (View view : mChildViews) {
@@ -715,6 +749,13 @@ public class TagContainerLayout extends ViewGroup {
     public void setTags(List<TblTAG> tags, List<int[]> colorArrayList) {
         mTags = tags;
         mColorArrayList = colorArrayList;
+        onSetTag();
+    }
+
+    public void setTags(List<TblTAG> tags, List<int[]> colorArrayList, int FROM_SEARCH) {
+        mTags = tags;
+        mColorArrayList = colorArrayList;
+        this.FROM_SEARCH = FROM_SEARCH;
         onSetTag();
     }
 
@@ -1459,61 +1500,68 @@ public class TagContainerLayout extends ViewGroup {
 
         }
     }
+
     private boolean getSelectedInfo(Object mOriginText) {
-        if(mOriginText  instanceof TblTAG)
+        if (mOriginText instanceof TblTAG)
             return ((TblTAG) mOriginText).isSelected();
-        else if(mOriginText instanceof TblContact)
+        else if (mOriginText instanceof TblContact)
             return ((TblContact) mOriginText).isSelected();
         return false;
     }
 
-private class DragHelperCallBack extends ViewDragHelper.Callback {
+    private class DragHelperCallBack extends ViewDragHelper.Callback {
 
-    @Override
-    public void onViewDragStateChanged(int state) {
-        super.onViewDragStateChanged(state);
-        mTagViewState = state;
+        @Override
+        public void onViewDragStateChanged(int state) {
+            super.onViewDragStateChanged(state);
+            mTagViewState = state;
+        }
+
+        @Override
+        public boolean tryCaptureView(View child, int pointerId) {
+            requestDisallowInterceptTouchEvent(true);
+            return mDragEnable;
+        }
+
+        @Override
+        public int clampViewPositionHorizontal(View child, int left, int dx) {
+            final int leftX = getPaddingLeft();
+            final int rightX = getWidth() - child.getWidth() - getPaddingRight();
+            return Math.min(Math.max(left, leftX), rightX);
+        }
+
+        @Override
+        public int clampViewPositionVertical(View child, int top, int dy) {
+            final int topY = getPaddingTop();
+            final int bottomY = getHeight() - child.getHeight() - getPaddingBottom();
+            return Math.min(Math.max(top, topY), bottomY);
+        }
+
+        @Override
+        public int getViewHorizontalDragRange(View child) {
+            return getMeasuredWidth() - child.getMeasuredWidth();
+        }
+
+        @Override
+        public int getViewVerticalDragRange(View child) {
+            return getMeasuredHeight() - child.getMeasuredHeight();
+        }
+
+        @Override
+        public void onViewReleased(View releasedChild, float xvel, float yvel) {
+            super.onViewReleased(releasedChild, xvel, yvel);
+            requestDisallowInterceptTouchEvent(false);
+            int[] pos = onGetNewPosition(releasedChild);
+            int posRefer = onGetCoordinateReferPos(pos[0], pos[1]);
+            onChangeView(releasedChild, posRefer, (int) releasedChild.getTag());
+            mViewDragHelper.settleCapturedViewAt(pos[0], pos[1]);
+            invalidate();
+        }
     }
 
-    @Override
-    public boolean tryCaptureView(View child, int pointerId) {
-        requestDisallowInterceptTouchEvent(true);
-        return mDragEnable;
-    }
+    public interface OnHeightAvailbleListner
+    {
 
-    @Override
-    public int clampViewPositionHorizontal(View child, int left, int dx) {
-        final int leftX = getPaddingLeft();
-        final int rightX = getWidth() - child.getWidth() - getPaddingRight();
-        return Math.min(Math.max(left, leftX), rightX);
+        void onHeightAvailble(float height);
     }
-
-    @Override
-    public int clampViewPositionVertical(View child, int top, int dy) {
-        final int topY = getPaddingTop();
-        final int bottomY = getHeight() - child.getHeight() - getPaddingBottom();
-        return Math.min(Math.max(top, topY), bottomY);
-    }
-
-    @Override
-    public int getViewHorizontalDragRange(View child) {
-        return getMeasuredWidth() - child.getMeasuredWidth();
-    }
-
-    @Override
-    public int getViewVerticalDragRange(View child) {
-        return getMeasuredHeight() - child.getMeasuredHeight();
-    }
-
-    @Override
-    public void onViewReleased(View releasedChild, float xvel, float yvel) {
-        super.onViewReleased(releasedChild, xvel, yvel);
-        requestDisallowInterceptTouchEvent(false);
-        int[] pos = onGetNewPosition(releasedChild);
-        int posRefer = onGetCoordinateReferPos(pos[0], pos[1]);
-        onChangeView(releasedChild, posRefer, (int) releasedChild.getTag());
-        mViewDragHelper.settleCapturedViewAt(pos[0], pos[1]);
-        invalidate();
-    }
-}
 }

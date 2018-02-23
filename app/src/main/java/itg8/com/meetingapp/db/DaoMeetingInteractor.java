@@ -3,7 +3,6 @@ package itg8.com.meetingapp.db;
 import android.content.Context;
 import android.util.Log;
 
-import com.j256.ormlite.stmt.ColumnArg;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
@@ -21,6 +20,7 @@ import itg8.com.meetingapp.common.CommonMethod;
  */
 
 public class DaoMeetingInteractor {
+    private static final String TAG = DaoMeetingInteractor.class.getSimpleName();
     DBHelper helper;
 
     public DaoMeetingInteractor(Context context) {
@@ -95,20 +95,50 @@ public class DaoMeetingInteractor {
     public List<TblMeeting> getMeetingByTagsLike(List<TblTAG> tag) throws SQLException {
         QueryBuilder<TblMeetingTag, Long> qbMeetingTAg = helper.getMeetingTagDao().queryBuilder();
         QueryBuilder<TblMeeting, Long> qbMeeting = helper.getMeetingDao().queryBuilder();
-        QueryBuilder<TblTAG, Long> qbTag = helper.getTagDao().queryBuilder();
-        qbMeeting.join(qbTag);
+        int conditions = 0;
+        List<TblMeetingTag> list =new ArrayList<>();
+        List<TblMeeting> listMeeting =new ArrayList<>();
+        HashMap<Long, TblMeeting> hashMap = new HashMap<>();
 
-        for (TblTAG t : tag) {
+        if (tag != null) {
 
-           Where<TblMeetingTag, Long> ld=  qbMeetingTAg.where().eq(TblMeetingTag.FIELD_TAG_ID, t.getPkid());
-           ld.eq(TblMeetingTag.FIELD_MEETING_ID ,TblMeeting.FIELD_ID).query();
+            for (TblTAG t : tag) {
+
+                list.addAll(qbMeetingTAg.where().eq(TblMeetingTag.FIELD_TAG_ID, t.getPkid()).query());
+                Log.d(TAG, "getMeetingByTagsLike: Meeting First Condition :"+t.getPkid()+ t.getName());
+
+            }
+            conditions++;
 
         }
+        if(list.size()>0){
+        for (TblMeetingTag meetingTag:list) {
+            if(!hashMap.containsKey(meetingTag.getMeeting().getPkid()))
+            {
+                hashMap.put(meetingTag.getMeeting().getPkid(),meetingTag.getMeeting());
+
+                listMeeting.addAll(qbMeeting.where().eq(TblMeeting.FIELD_ID, meetingTag.getMeeting().getPkid()).query());
+            }
+
+            Log.d(TAG, "getMeetingByTagsLike: Meeting Second  Condition :"+"Meeting "+meetingTag.getMeeting() +"Meeting TAG "+meetingTag.getTag().toString() +"Meeting Id"+meetingTag.getPkid());
+
+        }
+        conditions++;
+        }
+
+        if(conditions>0) {
+
+
+//            PreparedQuery<TblMeeting> preparedQuery = qbMeeting.prepare();
+//            return helper.getMeetingDao().query(preparedQuery);
+            return listMeeting;
+        }
+        return null;
 
 
 //
 //        return helper.getMeetingDao().query(qb);
-        return null;
+
     }
 
 

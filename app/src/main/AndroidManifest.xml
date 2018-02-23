@@ -61,25 +61,21 @@
 
         <receiver
             android:name=".service.NotificationBroadcast"
-            android:enabled="true"
-            >
+            android:enabled="true">
             <intent-filter>
                 <action android:name="itg8.com.meetingapp.ACTION_START_NOTIFICATION" />
             </intent-filter>
         </receiver>
         <receiver
             android:name=".service.MeetingStartNotificationBroadcast"
-            android:enabled="true"
-            />
+            android:enabled="true" />
         <receiver
             android:name=".service.NotificationReminderBroadcast"
-            android:enabled="true"
-            />
+            android:enabled="true" />
 
         <receiver
             android:name=".service.RestartBroadcast"
-            android:enabled="true"
-            >
+            android:enabled="true">
             <intent-filter>
                 <action android:name="android.intent.action.REBOOT" />
             </intent-filter>
@@ -127,9 +123,12 @@
         <activity
             android:name=".meeting.TAGActivity"
             android:label="@string/title_activity_tag"/>
+
         <activity android:name=".home.SearchActivity"
             android:theme="@style/AppTheme.NoActionBar"
-        />
+            android:windowSoftInputMode="adjustResize">
+
+        </activity>
 
 
 

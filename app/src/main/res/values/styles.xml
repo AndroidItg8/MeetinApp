@@ -103,5 +103,9 @@
     <!--<item name="pressedTranslationZ">6dp</item>-->
     <!--</style>-->
 
+    <style name="btn_ripple_effect">
 
+        <item name="android:background">@drawable/ripple_effect_pre_lollipop</item>
+
+    </style>
 </resources>

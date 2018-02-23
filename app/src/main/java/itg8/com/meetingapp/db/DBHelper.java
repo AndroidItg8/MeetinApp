@@ -106,7 +106,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 
     }
 
-    public Dao<TblMeetingTag,Long> getMeetingTagDao() throws SQLException{
+    public Dao<TblMeetingTag,Long>  getMeetingTagDao() throws SQLException{
         if(meetingTagDao==null)
             meetingTagDao=getDao(TblMeetingTag.class);
         return meetingTagDao;

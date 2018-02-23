@@ -188,6 +188,8 @@ public class TagView extends View {
         }
     };
     private List<TblTAG> mTags;
+    private int viewHeight;
+    private TagContainerLayout.OnHeightAvailbleListner listner;
 
     public TagView(Context context, Object text) {
         super(context);
@@ -251,6 +253,8 @@ public class TagView extends View {
         Log.d(TAG, "onMeasure: ");
         int height = mVerticalPadding * 2 + (int) fontH;
         int width = mHorizontalPadding * 2 + (int) fontW + (isEnableCross() ? height : 0);
+        listner.onHeightAvailble(height);
+        setViewHeight(height);
         if (getSelectedInfo()) {
             mCrossAreaWidth = Math.min(Math.max(mCrossAreaWidth, height), width);
             setMeasuredDimension(width, height);
@@ -265,12 +269,18 @@ public class TagView extends View {
         }
     }
 
+    public float getViewHeight()
+    {
+        Log.d("TagContainerLayout", "  getViewHeight: MVertical Padding:"+mVerticalPadding +" Height:"+viewHeight);
+        return viewHeight;
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        Log.d(TAG, "onSizeChanged: ");
+        Log.d(TAG, "onSizeChanged: " + h);
 //        if (getText().isSelected()) {
-            mRectF.set(mBorderWidth, mBorderWidth, w - mBorderWidth, h - mBorderWidth);
+        mRectF.set(mBorderWidth, mBorderWidth, w - mBorderWidth, h - mBorderWidth);
 //            Log.d(TAG, "onSizeChanged getText().isSelected()  : new width" + w + "new height" + h + "oldw" + oldw + "oldh" + oldh);
 //        }else
 //        {
@@ -635,6 +645,16 @@ public class TagView extends View {
 
     public void setTagSupportLettersRTL(boolean mTagSupportLettersRTL) {
         this.mTagSupportLettersRTL = mTagSupportLettersRTL;
+    }
+
+    public void setViewHeight(int viewHeight) {
+
+        this.viewHeight = viewHeight;
+    }
+
+    public void setCallback(TagContainerLayout.OnHeightAvailbleListner listner) {
+
+        this.listner = listner;
     }
 
     public interface OnTagClickListener {

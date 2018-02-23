@@ -2,52 +2,126 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rl_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="itg8.com.meetingapp.home.SearchActivity">
-
-  <itg8.com.meetingapp.widget.search.SearchBox
-    android:layout_width="wrap_content"
-    android:id="@+id/searchbox"
-    android:layout_height="wrap_content"
-    android:layout_alignParentLeft="true"
-    android:layout_alignParentTop="true"/>
-    <FrameLayout
+    <itg8.com.meetingapp.widget.search.SearchBox
+        android:id="@+id/searchbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true" />
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/searchbox">
-
-    <android.support.v7.widget.RecyclerView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/recyclerView"
-        android:layout_margin="10dp"/>
-
+        android:layout_below="@+id/searchbox"
+        android:fillViewport="true">
         <RelativeLayout
-            android:id="@+id/rl_no_tag"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone">
+            android:layout_height="wrap_content">
 
-            <ImageView
-                android:id="@+id/img_icon"
+
+
+            <RelativeLayout
+                android:id="@+id/rl_tag"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_centerInParent="true"
-                app:srcCompat="@drawable/ic_tag" />
-
-            <TextView
-                android:id="@+id/txt_lbl"
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/img_icon"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="10dp"
-                android:text="yet No TAG AVAILAble"
-                android:textColor="@color/colorGray"
-                android:textSize="14sp" />
+                android:layout_margin="08dp"
+                android:visibility="visible">
+
+                <TextView
+                    android:id="@+id/txt_selected_tag"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_toLeftOf="@+id/txt_clear_tag"
+                    android:layout_toStartOf="@+id/txt_clear_tag"
+                    android:text="Selected TAG"
+                    android:textAllCaps="true"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textColor="@color/colorBlack"
+                    android:textSize="@dimen/txt_meeting_detail_value"
+                    android:textStyle="normal" />
+
+                <TextView
+                    android:id="@+id/txt_clear_tag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:text="Clear"
+                    android:textAllCaps="true"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/theme_primary" />
+            </RelativeLayout>
+
+
+
+            <itg8.com.meetingapp.custom_tag.TagContainerLayout
+                android:id="@+id/tag_container_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:layout_below="@+id/rl_tag"
+                android:visibility="visible"
+                app:container_background_color="#00000000"
+                app:container_border_color="#00000000"
+                app:container_border_radius="0dp"
+                app:container_enable_drag="false"
+                app:container_gravity="left"
+                app:horizontal_interval="10dp"
+                app:tag_background_color="#ffffffff"
+                app:tag_clickable="true"
+                app:tag_corner_radius="15dp"
+                app:tag_enable_cross="false"
+                app:tag_ripple_alpha="47"
+                app:vertical_interval="10dp" />
+
+            <RelativeLayout
+                android:id="@+id/rl_collapsing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/tag_container_layout"
+                android:layout_margin="08dp"
+                android:background="@color/colorGrayLights">
+
+                <ImageView
+                    android:id="@+id/img_up"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_centerHorizontal="true"
+                    android:visibility="visible"
+                    app:srcCompat="@drawable/ic_arrow_drop_down_black_24dp" />
+            </RelativeLayout>
+
+
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/rl_collapsing"
+                android:layout_marginEnd="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginStart="10dp"
+                android:visibility="visible" />
 
         </RelativeLayout>
 
-    </FrameLayout>
+
+
+    </ScrollView>
 </RelativeLayout>

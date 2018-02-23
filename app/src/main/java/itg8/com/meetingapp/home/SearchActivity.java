@@ -1,37 +1,47 @@
 package itg8.com.meetingapp.home;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
+import itg8.com.meetingapp.custom_tag.TagContainerLayout;
+import itg8.com.meetingapp.custom_tag.TagView;
 import itg8.com.meetingapp.db.DaoMeetingInteractor;
 import itg8.com.meetingapp.db.TblMeeting;
-import itg8.com.meetingapp.db.TblMeetingTag;
 import itg8.com.meetingapp.db.TblTAG;
 import itg8.com.meetingapp.import_meeting.MeetingDetailActivity;
 import itg8.com.meetingapp.meeting.TAGActivity;
+import itg8.com.meetingapp.widget.animation.ResizeAnimation;
 import itg8.com.meetingapp.widget.search.SearchBox;
 import itg8.com.meetingapp.widget.search.SearchResult;
 
-public class SearchActivity extends AppCompatActivity implements SearchResultAdapter.MeetingItemClicked {
+public class SearchActivity extends AppCompatActivity implements SearchResultAdapter.MeetingItemClicked, View.OnClickListener, TagContainerLayout.OnHeightAvailbleListner {
 
     private static final String TAG = SearchActivity.class.getSimpleName();
     private static final int RC_FILTER_TAG = 987;
@@ -39,16 +49,34 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     SearchBox searchbox;
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
-    @BindView(R.id.img_icon)
-    ImageView imgIcon;
-    @BindView(R.id.txt_lbl)
-    TextView txtLbl;
-    @BindView(R.id.rl_no_tag)
-    RelativeLayout rlNoTag;
+    @BindView(R.id.txt_selected_tag)
+    TextView txtSelectedTag;
+    @BindView(R.id.txt_clear_tag)
+    TextView txtClearTag;
+    @BindView(R.id.tag_container_layout)
+    TagContainerLayout tagContainerLayout;
+    @BindView(R.id.img_up)
+    ImageView imgUp;
+    @BindView(R.id.rl_collapsing)
+    RelativeLayout rlCollapsing;
 
+    @BindView(R.id.rl_tag)
+    RelativeLayout rlTag;
+    HashMap<Long, TblMeeting> hashMap = new HashMap<>();
+    @BindView(R.id.rl_root)
+    RelativeLayout rlRoot;
     private DaoMeetingInteractor daoMeetingIntractor;
-    private List<TblMeeting> listSearchResult= new ArrayList<>();
+    private List<TblMeeting> listSearchResult = new ArrayList<>();
     private SearchResultAdapter adapter;
+    private boolean isCollapsed = false;
+    private boolean hasFromActivityResult = false;
+    private float singLineTagContainerHeight;
+    private float oldHeight;
+    private ArrayList<TblTAG> tagList;
+    private List<TblMeeting> list;
+    private List<TblMeeting> searchList;
+    private int preHeight=0;
+    private boolean notFirstTime=false;
 
 
     @Override
@@ -56,20 +84,32 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         ButterKnife.bind(this);
+        tagContainerLayout.setOnHeightAvailableListner(this);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
         init();
+
     }
 
     private void init() {
         setRecyclerView();
+        rootLayoutObserver();
+
+        setTagTextWithImage();
+        recyclerView.setVisibility(View.VISIBLE);
+        hideItems(rlCollapsing, tagContainerLayout, txtClearTag);
+        getWindowHeightWidth();
+        setOnClickListener();
+
         searchbox = (SearchBox) findViewById(R.id.searchbox);
         List<TblMeeting> listMeeting = getMeetingFromDatabase();
         if (listMeeting != null) {
-            for (TblMeeting meeting : listMeeting
-                    ) {
-                Log.d(TAG, "onCreate: ListMeeting "+  meeting.toString());
-                Log.d(TAG, "onCreate: ListMeeting "+  meeting.toString());
+            for (TblMeeting meeting : listMeeting) {
+                Log.d(TAG, "onCreate: ListMeeting " + meeting.toString());
+                Log.d(TAG, "onCreate: ListMeeting " + meeting.toString());
 
-                SearchResult option = new SearchResult(meeting.getTitle(),getResources().getDrawable(R.drawable.ic_history));
+                SearchResult option = new SearchResult(meeting.getTitle(), getResources().getDrawable(R.drawable.ic_history));
                 searchbox.addSearchable(option);
             }
         }
@@ -87,34 +127,27 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
             public void onSearchClosed() {
                 //Use this to un-tint the screen
                 Log.d(TAG, "onSearchClosed: ");
+                removeSearchItemFromAdapter();
             }
 
             @Override
             public void onSearchTermChanged(SearchResult term) {
-                Log.d(TAG, "onSearchTermChanged: " + term);
+//                fetchMeetingFromText(term.getTitle());
+
 
             }
 
             @Override
             public void onSearch(SearchResult result) {
-                Log.d(TAG, "onSearch: " + result);
-
+                Log.d(TAG, "onSearch: " + result.getTitle());
+                fetchMeetingFromText(result.getTitle());
             }
 
 
             @Override
             public void onResultClick(SearchResult result) {
                 //React to a result being clicked
-
-//                    Log.d(TAG, "onResultClick: " + result);
-//
-//                    listSearchResult.add(result);
-
-//                    setRecyclerView();
                 fetchMeetingFromText(result.getTitle());
-
-
-
             }
 
             @Override
@@ -124,14 +157,20 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 
             @Override
             public void onFilterTagClicked() {
-                startActivityForResult(new Intent(SearchActivity.this, TAGActivity.class),RC_FILTER_TAG);
+                startActivityForResult(new Intent(SearchActivity.this, TAGActivity.class), RC_FILTER_TAG);
+            }
+
+            @Override
+            public void onKeyboardShowHide(boolean isVisible) {
+                if (!isVisible) {
+                    onBackPressed();
+                    Log.d(TAG, "onKeyboardShowHide: " + isVisible);
+                }
             }
 
             @Override
             public void onSearchCleared() {
-                //Called when the clear button is clicked
                 Log.d(TAG, "onSearchCleared: ");
-
             }
 
         });
@@ -149,53 +188,149 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 //        });
     }
 
+    private void hideItems(View... view) {
+        for (View vi : view
+                ) {
+            vi.setVisibility(View.GONE);
+        }
+    }
+
+    private void setOnClickListener() {
+
+        rlCollapsing.setOnClickListener(this);
+        txtClearTag.setOnClickListener(this);
+    }
+
+    private void getWindowHeightWidth() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int height = displayMetrics.heightPixels;
+        int width = displayMetrics.widthPixels;
+        Log.d(TAG, "getWindowHeightWidth: hei" + height);
+        Log.d(TAG, "getWindowHeightWidth: wi" + width);
+
+    }
+
     private void fetchMeetingFromText(String title) {
         try {
-            List<TblMeeting> list=daoMeetingIntractor.getMeetingByTitleLike(title);
-            if(list.size()>0) {
-                listSearchResult.clear();
-                listSearchResult.addAll(list);
-                adapter.notifyDataSetChanged();
-
-
-                //            boolean isVisible;
-//            if(recyclerView.getVisibility()==View.VISIBLE){
-//                isVisible=true;
-//            }else {
-//                isVisible=false;
-//            }
-//            Log.d(TAG, "fetchMeetingFromText: "+isVisible);
-//            checkIfRecyclerviewToShow();
-
-
-            }
-
-
+            searchList = daoMeetingIntractor.getMeetingByTitleLike(title);
+            removeDuplicateSearchItem();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+    private void removeDuplicateSearchItem() {
+        if (searchList.size() > 0) {
+//                listSearchResult.clear();
+            checkItemIsExist(searchList);
+        }
+    }
+
+    private void removeSearchItemFromAdapter() {
+        if (searchList == null)
+            return;
+        searchList.clear();
+        initSearchAndTagList();
+    }
+
+    private void removeTagItemFromAdapter() {
+        list.clear();
+        tagList.clear();
+        initSearchAndTagList();
+    }
+
+
+    private void initSearchAndTagList() {
+        hashMap.clear();
+        listSearchResult.clear();
+
+        hideTagItem();
+        if (searchList != null)
+            checkItemIsExist(searchList);
+        if (list != null)
+            checkItemIsExist(list);
+
+
+    }
+
+
     private void setRecyclerView() {
-        adapter=new SearchResultAdapter(this, listSearchResult, this);
+        adapter = new SearchResultAdapter(this, listSearchResult, this);
         recyclerView.setAdapter(adapter);
+        recyclerView.setNestedScrollingEnabled(false);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        //      DividerItemDecoration itemDecoration = new DividerItemDecoration(this,DividerItemDecoration.VERTICAL);
-//        recyclerView.addItemDecoration(itemDecoration);
-//        checkIfRecyclerviewToShow();
-
 
     }
 
-    private void checkIfRecyclerviewToShow() {
-        if(listSearchResult.size()>0) {
-            showHideView(recyclerView, rlNoTag);
-        }
-        else{
-            showHideView( rlNoTag,recyclerView);
+
+
+    private void rootLayoutObserver() {
+
+        rlRoot.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                Rect r = new Rect();
+                //r will be populated with the coordinates of your view that area still visible.
+
+                rlRoot.getWindowVisibleDisplayFrame(r);
+                int screenHeight = rlRoot.getRootView().getHeight();
+
+//                int heightDiff = screenHeight - (r.bottom - r.top);
+                int heightDiff = screenHeight - r.bottom;
+                Log.d(TAG, "onGlobalLayout rlRoot: "+r.bottom);
+                Log.d(TAG, "onGlobalLayout heightDiff: "+heightDiff);
+                Log.d(TAG, "onGlobalLayout heightDiff: "+heightDiff);
+
+                if(preHeight==0)
+                {
+                    preHeight= heightDiff;
+                    return;
+                }
+//               int diff = (screenHeight - r.top) - proposedHeight;
+
+
+                if(Math.abs(heightDiff-preHeight)>400) {
+                    if (heightDiff > preHeight) { // if more than 100 pixels, its probably a keyboard...
+
+                        Log.d(TAG, "onGlobalLayout: Keyboard Open heightDiff " + heightDiff);
+                        Log.d(TAG, "onGlobalLayout: Keyboard Open preHeight" + preHeight);
+                    } else {
+                        Log.d(TAG, "onGlobalLayout: Keyboard Close " + heightDiff);
+                        Log.d(TAG, "onGlobalLayout: Keyboard Close preHeight" + preHeight);
+                        Log.d(TAG, "onGlobalLayout: Keyboard not FirstTime" + notFirstTime);
+
+                        if (notFirstTime) {
+                            Log.d(TAG, "onGlobalLayout: Keyboard not FirstTime Inside It" + notFirstTime);
+                            if (searchbox != null)
+                                searchbox.removeSearchFocus();
+                        }
+                        notFirstTime = true;
+                    }
+                }else
+                {
+                    notFirstTime = true;
+
+                    Log.d(TAG, "onGlobalLayout: onGlobalLayout: Keyboard Close No LArge Diffrence");
+                }
+                preHeight= heightDiff;
+
+            }
+        });
+    }
+
+
+    private void hideTagItem() {
+        if (tagList == null || tagList.size() == 0) {
+            txtSelectedTag.setVisibility(View.VISIBLE);
+
+            setTagTextWithImage();
+            txtClearTag.setVisibility(View.GONE);
+            rlCollapsing.setVisibility(View.GONE);
         }
     }
+
 
     private void showHideView(View show, View hide) {
         show.setVisibility(View.VISIBLE);
@@ -230,16 +365,23 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     @Override
     public void onItemClicked(int position, TblMeeting meeting) {
         Intent intent = new Intent(SearchActivity.this, MeetingDetailActivity.class);
-        intent.putExtra(CommonMethod.EXTRA_MEETING,meeting);
+        intent.putExtra(CommonMethod.EXTRA_MEETING, meeting);
         startActivity(intent);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode==RC_FILTER_TAG && resultCode==RESULT_OK)
-        {
+        if (requestCode == RC_FILTER_TAG && resultCode == RESULT_OK) {
+            showItems(rlCollapsing, tagContainerLayout, txtClearTag, txtSelectedTag);
+            txtSelectedTag.setText("Select TAG");
+            hasFromActivityResult = true;
+            Log.d(TAG, "onActivityResult: getMaxLines" + tagContainerLayout.getMaxLines());
+            Log.d(TAG, "setContainerLayoutHeight: ContainerHeight:" + tagContainerLayout.getHeight());
+            Log.d(TAG, "setContainerLayoutHeight: ContainerHeight:" + tagContainerLayout.getHeight());
+
             List<TblTAG> tag = data.getParcelableArrayListExtra("tag");
             try {
+                showView(rlTag, recyclerView);
                 fetchMeetingFromTAGS(tag);
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -249,17 +391,256 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void fetchMeetingFromTAGS(List<TblTAG> tag) throws SQLException {
-        List<TblMeeting> list = new ArrayList<>();
-
-
-             list = daoMeetingIntractor.getMeetingByTagsLike(tag);
-        if (list.size() > 0) {
-            listSearchResult.clear();
-            listSearchResult.addAll(list);
-            adapter.notifyDataSetChanged();
-
+    private void showItems(View... view) {
+        for (View vi : view) {
+            vi.setVisibility(View.VISIBLE);
 
         }
     }
+
+    private void showView(View show, View shows) {
+        show.setVisibility(View.VISIBLE);
+        shows.setVisibility(View.VISIBLE);
+    }
+
+    private void fetchMeetingFromTAGS(List<TblTAG> tag) throws SQLException {
+        tagList = new ArrayList<>();
+        tagList.addAll(tag);
+        getMeetingFromTag();
+        createTags();
+
+    }
+
+    private void getMeetingFromTag() throws SQLException {
+        list = daoMeetingIntractor.getMeetingByTagsLike(tagList);
+    }
+
+    private void createTags() {
+        if (list.size() > 0) {
+//            listSearchResult.clear();
+//            listSearchResult.addAll(list);
+//            adapter.notifyDataSetChanged();
+            checkItemIsExist(list);
+
+        }
+        addTagToContainerLayout(tagList);
+
+    }
+
+
+    private void addTagToContainerLayout(List<TblTAG> list) {
+
+        if (list.size() > 0) {
+            List<int[]> colors = new ArrayList<int[]>();
+
+            for (int i = 0; i < list.size(); i++) {
+                int[] col1 = {Color.parseColor("#076810"), Color.parseColor("#ffffff"), Color.parseColor("#ffffff")};
+                colors.add(col1);
+            }
+            tagContainerLayout.setTags(list, colors);
+        }
+        tagOnClickListener();
+
+    }
+
+    private void tagOnClickListener() {
+        tagContainerLayout.setOnTagClickListener(new TagView.OnTagClickListener() {
+            @Override
+            public void onTagClick(int position, Object object) {
+//                try {
+//                    TblTAG text= (TblTAG) object;
+//                    text.setSelected(!text.isSelected());
+////                    tagInteractor.update(text);
+//                    tagContainerLayout.changeSelectColor(position, text);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+
+
+            }
+
+            @Override
+            public void onTagLongClick(int position, Object text) {
+
+            }
+
+            @Override
+            public void onTagCrossClick(int position, Object object) {
+                TblTAG test = (TblTAG) object;
+                if (test.isSelected()) {
+                    tagContainerLayout.removeTag(position);
+                    removeTagFromTagList(position);
+
+//                    listSearchResult.remove(position);
+
+//                    test.setSelected(false);
+//                    tagContainerLayout.changeSelectColor(position, test);
+
+                }
+
+            }
+        });
+    }
+
+    private void removeTagFromTagList(int test) {
+        tagList.remove(test);
+        try {
+            getMeetingFromTag();
+            initSearchAndTagList();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    private void checkItemIsExist(List<TblMeeting> list) {
+        for (TblMeeting tblMeeting : list) {
+            if (!hashMap.containsKey(tblMeeting.getPkid())) {
+                listSearchResult.add(tblMeeting);
+                hashMap.put(tblMeeting.getPkid(), tblMeeting);
+            }
+        }
+        adapter.notifyDataSetChanged();
+
+    }
+
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.rl_collapsing:
+                setContainerLayoutHeight();
+                break;
+            case R.id.txt_clear_tag:
+                clearTag();
+                break;
+
+        }
+    }
+
+
+
+
+
+    //
+    @Override
+    public void onBackPressed() {
+//        SensorManager.M`
+        Log.d(TAG, "onBackPressed: ");
+        Log.i(TAG, "onBackPressed: ");
+        super.onBackPressed();
+    }
+
+    private void clearTag() {
+        tagContainerLayout.removeAllTags();
+        hideItems(rlCollapsing, tagContainerLayout, txtClearTag);
+        txtSelectedTag.setVisibility(View.VISIBLE);
+
+        setTagTextWithImage();
+        removeTagItemFromAdapter();
+
+    }
+
+
+    private void setTagTextWithImage() {
+        String tagWithImageTxt = "<img src='ic_tags'><b>  Clicked this to Add TAG  </b>";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            txtSelectedTag.setText(Html.fromHtml(tagWithImageTxt, new Html.ImageGetter() {
+                @Override
+                public Drawable getDrawable(String source) {
+                    Drawable drawable;
+                    int dourceId =
+                            getApplicationContext()
+                                    .getResources()
+                                    .getIdentifier(source, "drawable", getPackageName());
+
+                    drawable =
+                            getApplicationContext()
+                                    .getResources()
+                                    .getDrawable(dourceId);
+
+                    drawable.setBounds(
+                            0,
+                            0,
+                            drawable.getIntrinsicWidth(),
+                            drawable.getIntrinsicHeight());
+
+                    return drawable;
+                }
+            }, null));
+
+        }
+    }
+
+
+    private void setContainerLayoutHeight() {
+
+        if (isCollapsed) {
+            imgUp.setImageResource(R.drawable.ic_arrow_drop_down_black_24dp);
+            Log.d(TAG, "setContainerLayoutHeight: ContainerHeight isCollapsed:" + tagContainerLayout.getHeight());
+            Log.d(TAG, "setContainerLayoutHeight: singLineTagContainerHeight UpArrow:" + singLineTagContainerHeight);
+
+            resizedLayoutWithAnimation(tagContainerLayout,
+                    (int) tagContainerLayout.getHeight(),
+                    ((int) (singLineTagContainerHeight + CommonMethod.dp2px(getApplicationContext(), 10))),
+                    CommonMethod.FROM_ARROW_UP);
+        } else {
+            imgUp.setImageResource(R.drawable.ic_arrow_drop_up_black_24dp);
+            Log.d(TAG, "setContainerLayoutHeight: singLineTagContainerHeight DownArrow:" + singLineTagContainerHeight);
+
+            resizedLayoutWithAnimation(tagContainerLayout,
+                    (int) (singLineTagContainerHeight + CommonMethod.dp2px(getApplicationContext(), 10)),
+                    (int) (oldHeight - (int) (singLineTagContainerHeight + CommonMethod.dp2px(getApplicationContext(), 10))),
+                    CommonMethod.FROM_ARROW_DOWN);
+        }
+        isCollapsed = !isCollapsed;
+    }
+
+    private void resizedLayoutWithAnimation(View rlTag, int startHeight, int targetHeight, int from) {
+
+        ResizeAnimation resizeAnimation = new ResizeAnimation(
+                rlTag,
+                targetHeight,
+                startHeight,
+                from
+        );
+        resizeAnimation.setDuration(500);
+        this.rlTag.startAnimation(resizeAnimation);
+    }
+
+
+    @Override
+    public void onHeightAvailble(final float height) {
+        final ViewTreeObserver observer = tagContainerLayout.getViewTreeObserver();
+        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                if (!hasFromActivityResult)
+                    return;
+                Log.d(TAG, "tagContainerView: " + tagContainerLayout.getHeight() + " heightView " + height);
+                oldHeight = tagContainerLayout.getHeight();
+                singLineTagContainerHeight = (height + CommonMethod.dp2px(getApplicationContext(), 10));
+                float numberOfLines = (float) (tagContainerLayout.getHeight() / singLineTagContainerHeight);
+                Log.d(TAG, "onGlobalLayout: NumberOfLines:" + numberOfLines);
+                if ((int) numberOfLines > 1) {
+                    rlCollapsing.setVisibility(View.VISIBLE);
+                    resizedLayoutWithAnimation(tagContainerLayout,
+                            (int) tagContainerLayout.getHeight(),
+                            ((int) (singLineTagContainerHeight + CommonMethod.dp2px(getApplicationContext(), 10))),
+                            CommonMethod.FROM_ARROW_UP);
+                } else {
+                    rlCollapsing.setVisibility(View.GONE);
+
+                }
+                observer.removeGlobalOnLayoutListener(this);
+                hasFromActivityResult = false;
+            }
+        });
+
+
+//        Log.d(TAG, "showDropArrow: " + tagContainerLayout.getNumberOfTagLines(tagContainerLayout));
+    }
+
+
 }

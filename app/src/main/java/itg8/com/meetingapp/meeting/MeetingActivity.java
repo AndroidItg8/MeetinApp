@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentProviderOperation;
-import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -38,7 +37,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.webkit.MimeTypeMap;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -105,6 +103,13 @@ import pub.devrel.easypermissions.EasyPermissions;
 public class MeetingActivity extends AppCompatActivity implements View.OnClickListener, EasyPermissions.PermissionCallbacks, MeetingDocumentAdapter.OnRecyclerviewItemClickedListener, MeetingMVP.MeetingView, TAGAdapter.TAGItemClickedListner, View.OnTouchListener {
 
 
+    public static final int RC_STORAGE = 11;
+    public static final int RC_CAMERAWITHSTORAGE = 12;
+    public static final int REQUEST_TAKE_PHOTO = 30;
+    public static final int READ_REQUEST_CODE = 34;
+    public static final String MIME_TYPE_IMAGE = "image/*";
+    public static final String MIME_TYPE_PDF = "application/pdf";
+    public static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
     private static final boolean SHOW_DUE = true;
     private static final boolean HIDE_DUE = false;
     private static final boolean HIDE_REMINDER = false;
@@ -116,14 +121,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private static final int RC_LOCATION = 234;
     private static final int REQUEST_CODE_AUTOCOMPLETE = 9001;
     private static final String TAG = MeetingActivity.class.getSimpleName();
-    public static final int RC_STORAGE = 11;
-    public static final int RC_CAMERAWITHSTORAGE = 12;
     private static final int RC_CONCTACT = 13;
-    public static final int REQUEST_TAKE_PHOTO = 30;
-    public static final int READ_REQUEST_CODE = 34;
-    public static final String MIME_TYPE_IMAGE = "image/*";
-    public static final String MIME_TYPE_PDF = "application/pdf";
-    public static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
     private static final int RC_PHONE_BOOK = 900;
     private static final int RC_TAG = 800;
     @BindView(R.id.toolbar)
@@ -189,7 +187,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     TextView lblAddPerson;
     //    @BindView(R.id.recyclerView)
 //    RecyclerView recyclerView;
- ;
+    ;
     @BindView(R.id.fab)
     FloatingActionButton fab;
     @BindView(R.id.rl_address)
@@ -254,8 +252,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private DaoMeetingTagInteractor daoMeetingTag;
 
     private boolean isFromEdit = false;
-    private HashMap<Long, TblTAG> tagHashMap=new HashMap<>();
+    private HashMap<Long, TblTAG> tagHashMap = new HashMap<>();
     private TblMeetingTag meetingTag;
+    private HashMap<String, TblContact> hashMap = new HashMap<>();
+    private AlertDialog dialog;
 
     /**
      * Helper method to format information about a place nicely.
@@ -268,7 +268,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 websiteUri));
 
     }
-    private AlertDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -283,7 +282,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         toolbar.setSubtitleTextColor(Color.WHITE);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_black_24dp);
         collapsed();
-
 
 
 //        adapterTAG = new TAGAdapter(tagList, this);
@@ -308,7 +306,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             for (TblTAG tag :
                     this.tagList) {
                 tag.setSelected(true);
-                tagHashMap.put(tag.getPkid(),tag);
+                tagHashMap.put(tag.getPkid(), tag);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -359,7 +357,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             contactList.addAll(daoContact.getContactsByMeetingId(meeting.getPkid()));
 //            adapterContact.notifyDataSetChanged();
             setParticipantTAG();
-            List<TblMeetingTag> tags=meeting.getTags();
+            List<TblMeetingTag> tags = meeting.getTags();
             for (TblMeetingTag tagMeeting :
                     tags) {
                 tagList.add(tagMeeting.getTag());
@@ -382,9 +380,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private void changeHashmapValueFromUpdatedTagList() {
         for (TblTAG tag :
                 tagList) {
-            TblTAG tempTag=tagHashMap.get(tag.getPkid());
+            TblTAG tempTag = tagHashMap.get(tag.getPkid());
             tempTag.setSelected(true);
-            tagHashMap.put(tag.getPkid(),tag);
+            tagHashMap.put(tag.getPkid(), tag);
         }
     }
 
@@ -405,7 +403,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
             tagContainerLayout.setTags(tagList, colors);
         }
-
 
 
     }
@@ -451,11 +448,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void initDaoInteractors() {
-        daoContact=new DaoContactInteractor(this);
-        daoDocument=new DaoDocumentInteractor(this);
-        daoMeeting=new DaoMeetingInteractor(this);
-        daoTag=new DaoTagInteractor(this);
-        daoMeetingTag=new DaoMeetingTagInteractor(this);
+        daoContact = new DaoContactInteractor(this);
+        daoDocument = new DaoDocumentInteractor(this);
+        daoMeeting = new DaoMeetingInteractor(this);
+        daoTag = new DaoTagInteractor(this);
+        daoMeetingTag = new DaoMeetingTagInteractor(this);
     }
 
     private void setDefaultInfo() {
@@ -513,7 +510,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void storeToDb() {
-        if(!validateMeetingDetails()){
+        if (!validateMeetingDetails()) {
             return;
         }
         boolean isInserted = getCompleteDetailForMeeting();
@@ -521,7 +518,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             presenter.saveMeeting(meeting);
             Toast.makeText(this, "Meeting stored successfully", Toast.LENGTH_SHORT).show();
             onBackPressed();
-        }else {
+        } else {
             Toast.makeText(this, "Fail to store meeting.", Toast.LENGTH_SHORT).show();
         }
 //        DaoMeetingInteractor interactor = new DaoMeetingInteractor(MeetingActivity.this);
@@ -606,7 +603,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
         for (TblTAG tag :
                 tagList) {
-            meetingTag=new TblMeetingTag();
+            meetingTag = new TblMeetingTag();
             meetingTag.setMeeting(meeting);
             meetingTag.setTag(tag);
 //            tag.setMeeting(meeting);
@@ -671,9 +668,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.fab:
                 initTagHashmap();
 //                changeHashmapValueFromUpdatedTagList();
-                Intent intent=new Intent(MeetingActivity.this, TAGActivity.class);
-                intent.putExtra(CommonMethod.EXTRA_TAGS,tagHashMap);
-                startActivityForResult(intent,RC_TAG);
+                Intent intent = new Intent(MeetingActivity.this, TAGActivity.class);
+                intent.putExtra(CommonMethod.EXTRA_TAGS, tagHashMap);
+                startActivityForResult(intent, RC_TAG);
                 break;
         }
     }
@@ -787,8 +784,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             contact.setName(lblDocumentNote.getText().toString().trim());
             if (TextUtils.isEmpty(edtNumber.getText())) {
                 contact.setNumber("NOT AVAILABLE");
-                contactList.add(contact);
-                adapterContact.notifyDataSetChanged();
+                insertContactNotExits(contact);
+//                adapterContact.notifyDataSetChanged();
                 AddContactToPhoneContactList(lblDocumentNote.getText().toString().trim(), edtNumber.getText().toString().trim());
                 dialog.dismiss();
             } else {
@@ -796,7 +793,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
                     contact.setName(lblDocumentNote.getText().toString().trim());
                     contact.setNumber(edtNumber.getText().toString().trim());
-                    contactList.add(contact);
+                    contact.setSelected(true);
+                    insertContactNotExits(contact);
+
+                    setParticipantTAG();
+
 //                    adapterContact.notifyDataSetChanged();
                     AddContactToPhoneContactList(lblDocumentNote.getText().toString().trim(), edtNumber.getText().toString().trim());
                     dialog.dismiss();
@@ -1172,11 +1173,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                     contact.setName(c.getName());
                     contact.setNumber(c.getNumber());
                     contact.setSelected(true);
-                    contactList.add(contact);
+                    insertContactNotExits(contact);
+
 //                    adapterContact.notifyItemInserted(contactList.size()-1);
                 }
 
-            setParticipantTAG();
+                setParticipantTAG();
 
             }
         } else if (requestCode == RC_TAG) {
@@ -1234,14 +1236,21 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     }
 
+    public void insertContactNotExits(TblContact tbl) {
+        if (!hashMap.containsKey(tbl.getName())) {
+            contactList.add(tbl);
+            hashMap.put(tbl.getName(), tbl);
+        }
+
+
+    }
+
     public void setParticipantTAG() {
         if (contactList.size() > 0) {
             int size = contactList.size();
-
             List<int[]> colors = new ArrayList<int[]>();
             for (int i = 0; i < size; i++) {
-             int   randomColor = new Random().nextInt(R.array.androidcolors);
-
+                int randomColor = new Random().nextInt(R.array.androidcolors);
 
                 int[] col1 = {Color.parseColor("#ffffff"), Color.parseColor("#C1562E"), Color.parseColor("#C1562E")};
                 colors.add(col1);
@@ -1249,10 +1258,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             tagContainerLayoutParticipant.setEnableCross(true);
             tagContainerLayoutParticipant.setCrossColor(Color.parseColor("#C1562E"));
             tagContainerLayoutParticipant.setParticipantTags(contactList, colors);
-
             tagContainerLayoutParticipant.setOnTagClickListener(new TagView.OnTagClickListener() {
-            @Override
-            public void onTagClick(int position, Object object) {
+                @Override
+                public void onTagClick(int position, Object object) {
 //                try {
 ////                    TblContact text= (TblContact) object;
 ////                    text.setSelected(!text.isSelected());
@@ -1262,27 +1270,27 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 //                    e.printStackTrace();
 //                }
 
-            }
+                }
 
-            @Override
-            public void onTagLongClick(int position, Object text) {
-
-            }
-
-            @Override
-            public void onTagCrossClick(int position, Object object) {
-                TblContact test= (TblContact) object;
-                if (test.isSelected()) {
-                    tagContainerLayoutParticipant.removeTag(position);
-                    contactList.remove(position);
-                    test.setSelected(false);
-//                    tagContainerLayoutParticipant.changeSelectColor(position, test);
+                @Override
+                public void onTagLongClick(int position, Object text) {
 
                 }
 
-            }
-        });
-    }
+                @Override
+                public void onTagCrossClick(int position, Object object) {
+                    TblContact test = (TblContact) object;
+                    if (test.isSelected()) {
+                        tagContainerLayoutParticipant.removeTag(position);
+                        contactList.remove(position);
+                        test.setSelected(false);
+//                    tagContainerLayoutParticipant.changeSelectColor(position, test);
+
+                    }
+
+                }
+            });
+        }
 
     }
 

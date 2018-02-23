@@ -25,11 +25,9 @@ import itg8.com.meetingapp.db.TblMeeting;
 public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapter.SearchViewHolder> {
 
     private static final String TAG = SearchResultAdapter.class.getSimpleName();
-
-
+    MeetingItemClicked listener;
     private Context context;
     private List<TblMeeting> listSearchResult;
-    MeetingItemClicked listener;
 
     public SearchResultAdapter(Context context, List<TblMeeting> listSearchResult, MeetingItemClicked listener) {
         this.context = context;
@@ -50,6 +48,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
 //        holder.txtTime.setText(Helper.getStringTimeFromDate(listSearchResult.get(position).getStartTime()) + "-" + Helper.getStringTimeFromDate(listSearchResult.get(position).getEndTime()));
 //        holder.txtValue.setText("position: "+position);
         holder.setContentMeeting(listSearchResult.get(position));
+
         Log.d(TAG, "onBindViewHolder: position: " + position);
     }
 
@@ -59,6 +58,10 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
         Log.d(TAG, "getItemCount: size" + listSearchResult.size());
         return listSearchResult.size();
 //        return 20;
+    }
+
+    public interface MeetingItemClicked {
+        void onItemClicked(int position, TblMeeting meeting);
     }
 
     public class SearchViewHolder extends RecyclerView.ViewHolder {
@@ -95,9 +98,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
             txtTitle.setText(event.getTitle());
             txtTime.setText(Helper.getStringTimeFromDate(event.getStartTime()) + "-" + Helper.getStringTimeFromDate(event.getEndTime()));
 
-
-
-            if (event.getAddress().length() > 0) {
+            if (event.getAddress() != null && event.getAddress().length() > 0) {
                 txtLocation.setText(event.getAddress());
                 locationContainer.setVisibility(View.VISIBLE);
             } else {
@@ -111,12 +112,9 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
                 txtTitle.setTextColor(context.getResources().getColor(com.github.tibolte.agendacalendarview.R.color.theme_text_icons));
             }
 
-            descriptionContainer.setBackgroundColor( Helper.getColorFromPriority(context,event.getPriority()));
+            descriptionContainer.setBackgroundColor(Helper.getColorFromPriority(context, event.getPriority()));
             txtLocation.setTextColor(context.getResources().getColor(com.github.tibolte.agendacalendarview.R.color.theme_text_icons));
             txtTime.setTextColor(context.getResources().getColor(com.github.tibolte.agendacalendarview.R.color.theme_text_icons));
         }
     }
-     public  interface MeetingItemClicked{
-        void onItemClicked(int position, TblMeeting meeting);
-     }
 }

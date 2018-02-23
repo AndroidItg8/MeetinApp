@@ -71,6 +71,7 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
     private DaoMeetingInteractor daoMeeting;
     private CalendarManager calendarManager;
     private boolean checkedOnces=false;
+    private boolean hasView;
 
 
     public HomeFragment() {
@@ -109,7 +110,8 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         unbinder = ButterKnife.bind(this, view);
-        daoMeeting= new DaoMeetingInteractor(getActivity());
+        hasView=true;
+                daoMeeting= new DaoMeetingInteractor(getActivity());
         getEntriesFromDb();
 
         return view;
@@ -135,6 +137,7 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
 
             @Override
             public void onNext(List<TblMeeting> tblMeetings) {
+                if(hasView)
                     calenderStuff(tblMeetings);
             }
 
@@ -149,6 +152,7 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
             }
         });
     }
+
 
     private ObservableSource<List<TblMeeting>> getCalanderObservable(final List<TblMeeting> tblMeetings) {
         return Observable.create(new ObservableOnSubscribe<List<TblMeeting>>() {
@@ -339,6 +343,7 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        hasView=false;
         unbinder.unbind();
     }
 }

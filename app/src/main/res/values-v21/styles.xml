@@ -49,4 +49,9 @@
         <item name="android:popupElevation">0dp</item>
     </style>
 
+    <style name="btn_ripple_effect" >
+
+        <item name="android:background">@drawable/ripple_effect</item>
+    </style>
+
 </resources>

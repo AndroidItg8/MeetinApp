@@ -267,6 +267,14 @@
 ]]>
 
     </string>
+    <string name="tag_click">
+        <![CDATA[
+        <img src="ic_tags">  %1$s</img>
+        <b><font color=\"#000\">%2$s</b>
+        <br/>]]>
+
+    </string>
+
     <string name="add_person_name">Add Person Name</string>
     <string name="search_title">search</string>
     <string name="filter">filter</string>

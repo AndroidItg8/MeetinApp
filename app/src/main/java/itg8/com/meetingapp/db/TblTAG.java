@@ -16,7 +16,7 @@ public class TblTAG implements Parcelable {
     public static final String FIELD_ID="pkid";
     public static final String FIELD_NAME="name";
     public static final String FIELD_SELECT ="value_select";
-    public static final String FIELD_MEETING_ID = "meeting_id";
+    public static final String FIELD_MEETING_ID = "meeting_tag_id";
 
 
 
@@ -24,7 +24,7 @@ public class TblTAG implements Parcelable {
     private long pkid;
 
     @DatabaseField(columnName = FIELD_MEETING_ID,foreign = true,foreignAutoRefresh = true)
-    private TblMeeting meeting;
+    private TblMeetingTag meeting;
 
     public void setSelected(boolean selected) {
         isSelected = selected;
@@ -61,11 +61,11 @@ public class TblTAG implements Parcelable {
         return isSelected;
     }
 
-    public TblMeeting getMeeting() {
+    public TblMeetingTag getMeeting() {
         return meeting;
     }
 
-    public void setMeeting(TblMeeting meeting) {
+    public void setMeeting(TblMeetingTag meeting) {
         this.meeting = meeting;
     }
 
@@ -83,7 +83,7 @@ public class TblTAG implements Parcelable {
     }
 
     protected TblTAG(Parcel in) {
-        this.meeting = in.readParcelable(TblMeeting.class.getClassLoader());
+        this.meeting = in.readParcelable(TblMeetingTag.class.getClassLoader());
         this.pkid = in.readLong();
         this.isSelected = in.readByte() != 0;
         this.name = in.readString();

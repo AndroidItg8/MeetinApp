@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Description -->
+
+<android.support.v7.widget.CardView
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardUseCompatPadding="true"
+    app:cardPreventCornerOverlap="true"
+    android:padding="10dp"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
 <LinearLayout android:id="@+id/view_agenda_event_description_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="10dp"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/view_agenda_event_title"
@@ -16,10 +23,8 @@
         android:paddingEnd="16dp"
         android:paddingRight="16dp"
         android:paddingLeft="16dp"
-        android:textSize="16dp" />
-
-
-
+        android:layout_marginTop="08dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
     <LinearLayout
         android:id="@+id/view_agenda_event_time_container"
         android:layout_width="wrap_content"
@@ -43,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="4dp"
             android:layout_marginStart="4dp"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:textColor="@color/calendar_text_default" />
 
     </LinearLayout>
@@ -63,7 +68,9 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/img_location" />
+            android:src="@drawable/img_location"
+            android:layout_marginBottom="08dp"
+            />
 
 
 
@@ -74,6 +81,8 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
             android:layout_marginStart="5dp"
+            android:layout_marginBottom="08dp"
+
             android:textColor="@color/calendar_text_default"
             android:textSize="11dp" />
 
@@ -139,3 +148,4 @@
 
 
 <!--</RelativeLayout>-->
+</android.support.v7.widget.CardView>

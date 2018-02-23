@@ -1,5 +1,8 @@
 package itg8.com.meetingapp.db;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -8,7 +11,7 @@ import com.j256.ormlite.table.DatabaseTable;
  */
 
 @DatabaseTable(tableName = TblMeetingTag.TABLE_NAME)
-public class TblMeetingTag {
+public class TblMeetingTag implements Parcelable {
     public  static final String TABLE_NAME="TBL_MEETING_TAG";
 
     public static final String FIELD_ID="pkid";
@@ -51,4 +54,34 @@ public class TblMeetingTag {
     public void setTag(TblTAG tag) {
         this.tag = tag;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(this.pkid);
+        dest.writeParcelable(this.meeting, flags);
+        dest.writeParcelable(this.tag, flags);
+    }
+
+    protected TblMeetingTag(Parcel in) {
+        this.pkid = in.readLong();
+        this.meeting = in.readParcelable(TblMeeting.class.getClassLoader());
+        this.tag = in.readParcelable(TblTAG.class.getClassLoader());
+    }
+
+    public static final Parcelable.Creator<TblMeetingTag> CREATOR = new Parcelable.Creator<TblMeetingTag>() {
+        @Override
+        public TblMeetingTag createFromParcel(Parcel source) {
+            return new TblMeetingTag(source);
+        }
+
+        @Override
+        public TblMeetingTag[] newArray(int size) {
+            return new TblMeetingTag[size];
+        }
+    };
 }
