@@ -108,6 +108,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     public static final int REQUEST_TAKE_PHOTO = 30;
     public static final int READ_REQUEST_CODE = 34;
     public static final String MIME_TYPE_IMAGE = "image/*";
+    public static final String MIME_TYPE_IMAGE_JPG = "image/jpeg";
+    public static final String MIME_TYPE_IMAGE_PNG = "image/png";
     public static final String MIME_TYPE_PDF = "application/pdf";
     public static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
     private static final boolean SHOW_DUE = true;
@@ -1088,7 +1090,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                     String selectedMimeType = CommonMethod.getMimetypeFromUri(uri, getContentResolver());
                     Log.d(TAG, "SelectedMimeType:" + selectedMimeType);
                     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                    String newFileName = timeStamp + getFilenameFromMimetype(selectedMimeType);
+                    String newFileName = timeStamp + CommonMethod.getFilenameFromMimetype(selectedMimeType);
 //                        showImage(uri);
 //                        DocumentFile file;
 //                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -1114,8 +1116,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                          *  the filename. That's out of the scope of this post. */
 
 
-                        String output_path = Environment.getExternalStorageDirectory()
-                                + "/MeetingApp/" + newFileName;
+                        Log.d(TAG, "onActivityResult: FileName:"+newFileName);
+                        String output_path = createDocumentTempFile(newFileName).getAbsolutePath();
 
                         // Create the file in the location that we just defined.
                         File oFile = new File(output_path);
@@ -1333,16 +1335,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         return byteBuffer.toByteArray();
     }
 
-    private String getFilenameFromMimetype(String mimeType) {
-        if (mimeType.equalsIgnoreCase(MIME_TYPE_PDF)) {
-            return ".pdf";
-        } else if (mimeType.equalsIgnoreCase(MIME_TYPE_IMAGE)) {
-            return ".jpg";
-        } else if (mimeType.equalsIgnoreCase(MIME_TYPE_TEXT_PLAIN)) {
-            return ".txt";
-        }
-        return null;
-    }
+//
+
 
 
     private void showPlaceCross() {
@@ -1586,6 +1580,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+
+
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
@@ -1594,8 +1591,28 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = image.getAbsolutePath();
+        Log.d(TAG, "createImageFile: ImageFIe:"+mCurrentPhotoPath);
+
         return image;
     }
+
+     private File createDocumentTempFile(String fileName) throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = fileName.split("\\.(?=[^\\.]+$)")[0];
+        String ext = "."+fileName.split("\\.(?=[^\\.]+$)")[1];
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ext,         /* suffix */
+                storageDir      /* directory */
+        );
+         Log.d(TAG, "createDocumentTempFile: DocumentFile:"+image.getAbsolutePath());
+        // Save a file: path for use with ACTION_VIEW intents
+        return image;
+    }
+
+
 
     private void showCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);

@@ -260,8 +260,6 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         recyclerView.setAdapter(adapter);
         recyclerView.setNestedScrollingEnabled(false);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-
     }
 
 

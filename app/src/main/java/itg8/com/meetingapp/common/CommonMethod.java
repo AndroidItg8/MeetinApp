@@ -8,6 +8,11 @@ import android.widget.ImageView;
 
 import itg8.com.meetingapp.db.TblMeeting;
 
+import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_IMAGE_JPG;
+import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_IMAGE_PNG;
+import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_PDF;
+import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_TEXT_PLAIN;
+
 /**
  * Created by swapnilmeshram on 30/01/18.
  */
@@ -58,6 +63,7 @@ public class CommonMethod {
     public static final String EXTRA_TAGS = "extra_tags";
     public static final int FROM_ARROW_DOWN = 1;
     public static final int FROM_ARROW_UP = 2;
+    public static final String FROM_HOME = "FROM_HOME";
 
     public static long getDifferenceFromPriority(int priority, long timeDifference) {
         int priorityDiff=getPriorityDifferenceFromSetting(priority);
@@ -118,6 +124,33 @@ public class CommonMethod {
     public static float sp2px(Context context, float sp) {
         final float scale = context.getResources().getDisplayMetrics().scaledDensity;
         return sp * scale;
+    }
+
+
+    public static  String getFilenameFromMimetype(String mimeType) {
+        if (mimeType.equalsIgnoreCase(MIME_TYPE_PDF)) {
+            return ".pdf";
+        } else if (mimeType.equalsIgnoreCase(MIME_TYPE_IMAGE_JPG)) {
+            return ".jpg";
+        } else if (mimeType.equalsIgnoreCase(MIME_TYPE_IMAGE_PNG)) {
+            return ".png";
+        }else if (mimeType.equalsIgnoreCase(MIME_TYPE_TEXT_PLAIN)) {
+            return ".txt";
+        }
+        return null;
+    }
+
+    public static  String getMimetypeFromFilename(String mimeType) {
+        if (mimeType.equalsIgnoreCase(".pdf")) {
+            return MIME_TYPE_PDF;
+        } else if (mimeType.equalsIgnoreCase(".jpg")) {
+            return MIME_TYPE_IMAGE_JPG;
+        } else if (mimeType.equalsIgnoreCase(".png")) {
+            return MIME_TYPE_IMAGE_PNG;
+        }else if (mimeType.equalsIgnoreCase(".txt")) {
+            return MIME_TYPE_TEXT_PLAIN;
+        }
+        return null;
     }
 
 }

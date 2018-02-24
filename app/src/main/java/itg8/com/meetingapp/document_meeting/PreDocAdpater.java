@@ -104,6 +104,7 @@ public class PreDocAdpater extends RecyclerView.Adapter<PreDocAdpater.PreDocView
 
     public interface ItemClickListner {
         void onItemClcikedListener(int position, TblDocument item, ImageView img);
+        void onItemClickedShowListener(int position, TblDocument item);
     }
 
     public class PreDocViewHolder extends RecyclerView.ViewHolder {
@@ -132,6 +133,13 @@ public class PreDocAdpater extends RecyclerView.Adapter<PreDocAdpater.PreDocView
                     listner.onItemClcikedListener(getAdapterPosition(), list.get(getAdapterPosition()), imgMore);
 
 
+                }
+            });
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    listner.onItemClickedShowListener(getAdapterPosition(), list.get(getAdapterPosition()));
                 }
             });
         }

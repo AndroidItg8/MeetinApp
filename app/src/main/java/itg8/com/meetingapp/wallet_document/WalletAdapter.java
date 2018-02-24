@@ -89,6 +89,11 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
         listner.onItemImgMoreClickListner(position,  item, img);
     }
 
+    @Override
+    public void onItemClickedShowListener(int position, TblDocument item) {
+
+    }
+
     public class WalletViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.viewEnd)
         View viewEnd;

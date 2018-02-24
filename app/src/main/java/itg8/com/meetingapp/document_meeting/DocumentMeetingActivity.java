@@ -52,6 +52,8 @@ import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
 import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_IMAGE;
+import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_IMAGE_JPG;
+import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_IMAGE_PNG;
 import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_PDF;
 import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_TEXT_PLAIN;
 import static itg8.com.meetingapp.meeting.MeetingActivity.RC_CAMERAWITHSTORAGE;
@@ -94,6 +96,7 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("Meeting Documents");
+        fab.setVisibility(View.GONE);
         fab.setOnClickListener(this);
         daoMeeting=new DaoMeetingInteractor(this);
         daoDocument=new DaoDocumentInteractor(this);
@@ -318,7 +321,6 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
-
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = image.getAbsolutePath();
         return image;
@@ -392,6 +394,11 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
                 // Instead, a URI to that document will be contained in the return intent
                 // provided to this method as a parameter.
                 // Pull that URI using resultData.getData().
+
+                // The document selected by the user won't be returned in the intent.
+                // Instead, a URI to that document will be contained in the return intent
+                // provided to this method as a parameter.
+                // Pull that URI using resultData.getData().
                 Uri uri = null;
 
                 if (data != null) {
@@ -401,7 +408,7 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
                     String selectedMimeType = CommonMethod.getMimetypeFromUri(uri, getContentResolver());
                     Log.d(TAG, "SelectedMimeType:" + selectedMimeType);
                     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                    String newFileName = timeStamp + getFilenameFromMimetype(selectedMimeType);
+                    String newFileName = timeStamp + CommonMethod.getFilenameFromMimetype(selectedMimeType);
 //                        showImage(uri);
 //                        DocumentFile file;
 //                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -427,8 +434,8 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
                          *  the filename. That's out of the scope of this post. */
 
 
-                        String output_path = Environment.getExternalStorageDirectory()
-                                + "/MeetingApp/" + newFileName;
+                        Log.d(TAG, "onActivityResult: FileName:"+newFileName);
+                        String output_path = createDocumentTempFile(newFileName).getAbsolutePath();
 
                         // Create the file in the location that we just defined.
                         File oFile = new File(output_path);
@@ -476,15 +483,22 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
         }
     }
 
-    private String getFilenameFromMimetype(String mimeType) {
-        if (mimeType.equalsIgnoreCase(MIME_TYPE_PDF)) {
-            return ".pdf";
-        } else if (mimeType.equalsIgnoreCase(MIME_TYPE_IMAGE)) {
-            return ".jpg";
-        } else if (mimeType.equalsIgnoreCase(MIME_TYPE_TEXT_PLAIN)) {
-            return ".txt";
-        }
-        return null;
+
+
+    private File createDocumentTempFile(String fileName) throws IOException {
+        // Create an image file name
+
+        String imageFileName = fileName.split("\\.(?=[^\\.]+$)")[0];
+        String ext = "."+fileName.split("\\.(?=[^\\.]+$)")[1];
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ext,         /* suffix */
+                storageDir      /* directory */
+        );
+        Log.d(TAG, "createDocumentTempFile: DocumentFile:"+image.getAbsolutePath());
+        // Save a file: path for use with ACTION_VIEW intents
+        return image;
     }
 
 

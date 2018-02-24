@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -29,16 +28,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -95,8 +91,10 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     private MenuItem myActionMenuItem;
 
     private ActionMode.Callback mActionModeCallback;
-    private boolean searchViewClosed=true;
-    private HashMap<Long, TblTAG> tagHashMap;
+    private boolean searchViewClosed = true;
+    private HashMap<Long, TblTAG> tagHashMap= new HashMap<>();
+    private boolean isFromHome;
+    private boolean hasTagClear=false;
 
     private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
                                               CharSequence doc_name) {
@@ -124,20 +122,40 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
                 Log.d(TAG, "onCreateActionMode:" + mode);
                 inflater.inflate(R.menu.menu_tag, menu);
                 menu.findItem(R.id.m_search).setVisible(true);
-                menu.findItem(R.id.menu_ok).setVisible(true).getActionView();
+
+                if (isFromHome) {
+                    menu.findItem(R.id.menu_delete).setVisible(true).getActionView();
+                    menu.findItem(R.id.menu_ok).setVisible(false).getActionView();
+
+
+                } else {
+                    menu.findItem(R.id.menu_ok).setVisible(true).getActionView();
+                  menu.findItem(R.id.menu_delete).setVisible(false).getActionView();
+                }
+
+                  MenuItem menuDelete = menu.findItem(R.id.menu_delete);
 
                 searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.m_search));
                 searchView.setIconifiedByDefault(true);
                 searchView.setIconified(true);
 
-                searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
-                    @Override
-                    public void onFocusChange(View v, boolean hasFocus) {
-                        Log.d(TAG, "onFocusChange: " + hasFocus);
-                        searchViewClosed = !hasFocus;
 
-                    }
-                });
+                menuDelete.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                                                          @Override
+                                                          public boolean onMenuItemClick(MenuItem menuItem) {
+                                                              showDialoge();
+                                                              return true;
+                                                          }
+                                                      });
+
+                        searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+                            @Override
+                            public void onFocusChange(View v, boolean hasFocus) {
+                                Log.d(TAG, "onFocusChange: " + hasFocus);
+                                searchViewClosed = !hasFocus;
+
+                            }
+                        });
 
                 searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                     @Override
@@ -217,13 +235,34 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
             @Override
             public void onDestroyActionMode(ActionMode mode) {
                 Log.d(TAG, "onDestroyActionMode:mode " + mode.getTitle());
-                if (!searchViewClosed)
-                    onCancelButtonClicked();
-                else
-                    simonGoBack();
+                if(!hasTagClear) {
+                    if (!searchViewClosed)
+                        onCancelButtonClicked();
+                    else
+                        simonGoBack();
+                }
             }
         };
 
+    }
+
+    private void showDialoge() {
+         final AlertDialog alertDialog = new AlertDialog.Builder(TAGActivity.this)
+                .setTitle("Delete Tags")
+                .setMessage("Would you like to delete all tags?")
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        clearAllTag();
+
+                    }
+                }).setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                }).create();
+         alertDialog.show();
     }
 
     private void simonGoBack() {
@@ -252,7 +291,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         createActionMenuCallback();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 //        tagAddAdapter = new TAGAddAdapter(this, tagList, this);
-        tagInteractor=new DaoTagInteractor(this);
+        tagInteractor = new DaoTagInteractor(this);
         initTagList();
         getDataFromIntent();
         init();
@@ -262,34 +301,46 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
     private void initTagList() {
         try {
-            tagList=tagInteractor.getTags();
+            tagList = tagInteractor.getTags();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+    private void setSelectedTAG() {
+        for (TblTAG tbl :
+                tagList) {
+            tbl.setSelected(true);
+
+        }
+    }
+
     private void getDataFromIntent() {
-        if(getIntent().hasExtra(CommonMethod.EXTRA_TAGS)){
-           tagHashMap= (HashMap<Long, TblTAG>) getIntent().getSerializableExtra(CommonMethod.EXTRA_TAGS);
-           setHashmapToList();
+        if (getIntent().hasExtra(CommonMethod.EXTRA_TAGS)) {
+            tagHashMap= (HashMap<Long, TblTAG>) getIntent().getSerializableExtra(CommonMethod.EXTRA_TAGS);
+            setHashmapToList();
 //            for(Map.Entry<Long, TblTAG> entry : tagHashMap.entrySet()) {
 //                tagList.add(entry.getValue());
 //            }
+        } else if (getIntent().hasExtra(CommonMethod.FROM_HOME)) {
+            isFromHome = getIntent().getBooleanExtra(CommonMethod.FROM_HOME, false);
+            setSelectedTAG();
+
+//            setHashmapToList();
+
         }
     }
 
     private void setHashmapToList() {
         for (TblTAG tag :
                 tagList) {
-            if (tagHashMap.containsKey(tag.getPkid())){
+            if (tagHashMap.containsKey(tag.getPkid())) {
                 tag.setSelected(true);
             }
         }
     }
 
     private void init() {
-
-
         btnAdd.setOnClickListener(this);
 
         if (tagList != null && tagList.size() > 0) {
@@ -341,11 +392,14 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 //            tagHashMap.clear();
             for (TblTAG tag :
                     tagList) {
-                if(tag.isSelected())
+                if (tag.isSelected())
                     tagHashMap.put(tag.getPkid(), tag);
             }
+
             tagList.clear();
             tagList.addAll(tagInteractor.getTags());
+            if(isFromHome)
+                setSelectedTAG();
 //            setHashmapToList();
             if (tagList != null && tagList.size() > 0) {
                 showHideView(tagContainerLayout, rlNoTag);
@@ -375,6 +429,12 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
                 updateActionBar(FROM_TAG, false);
             }
+
+            if (isFromHome) {
+                tagContainerLayout.setEnableCross(true);
+            } else {
+                tagContainerLayout.setEnableCross(false);
+            }
             tagContainerLayout.setTags(tagList, colors);
             tagOnClickListener(FROM_TAG);
         }
@@ -387,10 +447,15 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
             @Override
             public void onTagClick(int position, Object object) {
                 try {
-                     TblTAG text= (TblTAG) object;
+                    if (isFromHome)
+                        return;
+                    TblTAG text = (TblTAG) object;
                     text.setSelected(!text.isSelected());
 //                    tagInteractor.update(text);
                     tagContainerLayout.changeSelectColor(position, text);
+
+
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -400,22 +465,43 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
             @Override
             public void onTagLongClick(int position, Object text) {
+                if (isFromHome) {
+                    tagContainerLayout.isInEditMode();
+                }
 
             }
 
             @Override
             public void onTagCrossClick(int position, Object object) {
-                TblTAG test= (TblTAG) object;
+                TblTAG test = (TblTAG) object;
                 if (test.isSelected()) {
 //                    tagContainerLayout.removeTag(position);
 //                    tagList.remove(position);
-                    test.setSelected(false);
-                    tagContainerLayout.changeSelectColor(position, test);
+                    if(!isFromHome) {
+                        test.setSelected(false);
+                        tagContainerLayout.changeSelectColor(position, test);
+                    }else
+                    {
+                        try {
+                            removeTagFromHome(position, test);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
                 }
                 updateActionBar(from, false);
 
             }
         });
+    }
+
+    private void removeTagFromHome(int position, TblTAG test) throws SQLException {
+        tagContainerLayout.removeTag(position);
+        tagList.remove(position);
+        test.setSelected(false);
+        tagInteractor.delete(test);
+
     }
 
     @Override
@@ -478,8 +564,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         }
 
 
-
-
         return false;
     }
 
@@ -487,10 +571,18 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
         if (from == FROM_TAG) {
             checkBoxCount = 0;
+            boolean hasValaues = false;
             for (int i = 0; i < tagList.size(); i++) {
+                hasValaues=true;
                 if (tagList.get(i).isSelected())
                     checkBoxCount++;
+
             }
+            if(!hasValaues)
+            {
+
+            }
+
 
 
         } else {
@@ -506,8 +598,8 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
         if (checkBoxCount == 0) {
             if (mActionMode != null) {
-//                mActionMode.finish();
-//                mActionMode = null;
+                mActionMode.finish();
+                mActionMode = null;
             }
 
         } else {
@@ -543,7 +635,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
         Bundle resultData = new Bundle();
 
-            resultData.putParcelableArrayList("tag", selectedContacts);
+        resultData.putParcelableArrayList("tag", selectedContacts);
         Intent intent = new Intent();
         intent.putExtras(resultData);
         setResult(RESULT_OK, intent);
@@ -555,6 +647,8 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_add:
+                 if(TextUtils.isEmpty(edtDocumentTitle.getText().toString()))
+                     return;
                 updateTAGItem();
                 break;
         }
@@ -581,7 +675,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         tag.setSelected(!tag.isSelected());
         if (tag.isSelected()) {
             try {
-                tagHashMap.put(tag.getPkid(),tag);
+                tagHashMap.put(tag.getPkid(), tag);
 //                tagInteractor.update(tag);
 //                tagAddAdapter.notifyDataSetChanged();
 //                Log.d(TAG, new Gson().toJson(tag));
@@ -688,15 +782,20 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     }
 
     private void clearAllTag() {
-        for (TblTAG tbl : tagList
-                ) {
-            tbl.setSelected(false);
-            try {
-                tagInteractor.update(tbl);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        try {
+            tagInteractor.deleteAll(tagList);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+
+
+        tagList.clear();
+        init();
+
+
+        createRecyclerViewForTAG();
+
+        hasTagClear = true;
         updateActionBar(FROM_TAG, false);
 
     }

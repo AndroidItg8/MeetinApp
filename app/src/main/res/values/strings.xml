@@ -279,6 +279,7 @@
     <string name="search_title">search</string>
     <string name="filter">filter</string>
     <string name="title_activity_search">SearchActivity</string>
+    <string name="delete">delete</string>
 
 
     <!--<![CDATA[-->

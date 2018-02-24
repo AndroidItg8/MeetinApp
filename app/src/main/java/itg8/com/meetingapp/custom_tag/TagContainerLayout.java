@@ -1492,11 +1492,11 @@ public class TagContainerLayout extends ViewGroup {
         TagView tagView = ((TagView) mChildViews.get(position));
         if (getSelectedInfo(tag)) {
             tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
-            tagView.setEnableCross(true);
+           // tagView.setEnableCross(true);
 
         } else {
             tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGoogle));
-            tagView.setEnableCross(false);
+          //  tagView.setEnableCross(false);
 
         }
     }
@@ -1507,6 +1507,19 @@ public class TagContainerLayout extends ViewGroup {
         else if (mOriginText instanceof TblContact)
             return ((TblContact) mOriginText).isSelected();
         return false;
+    }
+
+    public void changeSelectColorFromHome(int position, TblTAG tag) {
+        TagView tagView = ((TagView) mChildViews.get(position));
+        if (getSelectedInfo(tag)) {
+//            tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
+            tagView.setEnableCross(true);
+
+        } else {
+//            tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGoogle));
+            tagView.setEnableCross(false);
+
+        }
     }
 
     private class DragHelperCallBack extends ViewDragHelper.Callback {

@@ -32,6 +32,7 @@ import itg8.com.meetingapp.common.Helper;
 import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.import_meeting.ImportMeetingActivity;
 import itg8.com.meetingapp.meeting.MeetingActivity;
+import itg8.com.meetingapp.meeting.TAGActivity;
 import itg8.com.meetingapp.service.NotificationService;
 import itg8.com.meetingapp.setting.SettingActivity;
 import itg8.com.meetingapp.wallet_document.WalletActivity;
@@ -200,6 +201,11 @@ public class HomeActivity extends AppCompatActivity
                 break;
             case R.id.nav_wallet:
                 startActivity(new Intent(this, WalletActivity.class));
+                break;
+            case R.id.nav_tag:
+               Intent intent = new Intent(this, TAGActivity.class);
+               intent.putExtra(CommonMethod.FROM_HOME,true);
+                startActivity(intent);
                 break;
 
         }

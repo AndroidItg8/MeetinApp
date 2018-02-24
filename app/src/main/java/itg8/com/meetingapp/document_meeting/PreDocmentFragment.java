@@ -1,7 +1,7 @@
 package itg8.com.meetingapp.document_meeting;
 
 
-import android.annotation.SuppressLint;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.FileProvider;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
@@ -20,12 +22,14 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.support.v7.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.net.URI;
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,6 +93,28 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
         return fragment;
     }
 
+    private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
+                                              CharSequence doc_name, String remaing) {
+        Log.e(TAG, res.getString(R.string.no_document_details, title, sub_title, doc_name, remaing));
+        return Html.fromHtml(res.getString(R.string.no_document_details, title, sub_title, doc_name, remaing));
+
+    }
+
+    public void shareItem(Context context, String title, String ext, File file, ShareActionProvider provider) {
+        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+        ;
+        sharingIntent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(context,"itg8.com.meetingapp.fileprovider", file));
+        Log.d(TAG, "shareItem: File Extension:"+ext);
+        Log.d(TAG, "shareItem: File Name:"+title);
+        sharingIntent.setType(CommonMethod.getMimetypeFromFilename("."+ext));
+        sharingIntent.putExtra(Intent.EXTRA_TEXT, title);
+        sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        provider.setShareIntent(sharingIntent);
+        //context.startActivity(Intent.createChooser(sharingIntent, "Share"));
+
+
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,9 +140,9 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
             DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
             recyclerView.addItemDecoration(itemDecoration);
             recyclerView.setAdapter(new PreDocAdpater(getActivity(), mPreDocuments, this));
-        }else {
+        } else {
             hideRecyclerView();
-            txtTitle.setText(formatPlaceDetails(getResources(),"Till Now Not Add Document To meeting","Quickly add document to","DocWallet","to get access fast!!!!"));
+            txtTitle.setText(formatPlaceDetails(getResources(), "Till Now Not Add Document To meeting", "Quickly add document to", "DocWallet", "to get access fast!!!!"));
 
         }
 
@@ -125,13 +151,6 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
     private void hideRecyclerView() {
         recyclerView.setVisibility(View.GONE);
         rlNoDocItem.setVisibility(View.VISIBLE);
-    }
-
-    private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
-                                              CharSequence doc_name, String remaing) {
-        Log.e(TAG, res.getString(R.string.no_document_details, title, sub_title, doc_name,remaing));
-        return Html.fromHtml(res.getString(R.string.no_document_details, title, sub_title, doc_name,remaing));
-
     }
 
     private void showRecyclerView() {
@@ -177,7 +196,6 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
         }
     }
 
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -188,67 +206,58 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: ");
-        ((DocumentMeetingActivity)getActivity()).onPredocumentClick();
+//        ((DocumentMeetingActivity) getActivity()).onPredocumentClick();
 
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-
-            case R.id.action_share:
-
-                shareItem(getActivity(), "TITLE", "BODY", null);
-
-                return true;
-
-
             default:
                 break;
         }
-
         return false;
     }
 
+    @Override
+    public void onItemClickedShowListener(int position, TblDocument item) {
+//        MimeTypeMap myMime = MimeTypeMap.getSingleton();
+        Intent newIntent = new Intent(Intent.ACTION_VIEW);
+//        String mimeType = myMime.getMimeTypeFromExtension(item.getFileExt());
+
+        newIntent.setDataAndType(FileProvider.getUriForFile(getActivity(),"itg8.com.meetingapp.fileprovider", new File(item.getFileActPath())),CommonMethod.getMimetypeFromFilename("."+item.getFileExt()));
+        newIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        try {
+           getActivity().startActivity(newIntent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(getActivity(), "No handler for this type of file.", Toast.LENGTH_LONG).show();
+        }
+    }
 
     @Override
-    public void onItemClcikedListener(int position, TblDocument item, ImageView img) {
+    public void onItemClcikedListener(int position, final TblDocument items, ImageView img) {
         PopupMenu popup = new PopupMenu(getActivity(), img);
         //Inflating the Popup using xml file
         popup.getMenuInflater()
                 .inflate(R.menu.popup_menu, popup.getMenu());
 
+        MenuItem item = popup.getMenu().findItem(R.id.action_share);
+        ShareActionProvider provider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+        shareItem(getActivity(), " File Share of "+items.getMeeting().getTitle()+" Meeting...", items.getFileExt(), new File(items.getFileActPath()), provider);
+
         //registering popup with OnMenuItemClickListener
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            public boolean onMenuItemClick(MenuItem item) {
-                Toast.makeText(
-                        getActivity(),
-                        "You Clicked : " + item.getTitle(),
-                        Toast.LENGTH_SHORT
-                ).show();
-                shareItem(getActivity(), "TITLE", "BODY", null);
-                return true;
-            }
-        });
+//        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+//            public boolean onMenuItemClick(MenuItem item) {
+//                 return true;
+//            }
+//        });
 
         popup.show(); //showing popup menu
     }
 
-
-    public static void shareItem(Context context, String title, String body, Uri uri) {
-        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
-        if (uri != null) {
-            sharingIntent.setType("image/*");
-            sharingIntent.putExtra(Intent.EXTRA_STREAM, uri);
-
-        } else {
-            sharingIntent.setType("text/plain");
-        }
-        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, title);
-        sharingIntent.putExtra(Intent.EXTRA_TEXT, body);
-        sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        context.startActivity(Intent.createChooser(sharingIntent, "Share"));
-
-
+    private Uri generateUriFromFile(String fileActPath) {
+        Log.d(TAG, "generateUriFromFile: FilePath:"+fileActPath);
+        return Uri.fromFile(new File(fileActPath));
     }
 }

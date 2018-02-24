@@ -22,9 +22,9 @@
             android:title="Setting" />
 
         <item
-            android:id="@+id/nav_export"
-            android:icon="@drawable/ic_import"
-            android:title="Export" />
+            android:id="@+id/nav_tag"
+            android:icon="@drawable/ic_tags"
+            android:title="TAG Management" />
     </group>
 
     <!--<item android:title="Communicate">-->
