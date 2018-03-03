@@ -2,7 +2,7 @@ package itg8.com.meetingapp.home;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import android.os.PersistableBundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
@@ -16,31 +16,26 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
-import itg8.com.meetingapp.common.Helper;
-
-import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.import_meeting.ImportMeetingActivity;
 import itg8.com.meetingapp.meeting.MeetingActivity;
 import itg8.com.meetingapp.meeting.TAGActivity;
-import itg8.com.meetingapp.service.NotificationService;
 import itg8.com.meetingapp.setting.SettingActivity;
 import itg8.com.meetingapp.wallet_document.WalletActivity;
 
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private static final String LOG_TAG = HomeActivity.class.getSimpleName() ;
+    private static final String LOG_TAG = HomeActivity.class.getSimpleName();
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     private static final String TAG = "HomeActivity";
@@ -50,9 +45,13 @@ public class HomeActivity extends AppCompatActivity
     NavigationView navView;
     @BindView(R.id.drawer_layout)
     DrawerLayout drawerLayout;
-    private HashMap<Integer,Boolean> prioritiesByFilter=new HashMap<>();
+    @BindView(R.id.frame_container)
+    FrameLayout frameContainer;
+    private HashMap<Integer, Boolean> prioritiesByFilter = new HashMap<>();
     private Menu mPopupMenu;
     private PopupMenu popupMenu;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +75,7 @@ public class HomeActivity extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:MM:ss.SSS");
-        Log.d(TAG, "onCreate: df:"+df.format(new Date()));
+        Log.d(TAG, "onCreate: df:" + df.format(new Date()));
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 //      this.deleteDatabase("meetingDb");
@@ -86,16 +85,15 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void setDefaultPriorityFilters() {
-        prioritiesByFilter.put(CommonMethod.PRIORITY_INT_HIGH,true);
-        prioritiesByFilter.put(CommonMethod.PRIORITY_INT_MEDIUM,true);
-        prioritiesByFilter.put(CommonMethod.PRIORITY_INT_LOW,true);
+        prioritiesByFilter.put(CommonMethod.PRIORITY_INT_HIGH, true);
+        prioritiesByFilter.put(CommonMethod.PRIORITY_INT_MEDIUM, true);
+        prioritiesByFilter.put(CommonMethod.PRIORITY_INT_LOW, true);
     }
 
     private void callFragment() {
         FragmentManager fm = getSupportFragmentManager();
-        fm.beginTransaction().replace(R.id.frame_container,  HomeFragment.newInstance(prioritiesByFilter),HomeFragment.class.getSimpleName()).commit();
+        fm.beginTransaction().replace(R.id.frame_container, HomeFragment.newInstance(prioritiesByFilter), HomeFragment.class.getSimpleName()).commit();
     }
-
 
 
     @Override
@@ -129,46 +127,46 @@ public class HomeActivity extends AppCompatActivity
             startActivity(intent);
 
             return true;
-        }   if (id == R.id.menu_filter) {
+        }
+        if (id == R.id.menu_filter) {
             showDropdownMenu(findViewById(R.id.menu_filter));
             return true;
         }
-         if(id== android.R.id.home)
-         {
-             Log.d(TAG, "onOptionsItemSelected: HomeActivity");
-             onBackPressed();
-         }
+        if (id == android.R.id.home) {
+            Log.d(TAG, "onOptionsItemSelected: HomeActivity");
+            onBackPressed();
+        }
 
         return super.onOptionsItemSelected(item);
     }
 
-        private void showDropdownMenu(View view) {
-            popupMenu = new PopupMenu(this,view);
-            popupMenu.getMenuInflater().inflate(R.menu.filter_pop_menu,popupMenu.getMenu());
-            mPopupMenu=popupMenu.getMenu();
-            popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    item.setChecked(!item.isChecked());
-                    switch (item.getItemId()){
-                        case R.id.menu_high:
-                            prioritiesByFilter.put(CommonMethod.PRIORITY_INT_HIGH,item.isChecked());
-                            break;
-                        case R.id.menu_medium:
-                            prioritiesByFilter.put(CommonMethod.PRIORITY_INT_MEDIUM,item.isChecked());
-                            break;
-                        case R.id.menu_low:
-                            prioritiesByFilter.put(CommonMethod.PRIORITY_INT_LOW,item.isChecked());
-                            break;
-                    }
-                    item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-                    item.setActionView(new View(HomeActivity.this));
-                    callFragment();
-                    return false;
+    private void showDropdownMenu(View view) {
+        popupMenu = new PopupMenu(this, view);
+        popupMenu.getMenuInflater().inflate(R.menu.filter_pop_menu, popupMenu.getMenu());
+        mPopupMenu = popupMenu.getMenu();
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                item.setChecked(!item.isChecked());
+                switch (item.getItemId()) {
+                    case R.id.menu_high:
+                        prioritiesByFilter.put(CommonMethod.PRIORITY_INT_HIGH, item.isChecked());
+                        break;
+                    case R.id.menu_medium:
+                        prioritiesByFilter.put(CommonMethod.PRIORITY_INT_MEDIUM, item.isChecked());
+                        break;
+                    case R.id.menu_low:
+                        prioritiesByFilter.put(CommonMethod.PRIORITY_INT_LOW, item.isChecked());
+                        break;
                 }
-            });
-            prepareMenuAndShow();
-        }
+                item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+                item.setActionView(new View(HomeActivity.this));
+                callFragment();
+                return false;
+            }
+        });
+        prepareMenuAndShow();
+    }
 
     private void prepareMenuAndShow() {
         prepareMenuItems();
@@ -176,11 +174,11 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void prepareMenuItems() {
-        MenuItem highItem=mPopupMenu.findItem(R.id.menu_high);
+        MenuItem highItem = mPopupMenu.findItem(R.id.menu_high);
         highItem.setChecked(prioritiesByFilter.get(CommonMethod.PRIORITY_INT_HIGH));
-        MenuItem mediumItem=mPopupMenu.findItem(R.id.menu_medium);
+        MenuItem mediumItem = mPopupMenu.findItem(R.id.menu_medium);
         mediumItem.setChecked(prioritiesByFilter.get(CommonMethod.PRIORITY_INT_MEDIUM));
-        MenuItem lowItem=mPopupMenu.findItem(R.id.menu_low);
+        MenuItem lowItem = mPopupMenu.findItem(R.id.menu_low);
         lowItem.setChecked(prioritiesByFilter.get(CommonMethod.PRIORITY_INT_LOW));
     }
 
@@ -203,8 +201,8 @@ public class HomeActivity extends AppCompatActivity
                 startActivity(new Intent(this, WalletActivity.class));
                 break;
             case R.id.nav_tag:
-               Intent intent = new Intent(this, TAGActivity.class);
-               intent.putExtra(CommonMethod.FROM_HOME,true);
+                Intent intent = new Intent(this, TAGActivity.class);
+                intent.putExtra(CommonMethod.FROM_HOME, true);
                 startActivity(intent);
                 break;
 
@@ -218,9 +216,6 @@ public class HomeActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
-
-
 
 
 }

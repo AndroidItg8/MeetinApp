@@ -252,21 +252,25 @@ public class TagView extends View {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         Log.d(TAG, "onMeasure: ");
         int height = mVerticalPadding * 2 + (int) fontH;
-        int width = mHorizontalPadding * 2 + (int) fontW + (isEnableCross() ? height : 0);
+        int width = (int) fontW + (getSelectedInfo() ? height + mHorizontalPadding : (height/2)+  mHorizontalPadding );
         listner.onHeightAvailble(height);
         setViewHeight(height);
-        if (getSelectedInfo()) {
+        /**
+         * Change It Now
+         */
+//        if (getSelectedInfo()) {
             mCrossAreaWidth = Math.min(Math.max(mCrossAreaWidth, height), width);
+             int  crossAreaWidth=(int) mCrossAreaWidth/2;
             setMeasuredDimension(width, height);
 //            Log.d(TAG, "onMeasure width mCrossAreaWidth: width " + width + " height" + height);
 
-        } else {
-
-            setMeasuredDimension((int) fontW  + mHorizontalPadding * 5, height);
-//            Log.d(TAG, "onMeasure width: width" + (int) fontW + mHorizontalPadding * 2 + "height" + height);
-
-
-        }
+//        } else {
+//
+//            setMeasuredDimension((int) fontW  + mHorizontalPadding * 5, height);
+////            Log.d(TAG, "onMeasure width: width" + (int) fontW + mHorizontalPadding * 2 + "height" + height);
+//
+//
+//        }
     }
 
     public float getViewHeight()
@@ -326,7 +330,7 @@ public class TagView extends View {
             }
         } else {
             canvas.drawText(mAbstractText,
-                    (isEnableCross() ? getWidth() - getHeight() : getWidth()) / 2 - fontW / 2,
+                    (isEnableCross() ? getWidth()-(getHeight()/2) : getWidth()) / 2 - fontW / 2,
 //                    (isEnableCross() ? getWidth() - getHeight() :fontW+mHorizontalPadding),
                     getHeight() / 2 + fontH / 2 - bdDistance, mPaint);
             Log.d(TAG, "onDraw2: ");

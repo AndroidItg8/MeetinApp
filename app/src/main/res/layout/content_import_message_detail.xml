@@ -91,6 +91,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/ll_button"
+        android:layout_marginBottom="20dp"
         android:layout_below="@+id/view">
 
         <RelativeLayout
@@ -319,6 +320,7 @@
         android:id="@+id/view_button"
         android:layout_width="match_parent"
         android:layout_height="1px"
+        android:layout_marginTop="16dp"
         android:layout_above="@+id/txtMeetingStatus"
         android:background="@color/colorGrayLight" />
 
@@ -328,6 +330,7 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/ll_button"
         android:gravity="center"
+        android:layout_margin="04dp"
         android:text="@string/meeting_in_progress"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:textColor="@color/colorPrimary"

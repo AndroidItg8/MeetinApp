@@ -64,6 +64,8 @@ public class CommonMethod {
     public static final int FROM_ARROW_DOWN = 1;
     public static final int FROM_ARROW_UP = 2;
     public static final String FROM_HOME = "FROM_HOME";
+    public static final String EXTRA_PROGRESS = "EXTRA_PROGRESS";
+    public static final String FROM_SEARCH = "FROM_SEARCH";
 
     public static long getDifferenceFromPriority(int priority, long timeDifference) {
         int priorityDiff=getPriorityDifferenceFromSetting(priority);

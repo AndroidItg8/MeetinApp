@@ -3,6 +3,8 @@ package itg8.com.meetingapp.home;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.os.PersistableBundle;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
@@ -74,6 +76,8 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
     private boolean hasView;
 
 
+
+
     public HomeFragment() {
         // Required empty public constructor
     }
@@ -102,6 +106,17 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
             assert priority != null;
             Log.d(TAG, "onCreate: Priority: "+priority.toString());
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+//        outState.putParcelableArrayList("cityList", (ArrayList<? extends Parcelable>) cityList);
+//        prepareData();
+//        outState.putParcelable("listProfile", profileModel);
+
+
+
     }
 
     @Override

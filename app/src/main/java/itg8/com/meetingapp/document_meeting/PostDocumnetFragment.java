@@ -5,11 +5,10 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.CardView;
@@ -19,8 +18,10 @@ import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.ShareActionProvider;
 import android.text.Html;
+import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.AbsoluteSizeSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -49,13 +50,13 @@ import itg8.com.meetingapp.db.TblDocument;
  * Use the {@link PostDocumnetFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PostDocumnetFragment extends Fragment implements DocumentMeetingActivity.NoteItemListener, PreDocAdpater.ItemClickListner {
+public class PostDocumnetFragment extends Fragment implements DocumentMeetingActivity.NoteItemListener, PreDocAdpater.ItemClickListner, View.OnClickListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String TAG = PostDocumnetFragment.class.getSimpleName();
-
+    private static final int SPAN_INCLUSIVE_INCLUSIVE = 3;
 
 
     @BindView(R.id.recyclerView)
@@ -78,12 +79,17 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
     TextView txtSubTitle;
     @BindView(R.id.rl_no_doc_item)
     RelativeLayout rlNoDocItem;
+    @BindView(R.id.img_edit)
+    ImageView imgEdit;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
     private Context mContext;
     private ArrayList<TblDocument> postDocuments;
     private PreDocAdpater adapter;
+    private boolean isInProgress;
+    private String notes = null;
+    private boolean isNoteAvailble = false;
 
 
     public PostDocumnetFragment() {
@@ -97,12 +103,20 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
      * @return A new instance of fragment PostDocumnetFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static PostDocumnetFragment newInstance(ArrayList<TblDocument> postDocuments) {
+    public static PostDocumnetFragment newInstance(ArrayList<TblDocument> postDocuments, boolean isInProgress) {
         PostDocumnetFragment fragment = new PostDocumnetFragment();
         Bundle args = new Bundle();
         args.putParcelableArrayList(ARG_PARAM1, postDocuments);
+        args.putBoolean(ARG_PARAM2, isInProgress);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
+                                              CharSequence doc_name, String remaing) {
+        Log.e(TAG, res.getString(R.string.no_document_details, title, sub_title, doc_name, remaing));
+        return Html.fromHtml(res.getString(R.string.no_document_details, title, sub_title, doc_name, remaing));
+
     }
 
     @Override
@@ -110,6 +124,7 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             postDocuments = getArguments().getParcelableArrayList(ARG_PARAM1);
+            isInProgress = getArguments().getBoolean(ARG_PARAM2);
         }
     }
 
@@ -124,31 +139,62 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
     }
 
     private void init() {
+        if (isNoteAvailble) {
+            imgEdit.setOnClickListener(this);
+            imgEdit.setClickable(true);
+            imgEdit.setVisibility(View.VISIBLE);
+        } else {
+            cardView.setOnClickListener(this);
 
-        if (getTblDocuments().size() > 0) {
+
+
+
+            cardView.setClickable(true);
+        }
+
+        if (postDocuments.size() > 0) {
             showRecyclerView();
             recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
             DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
             recyclerView.addItemDecoration(itemDecoration);
-            adapter=new PreDocAdpater(getActivity(), postDocuments, this);
+            recyclerView.setNestedScrollingEnabled(false);
+            adapter = new PreDocAdpater(getActivity(), postDocuments, this);
             recyclerView.setAdapter(adapter);
         } else {
             hideRecyclerView();
-            txtTitle.setText(formatPlaceDetails(getResources(), "Till Now Not Add Document To meeting", "Quickly add document to", "DocWallet", "to get access fast!!!!"));
+            cardView.setVisibility(View.VISIBLE);
+            getMeetingStatus();
+        }
+    }
+
+    private void getNoteStatus() {
+
+        lblNote.setVisibility(View.VISIBLE);
+        cardView.setVisibility(View.VISIBLE);
+        imgEdit.setVisibility(View.VISIBLE);
+        cardView.setClickable(false);
+        imgEdit.setClickable(true);
+
+    }
+
+
+    private void getMeetingStatus() {
+        if (isInProgress) {
+            rlNoDocItem.setVisibility(View.VISIBLE);
+            txtTitle.setText("Meeting is In Progress");
+            txtTitle.setTextColor(ContextCompat.getColor(getActivity(), R.color.theme_primary));
+            imgNoMeeting.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_stopwatch));
+
+        } else {
+            txtTitle.setText(formatPlaceDetails(getResources(), "No document added yet", "Tap on", "+", "to add post meeting document"));
 
         }
+
     }
 
     private void hideRecyclerView() {
         rlRecyclerView.setVisibility(View.GONE);
         rlNoDocItem.setVisibility(View.VISIBLE);
-    }
-
-    private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
-                                              CharSequence doc_name, String remaing) {
-        Log.e(TAG, res.getString(R.string.no_document_details, title, sub_title, doc_name, remaing));
-        return Html.fromHtml(res.getString(R.string.no_document_details, title, sub_title, doc_name, remaing));
-
     }
 
     private void showRecyclerView() {
@@ -164,7 +210,7 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
 //        document.setFileExt(CommonMethod.EXT_PPT);
 //        list.add(document);
         try {
-            return  new DaoDocumentInteractor(getActivity()).getAll();
+            return new DaoDocumentInteractor(getActivity()).getAll();
         } catch (SQLException e) {
             e.printStackTrace();
 
@@ -175,6 +221,7 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        isNoteAvailble = false;
         unbinder.unbind();
     }
 
@@ -182,14 +229,16 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: ");
-//        ((DocumentMeetingActivity)getActivity()).onPostdocumentClick();
     }
 
     @Override
     public void sendItemToFragment(String note) {
         if (!TextUtils.isEmpty(note)) {
             lblNoteValue.setText(note);
+            isNoteAvailble = true;
+            getNoteStatus();
         }
+
 
     }
 
@@ -203,19 +252,14 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;
-        ((DocumentMeetingActivity) context).listener = (DocumentMeetingActivity.NoteItemListener) this;
+        ((DocumentMeetingActivity) getActivity()).setListener(this);
 
     }
-
-
 
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-
-
-
             default:
                 break;
         }
@@ -233,7 +277,7 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
 
         MenuItem item = popup.getMenu().findItem(R.id.action_share);
         ShareActionProvider provider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
-        shareItem(getActivity(), " File Share of "+items.getMeeting().getTitle()+" Meeting...", items.getFileExt(), new File(items.getFileActPath()), provider);
+        shareItem(getActivity(), " File Share of " + items.getMeeting().getTitle() + " Meeting...", items.getFileExt(), new File(items.getFileActPath()), provider);
 
 
         //registering popup with OnMenuItemClickListener
@@ -257,10 +301,10 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
     public void shareItem(Context context, String title, String ext, File file, ShareActionProvider provider) {
         Intent sharingIntent = new Intent(Intent.ACTION_SEND);
         ;
-        sharingIntent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(context,"itg8.com.meetingapp.fileprovider", file));
-        Log.d(TAG, "shareItem: File Extension:"+ext);
-        Log.d(TAG, "shareItem: File Name:"+title);
-        sharingIntent.setType(CommonMethod.getMimetypeFromFilename("."+ext));
+        sharingIntent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(context, "itg8.com.meetingapp.fileprovider", file));
+        Log.d(TAG, "shareItem: File Extension:" + ext);
+        Log.d(TAG, "shareItem: File Name:" + title);
+        sharingIntent.setType(CommonMethod.getMimetypeFromFilename("." + ext));
         sharingIntent.putExtra(Intent.EXTRA_TEXT, title);
         sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         provider.setShareIntent(sharingIntent);
@@ -275,7 +319,7 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
 //        String mimeType = myMime.getMimeTypeFromExtension(item.getFileExt());
 
 
-        newIntent.setDataAndType(FileProvider.getUriForFile(getActivity(),"itg8.com.meetingapp.fileprovider", new File(item.getFileActPath())),CommonMethod.getMimetypeFromFilename("."+item.getFileExt()));
+        newIntent.setDataAndType(FileProvider.getUriForFile(getActivity(), "itg8.com.meetingapp.fileprovider", new File(item.getFileActPath())), CommonMethod.getMimetypeFromFilename("." + item.getFileExt()));
         newIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         try {
@@ -284,5 +328,17 @@ public class PostDocumnetFragment extends Fragment implements DocumentMeetingAct
             Toast.makeText(getActivity(), "No handler for this type of file.", Toast.LENGTH_LONG).show();
         }
     }
+
+    @Override
+    public void onClick(View view) {
+        if (view == cardView)
+            ((DocumentMeetingActivity) getActivity()).showDialogBox(this);
+
+        if (view == imgEdit)
+            ((DocumentMeetingActivity) getActivity()).showDialogBox(this);
+
+
+    }
+
 }
 

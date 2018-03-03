@@ -9,9 +9,12 @@ import com.j256.ormlite.stmt.Where;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import itg8.com.meetingapp.common.CommonMethod;
 
@@ -98,13 +101,16 @@ public class DaoMeetingInteractor {
         int conditions = 0;
         List<TblMeetingTag> list =new ArrayList<>();
         List<TblMeeting> listMeeting =new ArrayList<>();
-        HashMap<Long, TblMeeting> hashMap = new HashMap<>();
+        HashMap<Long, TblMeetingTag> hashMap = new HashMap<>();
+
 
         if (tag != null) {
 
             for (TblTAG t : tag) {
 
-                list.addAll(qbMeetingTAg.where().eq(TblMeetingTag.FIELD_TAG_ID, t.getPkid()).query());
+
+//                listMeeting.addAll(qbMeetingTAg.where().eq(TblMeetingTag.FIELD_TAG_NAME, t.getName()).)
+                list.addAll(qbMeetingTAg.where().eq(TblMeetingTag.FIELD_TAG_NAME, t.getName()).query());
                 Log.d(TAG, "getMeetingByTagsLike: Meeting First Condition :"+t.getPkid()+ t.getName());
 
             }
@@ -113,14 +119,17 @@ public class DaoMeetingInteractor {
         }
         if(list.size()>0){
         for (TblMeetingTag meetingTag:list) {
-            if(!hashMap.containsKey(meetingTag.getMeeting().getPkid()))
-            {
-                hashMap.put(meetingTag.getMeeting().getPkid(),meetingTag.getMeeting());
+//            if(!hashMap.containsKey(meetingTag.getMeeting().getPkid()))
+//            {
+//                hashMap.put(meetingTag.getPkid(),meetingTag);
+//
+//                listMeeting.addAll(qbMeeting.where().eq(TblMeeting.FIELD_ID, meetingTag.getMeeting()).query());
+                listMeeting.add(meetingTag.getMeeting());
+//                listMeeting.addAll((Collection<? extends TblMeeting>) qbMeeting.where().eq(TblMeeting.FIELD_ID, meetingTag.getMeeting().getPkid())).query();
+//                listMeeting.add(meetingTag.getTag());
+//            }
 
-                listMeeting.addAll(qbMeeting.where().eq(TblMeeting.FIELD_ID, meetingTag.getMeeting().getPkid()).query());
-            }
-
-            Log.d(TAG, "getMeetingByTagsLike: Meeting Second  Condition :"+"Meeting "+meetingTag.getMeeting() +"Meeting TAG "+meetingTag.getTag().toString() +"Meeting Id"+meetingTag.getPkid());
+            Log.d(TAG, "getMeetingByTagsLike: Meeting Second  Condition :"+"Meeting "+meetingTag.getMeeting() +"Meeting TAG "+"Meeting Id"+meetingTag.getPkid());
 
         }
         conditions++;
@@ -128,6 +137,10 @@ public class DaoMeetingInteractor {
 
         if(conditions>0) {
 
+            Set<TblMeeting> meetingSet=new HashSet<>();
+            meetingSet.addAll(listMeeting);
+            listMeeting.clear();
+            listMeeting.addAll(meetingSet);
 
 //            PreparedQuery<TblMeeting> preparedQuery = qbMeeting.prepare();
 //            return helper.getMeetingDao().query(preparedQuery);
@@ -136,8 +149,7 @@ public class DaoMeetingInteractor {
         return null;
 
 
-//
-//        return helper.getMeetingDao().query(qb);
+
 
     }
 

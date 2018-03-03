@@ -6,10 +6,14 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -19,11 +23,17 @@ import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.SearchEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.accessibility.AccessibilityEvent;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -33,7 +43,6 @@ import android.widget.Toast;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -42,7 +51,9 @@ import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.custom_tag.TagContainerLayout;
 import itg8.com.meetingapp.custom_tag.TagView;
+import itg8.com.meetingapp.db.DaoMeetingTagInteractor;
 import itg8.com.meetingapp.db.DaoTagInteractor;
+import itg8.com.meetingapp.db.TblMeetingTag;
 import itg8.com.meetingapp.db.TblTAG;
 
 public class TAGActivity extends AppCompatActivity implements View.OnClickListener, TAGAddAdapter.onItemClickedListener, SearchView.OnQueryTextListener {
@@ -51,6 +62,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     private static final String TAG = TAGActivity.class.getSimpleName();
     private static final int FROM_SEARCH = 2;
     private static final int FROM_TAG = 1;
+    private static final String TAG_LIST = "TAG_LIST";
     @BindView(R.id.input_layout_name)
     TextInputLayout inputLayoutName;
 
@@ -83,7 +95,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     //    private TAGAddAdapter tagAddAdapter;
     private DaoTagInteractor tagInteractor;
     private MenuItem mSerachItem;
-    private int checkBoxCount;
     private Menu menuItem;
     private ActionMode mActionMode;
     private List<TblTAG> tempFilterList;
@@ -92,13 +103,26 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
     private ActionMode.Callback mActionModeCallback;
     private boolean searchViewClosed = true;
-    private HashMap<Long, TblTAG> tagHashMap= new HashMap<>();
-    private boolean isFromHome;
-    private boolean hasTagClear=false;
+    private ArrayList<String> tagHashMap = new ArrayList<>();
+    /**
+     * isFromHome is For Home Enable
+     */
+    private boolean isFromHome = false;
+    private boolean hasTagClear = false;
+    private boolean fromSearch;
+    private DaoMeetingTagInteractor tblTagMeetingInteractor;
+    private WindowCallbackDelegate mWindowCallbackDelegate;
 
     private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
                                               CharSequence doc_name) {
         return Html.fromHtml(res.getString(R.string.no_tag, title, sub_title, doc_name));
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(TAG_LIST, (ArrayList<? extends Parcelable>) tagList);
 
     }
 
@@ -108,6 +132,14 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         int result = a.getColor(0, 0);
         a.recycle();
         return result;
+    }
+
+    private boolean dispachKeyEvent(KeyEvent keyEvent) {
+        if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_UP) {
+            Log.d(TAG, "dispachKeyEvent: ");
+
+        }
+        return false;
     }
 
     void createActionMenuCallback() {
@@ -122,6 +154,9 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
                 Log.d(TAG, "onCreateActionMode:" + mode);
                 inflater.inflate(R.menu.menu_tag, menu);
                 menu.findItem(R.id.m_search).setVisible(true);
+                Window window = TAGActivity.this.getWindow();
+                mWindowCallbackDelegate = new WindowCallbackDelegate(window.getCallback());
+                window.setCallback(TAGActivity.this);
 
                 if (isFromHome) {
                     menu.findItem(R.id.menu_delete).setVisible(true).getActionView();
@@ -130,10 +165,10 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
                 } else {
                     menu.findItem(R.id.menu_ok).setVisible(true).getActionView();
-                  menu.findItem(R.id.menu_delete).setVisible(false).getActionView();
+                    menu.findItem(R.id.menu_delete).setVisible(false).getActionView();
                 }
 
-                  MenuItem menuDelete = menu.findItem(R.id.menu_delete);
+                MenuItem menuDelete = menu.findItem(R.id.menu_delete);
 
                 searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.m_search));
                 searchView.setIconifiedByDefault(true);
@@ -141,21 +176,21 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
 
                 menuDelete.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                                                          @Override
-                                                          public boolean onMenuItemClick(MenuItem menuItem) {
-                                                              showDialoge();
-                                                              return true;
-                                                          }
-                                                      });
+                    @Override
+                    public boolean onMenuItemClick(MenuItem menuItem) {
+                        showDialoge();
+                        return true;
+                    }
+                });
 
-                        searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
-                            @Override
-                            public void onFocusChange(View v, boolean hasFocus) {
-                                Log.d(TAG, "onFocusChange: " + hasFocus);
-                                searchViewClosed = !hasFocus;
+                searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+                    @Override
+                    public void onFocusChange(View v, boolean hasFocus) {
+                        Log.d(TAG, "onFocusChange: " + hasFocus);
+                        searchViewClosed = !hasFocus;
 
-                            }
-                        });
+                    }
+                });
 
                 searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                     @Override
@@ -218,8 +253,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
                 Log.d(TAG, "onActionItemClicked:" + item.getItemId());
 
                 if (id == R.id.menu_ok) {
-                    finishWithResult();
-                    finish();
+
                     return true;
                 }
                 if (id == R.id.m_search) {
@@ -235,7 +269,13 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
             @Override
             public void onDestroyActionMode(ActionMode mode) {
                 Log.d(TAG, "onDestroyActionMode:mode " + mode.getTitle());
-                if(!hasTagClear) {
+
+//                Window.Callback originalWindowCallback = mWindowCallbackDelegate.mOriginalWindowCallback;
+//                if(originalWindowCallback != null)
+//                {
+//                    TAGActivity.this.getWindow().setCallback(originalWindowCallback);
+//                }
+                if (!hasTagClear) {
                     if (!searchViewClosed)
                         onCancelButtonClicked();
                     else
@@ -247,7 +287,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     }
 
     private void showDialoge() {
-         final AlertDialog alertDialog = new AlertDialog.Builder(TAGActivity.this)
+        final AlertDialog alertDialog = new AlertDialog.Builder(TAGActivity.this)
                 .setTitle("Delete Tags")
                 .setMessage("Would you like to delete all tags?")
                 .setPositiveButton("YES", new DialogInterface.OnClickListener() {
@@ -262,7 +302,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
                     }
                 }).create();
-         alertDialog.show();
+        alertDialog.show();
     }
 
     private void simonGoBack() {
@@ -273,11 +313,18 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         new Handler().post(new Runnable() {
             @Override
             public void run() {
-                createActionMenuCallback();
+//                createActionMenuCallback();/**/
 //                startSupportActionMode(mActionModeCallback);
 //                setTagCount();
-                mActionMode = null;
-                updateActionBar(FROM_TAG, isFromCancel);
+//                mActionMode = null;
+                /**
+                 * Change Now For Toolbar Action Mode.
+                 */
+//                updateActionBar(FROM_TAG, isFromCancel);
+                invalidateOptionsMenu();
+
+//                setTagCount();
+
                 createRecyclerViewForTAG();
             }
         });
@@ -288,25 +335,51 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tag);
         ButterKnife.bind(this);
-        createActionMenuCallback();
+//        createActionMenuCallback();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 //        tagAddAdapter = new TAGAddAdapter(this, tagList, this);
         tagInteractor = new DaoTagInteractor(this);
         initTagList();
         getDataFromIntent();
         init();
+        checkSaveInstanceSate(savedInstanceState);
 
 
     }
 
+    private void checkSaveInstanceSate(Bundle savedInstanceState) {
+        if(savedInstanceState!=null)
+        {
+            tagList = savedInstanceState.getParcelableArrayList(TAG_LIST);
+//            setSelectedTAG();
+            createRecyclerViewForTAG();
+            invalidateOptionsMenu();
+
+        }
+    }
+
     private void initTagList() {
         try {
-            tagList = tagInteractor.getTags();
+            tagHashMap.clear();
+            for (TblTAG tag :
+                    tagList) {
+                if (tag.isSelected())
+                    tagHashMap.add(tag.getName());
+            }
+
+            tagList.clear();
+            tagList.addAll(tagInteractor.getTags());
+            if (isFromHome)
+                setSelectedTAG();
+            setHashmapToList();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * This Method is for set All TAG Management .
+     */
     private void setSelectedTAG() {
         for (TblTAG tbl :
                 tagList) {
@@ -317,7 +390,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
     private void getDataFromIntent() {
         if (getIntent().hasExtra(CommonMethod.EXTRA_TAGS)) {
-            tagHashMap= (HashMap<Long, TblTAG>) getIntent().getSerializableExtra(CommonMethod.EXTRA_TAGS);
+            tagHashMap = getIntent().getStringArrayListExtra(CommonMethod.EXTRA_TAGS);
             setHashmapToList();
 //            for(Map.Entry<Long, TblTAG> entry : tagHashMap.entrySet()) {
 //                tagList.add(entry.getValue());
@@ -328,21 +401,47 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
 //            setHashmapToList();
 
+        } else if (getIntent().hasExtra(CommonMethod.FROM_SEARCH)) {
+            fromSearch = true;
+            tblTagMeetingInteractor = new DaoMeetingTagInteractor(this);
+            rlBottom.setVisibility(View.GONE);
+            clearListAndAddNamesOnly();
+        }
+    }
+
+    private void clearListAndAddNamesOnly() {
+        tagList.clear();
+        try {
+            List<TblMeetingTag> tempList = tblTagMeetingInteractor.getDistrictTags();
+            for (TblMeetingTag tags :
+                    tempList) {
+                tagList.add(new TblTAG(tags.getTag(), false));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
     private void setHashmapToList() {
-        for (TblTAG tag :
-                tagList) {
-            if (tagHashMap.containsKey(tag.getPkid())) {
-                tag.setSelected(true);
+        for (String tagString :
+                tagHashMap) {
+            boolean passtest = false;
+            for (TblTAG tag :
+                    tagList) {
+
+                if (tagString.equalsIgnoreCase(tag.getName())) {
+                    passtest = true;
+                    tag.setSelected(true);
+                }
             }
+            if (!passtest)
+                tagList.add(new TblTAG(tagString, true));
         }
     }
 
     private void init() {
         btnAdd.setOnClickListener(this);
-
         if (tagList != null && tagList.size() > 0) {
             showHideView(rlTop, rlNoTag);
             createRecyclerViewForTAG();
@@ -364,7 +463,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         hide.setVisibility(View.GONE);
     }
 
-
     private void updateTAGItem() {
         tag = new TblTAG();
         tag.setName(edtDocumentTitle.getText().toString().trim());
@@ -374,6 +472,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 //            tagAddAdapter.notifyDataSetChanged();
             edtDocumentTitle.setText("");
             showHideView(rlTop, rlNoTag);
+            setHashmapToList();
             updateTagList();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -390,20 +489,19 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     private void updateTagList() {
         try {
 //            tagHashMap.clear();
-            for (TblTAG tag :
-                    tagList) {
+            for (TblTAG tag : tagList) {
                 if (tag.isSelected())
-                    tagHashMap.put(tag.getPkid(), tag);
+                    tagHashMap.add(tag.getName());
             }
+
 
             tagList.clear();
             tagList.addAll(tagInteractor.getTags());
-            if(isFromHome)
+            if (isFromHome)
                 setSelectedTAG();
-//            setHashmapToList();
+            setHashmapToList();
             if (tagList != null && tagList.size() > 0) {
                 showHideView(tagContainerLayout, rlNoTag);
-
                 createRecyclerViewForTAG();
             }
 //            tagAddAdapter.notifyDataSetChanged();
@@ -427,7 +525,12 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
             if (tagContainerLayout.isEnableCross()) {
 
-                updateActionBar(FROM_TAG, false);
+                /**
+                 * Change It NOW
+                 */
+//                updateActionBar(FROM_TAG, false);
+
+//                setTagCount();
             }
 
             if (isFromHome) {
@@ -435,7 +538,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
             } else {
                 tagContainerLayout.setEnableCross(false);
             }
-            tagContainerLayout.setTags(tagList, colors);
+            tagContainerLayout.setTags(tagList, colors, isFromHome);
             tagOnClickListener(FROM_TAG);
         }
 
@@ -449,18 +552,32 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
                 try {
                     if (isFromHome)
                         return;
+
                     TblTAG text = (TblTAG) object;
                     text.setSelected(!text.isSelected());
+
+
+                    /**
+                     * Change It Nowe
+                     */
 //                    tagInteractor.update(text);
                     tagContainerLayout.changeSelectColor(position, text);
-
 
 
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                updateActionBar(FROM_TAG, false);
+                /**
+                 * Change It Now
+                 */
+//                updateActionBar(FROM_TAG, false);
+
+                invalidateOptionsMenu();
+
+
+
+//                setTagCount();
             }
 
             @Override
@@ -477,11 +594,14 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
                 if (test.isSelected()) {
 //                    tagContainerLayout.removeTag(position);
 //                    tagList.remove(position);
-                    if(!isFromHome) {
+                    if (!isFromHome) {
                         test.setSelected(false);
+
                         tagContainerLayout.changeSelectColor(position, test);
-                    }else
-                    {
+
+
+
+                    } else {
                         try {
                             removeTagFromHome(position, test);
                         } catch (SQLException e) {
@@ -490,7 +610,8 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
                     }
                 }
-                updateActionBar(from, false);
+//
+                invalidateOptionsMenu();
 
             }
         });
@@ -508,21 +629,51 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_tag, menu);
-        menu.findItem(R.id.menu_ok).setVisible(false);
-        myActionMenuItem = menu.findItem(R.id.m_search).setVisible(true);
-        searchQueryChange(myActionMenuItem, FROM_TAG);
+        searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.m_search));
+
+
+        searchView.setOnQueryTextListener(this);
+
+
+        int checkBoxCount = 0;
+
+        for (int i = 0; i < tagList.size(); i++) {
+            if (tagList.get(i).isSelected()) checkBoxCount++;
+            Log.d(TAG, "updateActionBars: checkBoxCount" + checkBoxCount);
+        }
+        if (checkBoxCount == 0) {
+            menu.findItem(R.id.menu_ok).setVisible(false);
+            getSupportActionBar().setTitle(getString(R.string.tags));
+            getSupportActionBar().setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this, R.color.colorPrimary)));
+
+        } else {
+            menu.findItem(R.id.menu_ok).setVisible(true);
+            if (checkBoxCount == 1) {
+                getSupportActionBar().setTitle(getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + getString(R.string.tag));
+            } else {
+                getSupportActionBar().setTitle(getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + getString(R.string.tags));
+            }
+            getSupportActionBar().setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this, R.color.colorBlack)));
+
+
+        }
+
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                searchViewClosed = true;
+                initTagList();
+              init();
+
+
+                return false;
+            }
+        });
+
 
         return true;
     }
 
-    private void searchQueryChange(final MenuItem myActionMenuItem, int from) {
-        searchView = (SearchView) myActionMenuItem.getActionView();
-        Log.d(TAG, "searchQueryChange: SearchView=" + searchView);
-        if (from == FROM_TAG)
-            searchView.setOnQueryTextListener(this);
-
-    }
-//
 
     private void searchFilterTag(String query) {
         tempFilterList = new ArrayList<>();
@@ -540,6 +691,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
             createRecyclerViewForTAG();
         }
     }
+//
 
     private void setUpFilterTag(List<TblTAG> tempFilterList) {
         int size = tempFilterList.size();
@@ -549,7 +701,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
             colors.add(col1);
         }
 
-        tagContainerLayout.setTags(tempFilterList, colors);
+        tagContainerLayout.setTags(tempFilterList, colors, false);
 
         tagOnClickListener(FROM_SEARCH);
 
@@ -561,6 +713,12 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
+            return true;
+        }
+        if (item.getItemId() == R.id.menu_ok) {
+            finishWithResult();
+            finish();
+            return true;
         }
 
 
@@ -568,58 +726,52 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     }
 
     private void updateActionBar(int from, boolean isFromCancel) {
-
+        int checkBoxCount = 0;
         if (from == FROM_TAG) {
-            checkBoxCount = 0;
-            boolean hasValaues = false;
             for (int i = 0; i < tagList.size(); i++) {
-                hasValaues=true;
                 if (tagList.get(i).isSelected())
                     checkBoxCount++;
 
             }
-            if(!hasValaues)
-            {
-
-            }
+        }
+        setTagCount(checkBoxCount);
 
 
 
-        } else {
-            checkBoxCount = 0;
-            for (int i = 0; i < tempFilterList.size(); i++) {
-                if (tempFilterList.get(i).isSelected())
-                    checkBoxCount++;
-
-            }
+//        } else {
+//            checkBoxCount = 0;
+//            for (int i = 0; i < tempFilterList.size(); i++) {
+//                if (tempFilterList.get(i).isSelected())
+//                    checkBoxCount++;
+//
+//            }
 
         }
 
 
-        if (checkBoxCount == 0) {
-            if (mActionMode != null) {
-                mActionMode.finish();
-                mActionMode = null;
-            }
+//        if (checkBoxCount == 0) {
+//            if (mActionMode != null) {
+//                mActionMode.finish();
+//                mActionMode = null;
+//            }
+//
+//        } else {
+//            if (mActionMode == null)
+//                mActionMode = startSupportActionMode(mActionModeCallback);
+//        }
+//        if (mActionMode != null) {
+//            setTagCount();
+//        }
 
-        } else {
-            if (mActionMode == null)
-                mActionMode = startSupportActionMode(mActionModeCallback);
-        }
-        if (mActionMode != null) {
-            setTagCount();
-        }
 
-    }
 
-    private void setTagCount() {
+    private void setTagCount(int checkBoxCount) {
         if (checkBoxCount == 1) {
-            mActionMode.setTitle(getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + getString(R.string.tag));
+            getSupportActionBar().setTitle(getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + getString(R.string.tag));
         } else {
-            mActionMode.setTitle(getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + getString(R.string.tags));
+            getSupportActionBar().setTitle(getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + getString(R.string.tags));
         }
     }
-
 
     public void finishWithResult() {
 //            DaoContactInteractor contactInteractor = new DaoContactInteractor(activity) ;
@@ -647,10 +799,22 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_add:
-                 if(TextUtils.isEmpty(edtDocumentTitle.getText().toString()))
-                     return;
+                if (TextUtils.isEmpty(edtDocumentTitle.getText().toString()))
+                    return;
+                closeSearchViewAddBtn();
+                invalidateOptionsMenu();
                 updateTAGItem();
                 break;
+        }
+    }
+
+    private void closeSearchViewAddBtn() {
+        if(searchView!= null)
+        {
+            if(!searchView.isIconified())
+            {
+                searchView.setIconified(true);
+            }
         }
     }
 
@@ -675,7 +839,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         tag.setSelected(!tag.isSelected());
         if (tag.isSelected()) {
             try {
-                tagHashMap.put(tag.getPkid(), tag);
+                tagHashMap.add(tag.getName());
 //                tagInteractor.update(tag);
 //                tagAddAdapter.notifyDataSetChanged();
 //                Log.d(TAG, new Gson().toJson(tag));
@@ -687,16 +851,14 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
     }
 
-
     @Override
     public boolean onQueryTextSubmit(String query) {
         Log.d(TAG, "onQueryTextSubmit: query=" + query);
         if (!searchView.isIconified()) {
             searchView.setIconified(true);
-            Toast.makeText(TAGActivity.this, "SearchOnQueryTextSubmit: " + query, Toast.LENGTH_SHORT).show();
+//            Toast.makeText(TAGActivity.this, "SearchOnQueryTextSubmit: " + query, Toast.LENGTH_SHORT).show();
 
         }
-        myActionMenuItem.collapseActionView();
         return false;
     }
 
@@ -704,7 +866,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     public boolean onQueryTextChange(final String newText) {
         Log.d(TAG, "onQueryTextChange: newText=" + newText);
 
-        Toast.makeText(TAGActivity.this, "onQueryTextChange: " + newText, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(TAGActivity.this, "onQueryTextChange: " + newText, Toast.LENGTH_SHORT).show();
         new Handler().post(new Runnable() {
             @Override
             public void run() {
@@ -714,7 +876,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
         return false;
     }
-
 
     private void openDialogueBox() {
 
@@ -796,8 +957,141 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         createRecyclerViewForTAG();
 
         hasTagClear = true;
-        updateActionBar(FROM_TAG, false);
+//        updateActionBar(FROM_TAG, false);
 
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        isFromHome = false;
+    }
+
+    public class WindowCallbackDelegate implements Window.Callback {
+        private Window.Callback mOriginalWindowCallback;
+
+        public WindowCallbackDelegate(Window.Callback mOriginalWindowCallback) {
+            this.mOriginalWindowCallback = mOriginalWindowCallback;
+        }
+
+        @Override
+        public boolean dispatchKeyEvent(KeyEvent keyEvent) {
+            return TAGActivity.this.dispachKeyEvent(keyEvent) || mOriginalWindowCallback.dispatchKeyEvent(keyEvent);
+        }
+
+        @Override
+        public boolean dispatchKeyShortcutEvent(KeyEvent keyEvent) {
+            return false;
+        }
+
+        @Override
+        public boolean dispatchTouchEvent(MotionEvent motionEvent) {
+            return false;
+        }
+
+        @Override
+        public boolean dispatchTrackballEvent(MotionEvent motionEvent) {
+            return false;
+        }
+
+        @Override
+        public boolean dispatchGenericMotionEvent(MotionEvent motionEvent) {
+            return false;
+        }
+
+        @Override
+        public boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent accessibilityEvent) {
+            return false;
+        }
+
+        @Nullable
+        @Override
+        public View onCreatePanelView(int i) {
+            return null;
+        }
+
+        @Override
+        public boolean onCreatePanelMenu(int i, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onPreparePanel(int i, View view, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onMenuOpened(int i, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onMenuItemSelected(int i, MenuItem menuItem) {
+            return false;
+        }
+
+        @Override
+        public void onWindowAttributesChanged(WindowManager.LayoutParams layoutParams) {
+
+        }
+
+        @Override
+        public void onContentChanged() {
+
+        }
+
+        @Override
+        public void onWindowFocusChanged(boolean b) {
+
+        }
+
+        @Override
+        public void onAttachedToWindow() {
+
+        }
+
+        @Override
+        public void onDetachedFromWindow() {
+
+        }
+
+        @Override
+        public void onPanelClosed(int i, Menu menu) {
+
+        }
+
+        @Override
+        public boolean onSearchRequested() {
+            return false;
+        }
+
+        @Override
+        public boolean onSearchRequested(SearchEvent searchEvent) {
+            return false;
+        }
+
+        @Nullable
+        @Override
+        public android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback callback) {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback callback, int i) {
+            return null;
+        }
+
+        @Override
+        public void onActionModeStarted(android.view.ActionMode actionMode) {
+
+        }
+
+        @Override
+        public void onActionModeFinished(android.view.ActionMode actionMode) {
+
+        }
     }
 
 

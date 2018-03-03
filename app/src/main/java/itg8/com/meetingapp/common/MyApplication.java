@@ -14,6 +14,10 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import org.acra.ACRA;
+import org.acra.ReportingInteractionMode;
+import org.acra.annotation.ReportsCrashes;
+
 import java.util.Calendar;
 
 import itg8.com.meetingapp.R;
@@ -27,7 +31,7 @@ import static itg8.com.meetingapp.service.NotificationBroadcast.NOTIFICATION_CHA
 /**
  * Created by swapnilmeshram on 31/01/18.
  */
-
+@ReportsCrashes(formUri = "", mailTo = "app.itechgalaxy@gmail.com", mode = ReportingInteractionMode.SILENT)
 public class MyApplication extends Application {
     private static final String TAG = "MyApplication";
     private static final String MY_PREF = "MeetingApp";
@@ -38,12 +42,13 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         mInstance = this;
-//        ACRA.init(this);
+        ACRA.init(this);
         mInstance.initPreference();
         Prefs.putBoolean(CommonMethod.SETTING_PREF_NOTIFICATION_TOGGLE,true);
         Prefs.putInt(CommonMethod.PRIORITY_LOW,1);
         Prefs.putInt(CommonMethod.PRIORITY_MEDIUM,2);
         Prefs.putInt(CommonMethod.PRIORITY_HIGH,3);
+
         sendBroadcastForUpdation();
     }
 

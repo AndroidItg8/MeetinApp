@@ -11,11 +11,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.FileProvider;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.Spanned;
@@ -69,19 +72,35 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
     FloatingActionButton fab;
     private WalletAdapter adapter;
     private DaoMeetingInteractor daoDocument;
+    private static final String TAG = "WalletActivity";
 
-    public void shareItem(Context context, File fileWithinMyDir) {
-        Intent intentShareFile =new Intent(Intent.ACTION_SEND);
-        if(fileWithinMyDir.exists()) {
-            intentShareFile.setType(CommonMethod.getMimetypeFromUri(Uri.fromFile(fileWithinMyDir),getContentResolver()));
-            intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+fileWithinMyDir.getAbsolutePath()));
+//    public void shareItem(Context context, File fileWithinMyDir) {
+//        Intent intentShareFile =new Intent(Intent.ACTION_SEND);
+//        if(fileWithinMyDir.exists()) {
+//            intentShareFile.setType(CommonMethod.getMimetypeFromUri(Uri.fromFile(fileWithinMyDir),getContentResolver()));
+//            intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+fileWithinMyDir.getAbsolutePath()));
+//
+//            intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
+//                    "Sharing File...");
+//            intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
+//
+//            startActivity(Intent.createChooser(intentShareFile, "Share File"));
+//        }
+//
+//    }
 
-            intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
-                    "Sharing File...");
-            intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
 
-            startActivity(Intent.createChooser(intentShareFile, "Share File"));
-        }
+    public void shareItem(Context context, String title, String ext, File file, ShareActionProvider provider) {
+        Intent sharingIntent = new Intent(Intent.ACTION_SEND);;
+        sharingIntent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(context, "itg8.com.meetingapp.fileprovider", file));
+        Log.d(TAG, "shareItem: File Extension:" + ext);
+        Log.d(TAG, "shareItem: File Name:" + title);
+        sharingIntent.setType(CommonMethod.getMimetypeFromFilename("." + ext));
+        sharingIntent.putExtra(Intent.EXTRA_TEXT, title);
+        sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        provider.setShareIntent(sharingIntent);
+        //context.startActivity(Intent.createChooser(sharingIntent, "Share"));
+
 
     }
 
@@ -180,6 +199,11 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
         //Inflating the Popup using xml file
         popup.getMenuInflater()
                 .inflate(R.menu.popup_menu, popup.getMenu());
+        MenuItem item = popup.getMenu().findItem(R.id.action_share);
+        ShareActionProvider provider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+        shareItem(WalletActivity.this, " File Share of " + document.getMeeting().getTitle() + " Meeting...", document.getFileExt(), new File(document.getFileActPath()), provider);
+
+
 
         //registering popup with OnMenuItemClickListener
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -190,7 +214,7 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
 //                        Toast.LENGTH_SHORT
 //                ).show();
 
-                shareItem(WalletActivity.this,new File(document.getFileActPath()));
+//                shareItem(WalletActivity.this,new File(document.getFileActPath()));
 
                 return true;
             }

@@ -104,11 +104,12 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
     TagContainerLayout tagContainerLayout;
     @BindView(R.id.scrollView)
     MaxHeightScrollView scrollView;
+    TblMeeting meeting = null;
     private DaoContactInteractor daoContact;
     private DaoDocumentInteractor daoDocument;
     private DaoMeetingInteractor daoMeeting;
     private DaoTagInteractor daoTag;
-    TblMeeting meeting = null;
+    private boolean isInProgress = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,12 +152,13 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
         lblDateValue.setText(Helper.getDateFromDate(meeting.getStartTime()));
         lblTitle.setText(meeting.getTitle());
         lblPlaceValue.setText(checkNull(meeting.getAddress()));
-        if(meeting.getLongitude()==0 || meeting.getLatitude()==0)
+        if (meeting.getLongitude() == 0 || meeting.getLatitude() == 0)
             imgNavigate.setVisibility(View.GONE);
         lblPriorityValue.setText(Helper.getPriorityFromType(meeting.getPriority()));
         lblTimeValue.setText(new StringBuilder().append(Helper.getStringTimeFromDate(meeting.getStartTime())).append(" - ").append(Helper.getStringTimeFromDate(meeting.getEndTime())).toString());
         if (Calendar.getInstance().getTimeInMillis() < meeting.getEndTime().getTime() && Calendar.getInstance().getTimeInMillis() > meeting.getStartTime().getTime()) {
             txtMeetingStatus.setText(R.string.meeting_in_progress);
+            isInProgress = true;
             txtMeetingStatus.setTextColor(Color.parseColor("#5BCDCD"));
             btnComplete.setOnClickListener(this);
         } else if (Calendar.getInstance().getTimeInMillis() < meeting.getStartTime().getTime()) {
@@ -188,6 +190,7 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
                 public void onClick(View view) {
                     Intent intent = new Intent(MeetingDetailActivity.this, DocumentMeetingActivity.class);
                     intent.putExtra(CommonMethod.EXTRA_MEETING, meeting.getPkid());
+                    intent.putExtra(CommonMethod.EXTRA_PROGRESS, isInProgress);
                     intent.putParcelableArrayListExtra(CommonMethod.EXTRA_PRE_DOCUMENTS, (ArrayList<? extends Parcelable>) preDocuments);
                     intent.putParcelableArrayListExtra(CommonMethod.EXTRA_POST_DOCUMENTS, (ArrayList<? extends Parcelable>) postDocuments);
                     startActivity(intent);
@@ -195,23 +198,25 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
             });
 
 
-            final List<TblTAG> tagsList=new ArrayList<>();
-            for (TblMeetingTag mTag :
+
+
+            ArrayList<TblTAG> tempTagList = new ArrayList<>();
+            for (TblMeetingTag tagMeeting :
                     meeting.getTags()) {
-                tagsList.add(mTag.getTag());
+                tempTagList.add(new TblTAG(tagMeeting.getTag(),false));
+//                tagList.add(tagMeeting.getTag());
             }
 
-            if(tagsList.size()>0)
-            {
+            if (tempTagList.size() > 0) {
                 List<int[]> colors = new ArrayList<int[]>();
-                for (int i = 0; i < tagsList.size(); i++) {
+                for (int i = 0; i < tempTagList.size(); i++) {
 
 
                     int[] col1 = {Color.parseColor("#C5E1A5"), Color.parseColor("#C5E1A5"), Color.parseColor("#000000")};
                     colors.add(col1);
                 }
                 tagContainerLayout.setEnableCross(false);
-                tagContainerLayout.setTags(tagsList, colors);
+                tagContainerLayout.setTags(tempTagList, colors, false);
 
             }
         } catch (SQLException e) {

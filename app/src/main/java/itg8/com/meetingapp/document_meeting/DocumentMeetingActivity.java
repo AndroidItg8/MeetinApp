@@ -75,7 +75,7 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
     ViewPager viewPager;
     @BindView(R.id.fab)
     FloatingActionButton fab;
-    private String lblNote;
+
     NoteItemListener listener;
     private ArrayList<TblDocument> documentPreList;
     private ArrayList<TblDocument> documentPostList;
@@ -86,6 +86,7 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
     private DaoMeetingInteractor daoMeeting;
     private TblMeeting meeting;
     private DaoDocumentInteractor daoDocument;
+    private boolean isInProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -186,6 +187,7 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
     private void init() {
         if(getIntent().hasExtra(CommonMethod.EXTRA_PRE_DOCUMENTS)){
             long meetingId = getIntent().getLongExtra(CommonMethod.EXTRA_MEETING, 0);
+            isInProgress = getIntent().getBooleanExtra(CommonMethod.EXTRA_PROGRESS, false);
             if(meetingId>0){
                 try {
                     meeting=daoMeeting.getMeetingById(meetingId);
@@ -203,7 +205,7 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(PreDocmentFragment.newInstance(documentPreList), "Pre Meeting");
-        adapter.addFragment(PostDocumnetFragment.newInstance(documentPostList), "Post Meeting");
+        adapter.addFragment(PostDocumnetFragment.newInstance(documentPostList  , isInProgress), "Post Meeting");
         viewPager.setAdapter(adapter);
     }
 
@@ -218,7 +220,7 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
         }
     }
 
-    private void showDialogBox() {
+    public void showDialogBox( final NoteItemListener listener) {
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(DocumentMeetingActivity.this);
         builderSingle.setIcon(R.drawable.ic_mode_edit);
       //  AlertDialog dialog = new AlertDialog(DocumentMeetingActivity.this);
@@ -231,7 +233,12 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
         LayoutInflater layoutInflaterAndroid = LayoutInflater.from(DocumentMeetingActivity.this);
         View mView = layoutInflaterAndroid.inflate(R.layout.add_note_meeting, null);
         builderSingle.setView(mView);
-        final EditText lblDocumentNote = (EditText) mView.findViewById(R.id.edt_document_title);
+        builderSingle.setCancelable(false);
+        final EditText edtDocumentNote = (EditText) mView.findViewById(R.id.edt_document_title);
+        if(!TextUtils.isEmpty(meeting.getNote()))
+        {
+            edtDocumentNote.setText(meeting.getNote());
+        }
 //
         builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
             @Override
@@ -240,25 +247,36 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
             }
         });
 
-
-
         builderSingle.setPositiveButton("save", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if(!TextUtils.isEmpty(lblDocumentNote.getText()))
+                if(!TextUtils.isEmpty(edtDocumentNote.getText()))
                 {
-                    lblNote=lblDocumentNote.getText().toString().trim();
+                    String lblNote = edtDocumentNote.getText().toString().trim();
+                    meeting.setNote(lblNote);
+                    updateMeetingTable();
                     Log.d("TAG","lblNote:"+lblNote);
                     if(listener != null)
                         listener.sendItemToFragment(lblNote);
 
 
+                }else
+                {
+                    return;
                 }
             }
         });
 //        dialog = builderSingle.create();
 
         builderSingle.show();
+    }
+
+    private void updateMeetingTable() {
+        try {
+            daoMeeting.update(meeting);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -275,7 +293,10 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
     }
 
     public void onPostdocumentClick() {
-        fab.setVisibility(View.VISIBLE);
+        if(isInProgress)
+            fab.setVisibility(View.GONE);
+        else
+            fab.setVisibility(View.VISIBLE);
     }
 
 
@@ -521,6 +542,9 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
         return byteBuffer.toByteArray();
     }
 
+    public void setListener(NoteItemListener listener) {
+        this.listener = listener;
+    }
 
     private void createDocumentFile(String mCurrentPhotoPath) {
         if(meeting==null) {
@@ -557,7 +581,6 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
 
     public   interface NoteItemListener{
         void sendItemToFragment(String note);
-
         void addNewPostDocument(TblDocument document);
     }
 }

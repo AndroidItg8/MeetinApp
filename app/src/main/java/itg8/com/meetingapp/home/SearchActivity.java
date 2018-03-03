@@ -6,6 +6,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -45,6 +47,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 
     private static final String TAG = SearchActivity.class.getSimpleName();
     private static final int RC_FILTER_TAG = 987;
+    private static final String TAG_LIST = "TAG_LIST";
     @BindView(R.id.searchbox)
     SearchBox searchbox;
     @BindView(R.id.recyclerView)
@@ -59,7 +62,6 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     ImageView imgUp;
     @BindView(R.id.rl_collapsing)
     RelativeLayout rlCollapsing;
-
     @BindView(R.id.rl_tag)
     RelativeLayout rlTag;
     HashMap<Long, TblMeeting> hashMap = new HashMap<>();
@@ -74,9 +76,32 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     private float oldHeight;
     private ArrayList<TblTAG> tagList;
     private List<TblMeeting> list;
+//    private List<String> list;
     private List<TblMeeting> searchList;
     private int preHeight=0;
     private boolean notFirstTime=false;
+    private String Search_LIST="Search_LIST";
+
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (recyclerView != null) {
+            Log.d(TAG, "onSaveInstanceState: ");
+            outState.putParcelableArrayList(Search_LIST, (ArrayList<? extends Parcelable>) list);
+            //    outState.putParcelableArrayList(FILTER_LIST, (ArrayList<? extends Parcelable>) tourismList);
+        }
+        if(tagContainerLayout!= null)
+        {
+            Log.d(TAG, "onSaveInstanceState: ");
+            outState.putParcelableArrayList(TAG_LIST,  tagList);
+
+        }
+        rootLayoutObserver();
+
+    }
+
 
 
     @Override
@@ -89,8 +114,21 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 //        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         init();
+        if (savedInstanceState != null) {
+            tagList = savedInstanceState.getParcelableArrayList(TAG_LIST);
+            Log.d(TAG, "onCreate: OnSAVE INSTANCE STATE");
+            list = savedInstanceState.getParcelableArrayList(Search_LIST);
+            try {
+                setTagViewsAndMeeting(tagList);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
+
+
+
 
     private void init() {
         setRecyclerView();
@@ -157,7 +195,9 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 
             @Override
             public void onFilterTagClicked() {
-                startActivityForResult(new Intent(SearchActivity.this, TAGActivity.class), RC_FILTER_TAG);
+                Intent intent = new Intent(SearchActivity.this, TAGActivity.class);
+                intent.putExtra(CommonMethod.FROM_SEARCH,true);
+                startActivityForResult(intent, RC_FILTER_TAG);
             }
 
             @Override
@@ -174,6 +214,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
             }
 
         });
+
 //        searchbox.setOverflowMenu(R.menu.overflow_menu);
 //        search.setOverflowMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
 //            @Override
@@ -370,8 +411,8 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == RC_FILTER_TAG && resultCode == RESULT_OK) {
-            showItems(rlCollapsing, tagContainerLayout, txtClearTag, txtSelectedTag);
-            txtSelectedTag.setText("Select TAG");
+
+
             hasFromActivityResult = true;
             Log.d(TAG, "onActivityResult: getMaxLines" + tagContainerLayout.getMaxLines());
             Log.d(TAG, "setContainerLayoutHeight: ContainerHeight:" + tagContainerLayout.getHeight());
@@ -379,14 +420,20 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 
             List<TblTAG> tag = data.getParcelableArrayListExtra("tag");
             try {
-                showView(rlTag, recyclerView);
-                fetchMeetingFromTAGS(tag);
+                setTagViewsAndMeeting(tag);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
 
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void setTagViewsAndMeeting(List<TblTAG> tag) throws SQLException {
+        txtSelectedTag.setText("Selected TAG");
+        showItems(rlCollapsing, tagContainerLayout, txtClearTag, txtSelectedTag);
+        showView(rlTag, recyclerView);
+        fetchMeetingFromTAGS(tag);
     }
 
     private void showItems(View... view) {
@@ -410,6 +457,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     }
 
     private void getMeetingFromTag() throws SQLException {
+//        list = daoMeetingIntractor.getMeetingByTagsLike(tagList);
         list = daoMeetingIntractor.getMeetingByTagsLike(tagList);
     }
 
@@ -435,7 +483,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
                 int[] col1 = {Color.parseColor("#076810"), Color.parseColor("#ffffff"), Color.parseColor("#ffffff")};
                 colors.add(col1);
             }
-            tagContainerLayout.setTags(list, colors);
+            tagContainerLayout.setTags(list, colors, false);
         }
         tagOnClickListener();
 
@@ -494,6 +542,9 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 
     private void checkItemIsExist(List<TblMeeting> list) {
         for (TblMeeting tblMeeting : list) {
+            if(tblMeeting== null )
+                continue;
+
             if (!hashMap.containsKey(tblMeeting.getPkid())) {
                 listSearchResult.add(tblMeeting);
                 hashMap.put(tblMeeting.getPkid(), tblMeeting);
@@ -542,7 +593,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 
 
     private void setTagTextWithImage() {
-        String tagWithImageTxt = "<img src='ic_tags'><b>  Clicked this to Add TAG  </b>";
+        String tagWithImageTxt = "<img src='ic_tags'><b>  Click this icon to filter result by Tags  </b>";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             txtSelectedTag.setText(Html.fromHtml(tagWithImageTxt, new Html.ImageGetter() {
                 @Override

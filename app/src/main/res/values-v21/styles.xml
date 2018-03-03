@@ -19,12 +19,6 @@
         <item name="colorControlNormal">@color/colorWhite</item>
     </style>
 
-    <style name="CollapsingToolbarLayoutExpandedTextStyle" parent="AppTheme">
-        <item name="android:textColor">@color/colorWhite</item>
-        <item name="android:textSize">0sp</item>
-        <item name="colorControlNormal">@color/colorWhite</item>
-
-    </style>
     <style name="AppTheme.SettingsTheme" parent="AppTheme.NoActionBar">
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
     </style>
@@ -42,16 +36,6 @@
     <style name="MaterialDialogSheetAnimation">
         <item name="android:windowEnterAnimation">@anim/popup_show</item>
         <item name="android:windowExitAnimation">@anim/popup_hide</item>
-    </style>
-
-    <style name="AutoCompleteTextViewStyle" parent="Widget.AppCompat.Light.AutoCompleteTextView">
-        <item name="android:popupBackground">@drawable/search_suggestions_bg</item>
-        <item name="android:popupElevation">0dp</item>
-    </style>
-
-    <style name="btn_ripple_effect" >
-
-        <item name="android:background">@drawable/ripple_effect</item>
     </style>
 
 </resources>

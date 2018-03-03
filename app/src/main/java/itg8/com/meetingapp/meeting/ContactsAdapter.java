@@ -3,14 +3,17 @@ package itg8.com.meetingapp.meeting;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
+import android.os.Handler;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,20 +26,33 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import itg8.com.meetingapp.R;
-import itg8.com.meetingapp.db.DaoContactInteractor;
 import itg8.com.meetingapp.meeting.model.Contact;
+
 
 /**
  * Created by polis on 2015-11-07.
  */
 public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHolder> {
+    private static final String TAG = "ContactsAdapter";
     private ArrayList<Contact> contacts;
     private int checkBoxCount = 0;
     private ActionMode mActionMode;
     private Activity activity;
+    private SearchView searchView;
+    private ArrayList<Contact> tempContactList;
+    private OnSearchInteractonListener listener;
+    private boolean isTempContact = false;
 
-    private void selectItem(int position, ViewHolder holder){
-        if (contacts.get(position).isSelected()){
+
+    // Provide a suitable constructor (depends on the kind of dataset)
+    public ContactsAdapter(Activity activity, ArrayList<Contact> contacts, OnSearchInteractonListener listener) {
+        this.activity = activity;
+        this.contacts = contacts;
+        this.listener = listener;
+    }
+
+    private void selectItem(int position, ViewHolder holder) {
+        if (contacts.get(position).isSelected()) {
             holder.rowView.setSelected(true);
             holder.rowView.setActivated(true);
         } else {
@@ -44,115 +60,63 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
             holder.rowView.setActivated(false);
 
         }
-        updateActionBar();
     }
 
-    private void updateActionBar(){
-        checkBoxCount = 0;
-        for(int i=0; i<contacts.size(); i++) {
-            if( contacts.get(i).isSelected()) checkBoxCount++;
-        }
 
-        if (checkBoxCount == 0){
-            if (mActionMode != null ){
-                mActionMode.finish();
-                mActionMode = null;
-            }
 
-        } else {
-            if (mActionMode == null)
-                mActionMode = ((AppCompatActivity) activity).startSupportActionMode(mActionModeCallback);
-        }
-        if (mActionMode != null) {
-            if (checkBoxCount == 1) {
-                mActionMode.setTitle(activity.getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + activity.getString(R.string.friend));
-            } else {
-                mActionMode.setTitle(activity.getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + activity.getString(R.string.friends));
+
+
+    // Create new views (invoked by the layout manager)
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent,
+                                         int viewType) {
+        // create a new view
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.contact_item_view, parent, false);
+        // set the view's size, margins, paddings and layout parameters
+
+
+        ViewHolder vh = new ViewHolder(v);
+        return vh;
+    }
+
+    // Replace the contents of a view (invoked by the layout manager)
+    @Override
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
+        // - get element from your dataset at this position
+        // - replace the contents of the view with that element
+
+        holder.nameView.setText(contacts.get(position).getName());
+        holder.emailView.setText(contacts.get(position).getEmail());
+
+
+        RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(Resources.getSystem(), contacts.get(position).getPicture());
+        drawable.setCircular(true);
+
+        holder.pictureView.setImageDrawable(drawable);
+
+        holder.rowView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            //    listener.changeSelected(contacts.get(position).getContactId());
+                contacts.get(position).setSelected(!contacts.get(position).isSelected());
+                selectItem(position, holder);
+
+                listener.updateActionBar();
             }
-        }
+        });
+        selectItem(position, holder);
+
 
     }
 
-    private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+    // Return the size of your dataset (invoked by the layout manager)
+    @Override
+    public int getItemCount() {
 
-        // Called when the action mode is created; startActionMode() was called
-        @Override
-        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            // Inflate a menu resource providing context menu items
-            MenuInflater inflater = mode.getMenuInflater();
-            inflater.inflate(R.menu.context_menu, menu);
+            return contacts.size();
 
-           // searchButton.setVisibility(View.GONE);
-            return true;
-        }
-
-        // Called each time the action mode is shown. Always called after onCreateActionMode, but
-        // may be called multiple times if the mode is invalidated.
-        @Override
-        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            return false; // Return false if nothing is done
-        }
-
-        // Called when the user selects a contextual menu item
-        @Override
-        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-
-            int id = item.getItemId();
-            if (id == R.id.menu_ok) {
-                finishWithResult();
-//                   //activity.finish();
-//
-//                   // mode.finish();
-                return true;
-            } else {
-                return false;
-            }
-
-        }
-
-        private void finishWithResult()
-        {
-//            DaoContactInteractor contactInteractor = new DaoContactInteractor(activity) ;
-            ArrayList<Contact> selectedContacts = new ArrayList<Contact>();
-            for (Contact c: contacts){
-                if (c.isSelected()){
-                    selectedContacts.add(c);
-//                    contactInteractor.insert(c);
-
-                }
-            }
-
-            Bundle resultData = new Bundle();
-            resultData.putParcelableArrayList("contacts", selectedContacts);
-            Intent intent = new Intent();
-            intent.putExtras(resultData);
-            activity.setResult(activity.RESULT_OK, intent);
-            activity.finish();
-        }
-
-        // Called when the user exits the action mode
-        @Override
-        public void onDestroyActionMode(ActionMode mode) {
-
-            boolean isAnySelected = false;
-            for(int i=0; i<contacts.size(); i++) {
-                if (contacts.get(i).isSelected()){
-                    contacts.get(i).setSelected(false);
-                    isAnySelected = true;
-                }
-            }
-
-            if (isAnySelected) {
-                //contactIconLazyLoad.Reset();
-                notifyDataSetChanged();
-            }
-
-
-            //searchButton.setVisibility(View.VISIBLE);
-            mActionMode = null;
-
-        }
-    };
+    }
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -181,56 +145,12 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
 
     }
 
-    // Provide a suitable constructor (depends on the kind of dataset)
-    public ContactsAdapter(Activity activity, ArrayList<Contact> contacts) {
-        this.activity = activity;
-        this.contacts = contacts;
-    }
+     public interface OnSearchInteractonListener
+    {
+        void onQueryTextListener(String query);
 
-    // Create new views (invoked by the layout manager)
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                   int viewType) {
-        // create a new view
-        View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.contact_item_view, parent, false);
-        // set the view's size, margins, paddings and layout parameters
+        void changeSelected(long position);
 
-
-        ViewHolder vh = new ViewHolder(v);
-        return vh;
-    }
-
-    // Replace the contents of a view (invoked by the layout manager)
-    @Override
-    public void onBindViewHolder(final ViewHolder holder, final int position) {
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
-
-        holder.nameView.setText(contacts.get(position).getName());
-        holder.emailView.setText(contacts.get(position).getEmail());
-
-        RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(Resources.getSystem(), contacts.get(position).getPicture());
-        drawable.setCircular(true);
-
-        holder.pictureView.setImageDrawable(drawable);
-
-        holder.rowView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                contacts.get(position).setSelected(!contacts.get(position).isSelected());
-                selectItem(position, holder);
-            }
-        });
-        selectItem(position, holder);
-
-
-    }
-
-    // Return the size of your dataset (invoked by the layout manager)
-    @Override
-    public int getItemCount() {
-
-        return contacts.size();
+        void updateActionBar();
     }
 }

@@ -67,6 +67,7 @@ public class TagContainerLayout extends ViewGroup {
      * The list to store the tags color info
      */
     private List<int[]> mColorArrayList;
+    private boolean isFromHome;
     private int FROM_SEARCH;
     /**
      * Horizontal interval, default 5(dp)
@@ -127,7 +128,7 @@ public class TagContainerLayout extends ViewGroup {
     /**
      * Horizontal padding for TagView, include left & right padding(left & right padding are equal, default 10dp)
      */
-    private int mTagHorizontalPadding = 10;
+    private int mTagHorizontalPadding = 12;
     /**
      * Vertical padding for TagView, include top & bottom padding(top & bottom padding are equal, default 8dp)
      */
@@ -240,6 +241,7 @@ public class TagContainerLayout extends ViewGroup {
     private TblContact tblePartcipant;
     private float tagHeight;
     private OnHeightAvailbleListner listner;
+    private List<String> mTagsString;
 
     public TagContainerLayout(Context context) {
         this(context, null);
@@ -583,13 +585,15 @@ public class TagContainerLayout extends ViewGroup {
             colors = onUpdateColorFactory();
         }
 
-        if (isSelected) {
-            tagView.setEnableCross(true);
+        if (isSelected ) {
+            if(isFromHome)
+                tagView.setEnableCross(true);
+            else
+                tagView.setEnableCross(false);
+
 
 
             if (isFromContact) {
-
-
                 tagView.setTagBackgroundColor(colors[0]);
             } else
                 tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
@@ -735,10 +739,7 @@ public class TagContainerLayout extends ViewGroup {
      * @param tags
      * @param
      */
-    public void setTags(List<TblTAG> tags) {
-        mTags = tags;
-        onSetTag();
-    }
+
 
     /**
      * Set tags with own color
@@ -746,9 +747,10 @@ public class TagContainerLayout extends ViewGroup {
      * @param tags
      * @param colorArrayList
      */
-    public void setTags(List<TblTAG> tags, List<int[]> colorArrayList) {
+    public void setTags(List<TblTAG> tags, List<int[]> colorArrayList, boolean isFromHome) {
         mTags = tags;
         mColorArrayList = colorArrayList;
+        this.isFromHome = isFromHome;
         onSetTag();
     }
 
@@ -1492,13 +1494,16 @@ public class TagContainerLayout extends ViewGroup {
         TagView tagView = ((TagView) mChildViews.get(position));
         if (getSelectedInfo(tag)) {
             tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
-           // tagView.setEnableCross(true);
 
         } else {
             tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGoogle));
-          //  tagView.setEnableCross(false);
+//            tagView.setEnableCross(false);
 
         }
+
+
+
+
     }
 
     private boolean getSelectedInfo(Object mOriginText) {

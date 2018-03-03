@@ -34,6 +34,7 @@ public class TblMeeting implements Parcelable,Cloneable {
     public static final String LONGITUDE="longitude";
     public static final String ADDRESS="address";
     public static final String NOTIFIED="notified";
+    public static final String NOTE="note";
 
     @DatabaseField(columnName = FIELD_ID,generatedId = true)
     private long pkid;
@@ -67,6 +68,8 @@ public class TblMeeting implements Parcelable,Cloneable {
 
     @DatabaseField(columnName = NOTIFIED)
     private int notified;
+    @DatabaseField(columnName = NOTE)
+    private String note;
 
 
     public double getLatitude() {
@@ -208,6 +211,7 @@ public class TblMeeting implements Parcelable,Cloneable {
                 ", created=" + created +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
+                ", note=" + note +
                 ", address='" + address + '\'' +
                 '}';
     }
@@ -233,6 +237,7 @@ public class TblMeeting implements Parcelable,Cloneable {
         dest.writeDouble(this.latitude);
         dest.writeDouble(this.longitude);
         dest.writeString(this.address);
+        dest.writeString(this.note);
         dest.writeInt(this.notified);
     }
 
@@ -251,6 +256,7 @@ public class TblMeeting implements Parcelable,Cloneable {
         this.latitude = in.readDouble();
         this.longitude = in.readDouble();
         this.address = in.readString();
+        this.note = in.readString();
         this.notified = in.readInt();
     }
 
@@ -265,4 +271,12 @@ public class TblMeeting implements Parcelable,Cloneable {
             return new TblMeeting[size];
         }
     };
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
 }

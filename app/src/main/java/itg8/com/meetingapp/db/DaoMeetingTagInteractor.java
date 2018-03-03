@@ -58,4 +58,7 @@ public class DaoMeetingTagInteractor {
         return null;
     }
 
+    public List<TblMeetingTag> getDistrictTags() throws SQLException {
+        return helper.getMeetingTagDao().queryBuilder().distinct().selectColumns(TblMeetingTag.FIELD_TAG_NAME).query();
+    }
 }

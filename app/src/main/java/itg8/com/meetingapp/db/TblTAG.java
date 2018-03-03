@@ -57,6 +57,17 @@ public class TblTAG implements Parcelable {
     public TblTAG() {
     }
 
+    public TblTAG(String name) {
+        this.name = name;
+    }
+
+    public TblTAG(String name, boolean isSelected) {
+        this.name = name;
+        this.isSelected =isSelected;
+    }
+
+
+
     public boolean isSelected() {
         return isSelected;
     }

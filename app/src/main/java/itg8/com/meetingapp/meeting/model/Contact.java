@@ -9,13 +9,14 @@ import android.os.Parcelable;
  */
 
 public class Contact implements Parcelable {
+    private long contactId;
     private String name;
     private String number;
     private String email;
     private Bitmap picture;
     private boolean isSelected = false;
 
-    public Contact(String name, String email, Bitmap picture,String number){
+    public Contact(String name, String email, Bitmap picture,String number,long contactId){
 
 
         this.name = name;
@@ -23,6 +24,15 @@ public class Contact implements Parcelable {
         this.picture = picture;
         this.number=number;
 
+        this.contactId = contactId;
+    }
+
+    public long getContactId() {
+        return contactId;
+    }
+
+    public void setContactId(long contactId) {
+        this.contactId = contactId;
     }
 
     public String getNumber() {

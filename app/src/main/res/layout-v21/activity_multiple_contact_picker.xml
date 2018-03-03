@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     tools:context=".meeting.MultipleContactPickerActivity"
     android:background="#ffffff">
-
+    
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -15,12 +15,14 @@
         android:scrollbars="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:focusable="false" />
-
+        android:focusable="false"
+        />
+        
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="30dp"
             android:layout_height="30dp"
+            android:progressTint="@color/colorAccent"
             android:layout_gravity="center"
             android:visibility="gone"/>
 

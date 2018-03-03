@@ -6,17 +6,13 @@ import android.os.Parcelable;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
-/**
- * Created by swapnilmeshram on 20/02/18.
- */
-
 @DatabaseTable(tableName = TblMeetingTag.TABLE_NAME)
 public class TblMeetingTag implements Parcelable {
     public  static final String TABLE_NAME="TBL_MEETING_TAG";
 
     public static final String FIELD_ID="pkid";
     public static final String FIELD_MEETING_ID="meeting_pkid";
-    public static final String FIELD_TAG_ID="tag_id";
+    public static final String FIELD_TAG_NAME="tag_name";
 
     @DatabaseField(columnName = FIELD_ID, generatedId = true)
     private long pkid;
@@ -24,8 +20,8 @@ public class TblMeetingTag implements Parcelable {
     @DatabaseField(columnName = FIELD_MEETING_ID, foreignAutoRefresh = true, foreign = true)
     private TblMeeting meeting;
 
-    @DatabaseField(columnName = FIELD_TAG_ID, foreignAutoRefresh = true, foreign = true)
-    private TblTAG tag;
+    @DatabaseField(columnName = FIELD_TAG_NAME)
+    private String  tag;
 
     public TblMeetingTag() {
     }
@@ -47,11 +43,11 @@ public class TblMeetingTag implements Parcelable {
         this.meeting = meeting;
     }
 
-    public TblTAG getTag() {
+    public String getTag() {
         return tag;
     }
 
-    public void setTag(TblTAG tag) {
+    public void setTag(String tag) {
         this.tag = tag;
     }
 
@@ -64,16 +60,16 @@ public class TblMeetingTag implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(this.pkid);
         dest.writeParcelable(this.meeting, flags);
-        dest.writeParcelable(this.tag, flags);
+        dest.writeString(this.tag);
     }
 
     protected TblMeetingTag(Parcel in) {
         this.pkid = in.readLong();
         this.meeting = in.readParcelable(TblMeeting.class.getClassLoader());
-        this.tag = in.readParcelable(TblTAG.class.getClassLoader());
+        this.tag = in.readString();
     }
 
-    public static final Parcelable.Creator<TblMeetingTag> CREATOR = new Parcelable.Creator<TblMeetingTag>() {
+    public static final Creator<TblMeetingTag> CREATOR = new Creator<TblMeetingTag>() {
         @Override
         public TblMeetingTag createFromParcel(Parcel source) {
             return new TblMeetingTag(source);

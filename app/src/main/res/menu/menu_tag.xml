@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/m_search"
-
         android:icon="@drawable/ic_search_black_24dp"
         android:orderInCategory="1"
         android:title="@string/search_title"
+        android:visible="true"
         app:actionViewClass="android.support.v7.widget.SearchView"
         app:showAsAction="always" />
 
@@ -15,6 +15,7 @@
         android:actionLayout="@layout/action_ok_view"
         android:orderInCategory="2"
         android:title="@string/ok"
+        android:visible="true"
         android:icon="@drawable/button_ab_ok"
         app:showAsAction="always" />
 

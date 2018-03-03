@@ -2,10 +2,6 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
     <!--For Home Page -->
-    <dimen name="homeText">14dp</dimen>
-
-
-
 
 
 </resources>

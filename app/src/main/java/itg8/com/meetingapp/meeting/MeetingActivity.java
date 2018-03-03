@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Parcelable;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -64,6 +65,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Array;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -126,6 +128,15 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private static final int RC_CONCTACT = 13;
     private static final int RC_PHONE_BOOK = 900;
     private static final int RC_TAG = 800;
+    private static final String DOCUMENT_LIST = "DOCUMENT_LIST";
+    private static final String PARTICIPANT_LIST = "PARTICIPANT_LIST";
+    private static final String AGENDA = "AGENDA";
+    private static final String PLACE = "PLACE";
+    private static final String ENDED_TIME = "ENDED_TIME";
+    private static final String STARTED_TIME = "STARTED_TIME";
+    private static final String DATE_VALUE = "DATE_VALUE";
+    private static final String PRIPROTY = "PRIPROTY";
+    private static final String TAG_LIST = "TAG_LIST";
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.scrollView)
@@ -240,7 +251,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private Calendar selectedEndTime = Calendar.getInstance();
     private String mCurrentPhotoPath;
     private List<TblContact> contactList = new ArrayList<>();
-    private List<TblTAG> tagList = new ArrayList<>();
+    private List<String> tagList = new ArrayList<>();
     private ParticipantTagAdapter adapterContact;
     private TAGAdapter adapterTAG;
     private TblTAG tagModel;
@@ -254,10 +265,13 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private DaoMeetingTagInteractor daoMeetingTag;
 
     private boolean isFromEdit = false;
-    private HashMap<Long, TblTAG> tagHashMap = new HashMap<>();
+    //    private HashMap<String, TblTAG> tagHashMap = new HashMap<>();
     private TblMeetingTag meetingTag;
     private HashMap<String, TblContact> hashMap = new HashMap<>();
     private AlertDialog dialog;
+    private String strName;
+    private ArrayList<TblTAG> temTagList;
+
 
     /**
      * Helper method to format information about a place nicely.
@@ -269,6 +283,26 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         return Html.fromHtml(res.getString(R.string.place_details, name, id, address, phoneNumber,
                 websiteUri));
 
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (rvDocuments != null) {
+            outState.putParcelableArrayList(DOCUMENT_LIST, (ArrayList<? extends Parcelable>) documents);
+        }
+        if (tagContainerLayoutParticipant != null) {
+            outState.putParcelableArrayList(PARTICIPANT_LIST, (ArrayList<? extends Parcelable>) contactList);
+        }
+
+        outState.putString(AGENDA, edtAgenda.getText().toString());
+        outState.putString(DATE_VALUE, Helper.getStringDateFromCalander(selectedDate));
+        outState.putString(STARTED_TIME, Helper.getStringDateFromCalander(selectedStartTime));
+        outState.putString(ENDED_TIME, Helper.getStringDateFromCalander(selectedEndTime));
+        outState.putString(PLACE, lblAddName.getText().toString());
+        outState.putString(PRIPROTY, txtPri.getText().toString());
+        if (tagContainerLayout != null)
+            outState.putParcelableArrayList(TAG_LIST, (ArrayList<? extends Parcelable>) temTagList);
     }
 
     @Override
@@ -284,15 +318,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         toolbar.setSubtitleTextColor(Color.WHITE);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_black_24dp);
         collapsed();
-
-
 //        adapterTAG = new TAGAdapter(tagList, this);
 
         presenter = new MeetingPresenterImp(this);
-
         mClient = new GoogleApiClient.Builder(this).addApi(Places.GEO_DATA_API).addApi(Places.PLACE_DETECTION_API).build();
         contactInteractor = new DaoContactInteractor(MeetingActivity.this);
-
+        checkSaveInstanceState(savedInstanceState);
         initDaoInteractors();
         init();
         checkEveryPermissions();
@@ -301,18 +332,70 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     }
 
-    private void initTagHashmap() {
-        try {
-//            List<TblTAG> tagList=daoTag.getTags();
-            tagHashMap.clear();
-            for (TblTAG tag :
-                    this.tagList) {
-                tag.setSelected(true);
-                tagHashMap.put(tag.getPkid(), tag);
+    private void checkSaveInstanceState(Bundle outState) {
+        if (outState != null) {
+            Log.d(TAG, "onCreate: OnSAVE INSTANCE STATE");
+
+            if(outState.getString(AGENDA)!= null)
+                edtAgenda.setText(outState.getString(AGENDA));
+            if(outState.getString(PLACE)!= null)
+                lblAddName.setText(outState.getString(PLACE));
+            if(outState.getString(PRIPROTY)!=null)
+            {
+                txtPri.setText(outState.getString(PRIPROTY));
+                hideShowView(lblReminderLbl, rlReminder);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            if(outState.getString(ENDED_TIME)!= null && outState.getString(STARTED_TIME)!= null) {
+                edtEndTime.setText((outState.getString(ENDED_TIME)));
+                edtStartTime.setText(outState.getString(STARTED_TIME));
+                hideShowView(lblLab, rlDue);
+                Log.d(TAG, "checkSaveInstanceState: PRI:" + outState.getString(PRIPROTY));
+                Log.d(TAG, "checkSaveInstanceState: END TIME:" + outState.getString(ENDED_TIME));
+                Log.d(TAG, "checkSaveInstanceState: STARTED TIME:" + outState.getString(STARTED_TIME));
+            }
+//            edtDate.setText(Helper.getDateFromDate(String.valueOf(outState.getString(DATE_VALUE))));
+            if (rvDocuments != null) {
+                documents = outState.getParcelableArrayList(DOCUMENT_LIST);
+                if(documents!= null && documents.size()>0)
+                    createRecyclerviewForDocuments();
+
+
+            }
+            if (tagContainerLayoutParticipant != null) {
+                contactList = outState.getParcelableArrayList(PARTICIPANT_LIST);
+                Log.d(TAG, "checkSaveInstanceState: contactTemp:" + contactList);
+                setParticipantTAG();
+            }
+            if(tagContainerLayout!= null)
+            {
+                temTagList = outState.getParcelableArrayList(TAG_LIST);
+                createRecyclerViewForTAG(temTagList);
+            }
+
+
+            //            list = savedInstanceState.getParcelableArrayList(Search_LIST);
+//            try {
+//                setTagViewsAndMeeting(tagList);
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+
+
         }
+    }
+
+    private void initTagHashmap() {
+//        try {
+////            List<TblTAG> tagList=daoTag.getTags();
+//            tagHashMap.clear();
+//            for (String tag :
+//                    this.tagList) {
+//                tag.setSelected(true);
+//                tagHashMap.put(tag.getPkid(), tag);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     private void checkIfFromEdit() {
@@ -327,7 +410,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                     e.printStackTrace();
                 }
             }
-        } else {
         }
     }
 
@@ -346,6 +428,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         lblReminder.setText(Helper.getPriorityFromType(meeting.getPriority()));
         hideShowView(lblReminderLbl, rlReminder);
 
+
         if (!TextUtils.isEmpty(meeting.getAddress())) {
             lblAddName.setText(meeting.getAddress());
             hideShowView(lblAddPlace, rlAddress);
@@ -360,14 +443,16 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 //            adapterContact.notifyDataSetChanged();
             setParticipantTAG();
             List<TblMeetingTag> tags = meeting.getTags();
+            ArrayList<TblTAG> tempTagList = new ArrayList<>();
             for (TblMeetingTag tagMeeting :
                     tags) {
+                tempTagList.add(new TblTAG(tagMeeting.getTag()));
                 tagList.add(tagMeeting.getTag());
             }
 //            tagList.addAll(daoMeetingTag.getTagsMyMeetingId(meeting));
 //            changeHashmapValueFromUpdatedTagList();
             initTagHashmap();
-            createRecyclerViewForTAG();
+            createRecyclerViewForTAG(tempTagList);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -380,12 +465,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void changeHashmapValueFromUpdatedTagList() {
-        for (TblTAG tag :
-                tagList) {
-            TblTAG tempTag = tagHashMap.get(tag.getPkid());
-            tempTag.setSelected(true);
-            tagHashMap.put(tag.getPkid(), tag);
-        }
+//        for (TblTAG tag :
+//                tagList) {
+//            TblTAG tempTag = tagHashMap.get(tag.getPkid());
+//            tempTag.setSelected(true);
+//            tagHashMap.put(tag.getPkid(), tag);
+//        }
     }
 
     private void expandDue() {
@@ -393,7 +478,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
 
-    private void createRecyclerViewForTAG() {
+    private void createRecyclerViewForTAG(ArrayList<TblTAG> contacts) {
         if (tagList.size() > 0) {
             int size = tagList.size();
 
@@ -403,7 +488,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 colors.add(col1);
             }
 
-            tagContainerLayout.setTags(tagList, colors);
+            tagContainerLayout.setTags(contacts, colors, false);
         }
 
 
@@ -603,7 +688,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             }
         }
 
-        for (TblTAG tag :
+        for (String tag :
                 tagList) {
             meetingTag = new TblMeetingTag();
             meetingTag.setMeeting(meeting);
@@ -632,8 +717,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.ll_place:
                 if (canAccessLocation)
                     togglePlaceView(SHOW_PLACE);
-                else
+                else {
                     checkLocationPerm();
+
+                }
                 break;
             case R.id.ll_doc:
                 toggleDocumentView(SHOW_DOCUMENT);
@@ -661,8 +748,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.rl_participant:
                 if (canPhoneState)
                     showDialogConatctBox();
-                else
+                else {
                     checkContactPerm();
+                }
                 break;
             case R.id.img_phone_book:
                 openPhoneBook2();
@@ -671,9 +759,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 initTagHashmap();
 //                changeHashmapValueFromUpdatedTagList();
                 Intent intent = new Intent(MeetingActivity.this, TAGActivity.class);
-                intent.putExtra(CommonMethod.EXTRA_TAGS, tagHashMap);
+                intent.putStringArrayListExtra(CommonMethod.EXTRA_TAGS, (ArrayList<String>) tagList);
                 startActivityForResult(intent, RC_TAG);
                 break;
+
         }
     }
 
@@ -1116,7 +1205,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                          *  the filename. That's out of the scope of this post. */
 
 
-                        Log.d(TAG, "onActivityResult: FileName:"+newFileName);
+                        Log.d(TAG, "onActivityResult: FileName:" + newFileName);
                         String output_path = createDocumentTempFile(newFileName).getAbsolutePath();
 
                         // Create the file in the location that we just defined.
@@ -1187,23 +1276,23 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 //            getContactDetail(resultCode, data);
             if (resultCode == RESULT_OK) {
                 ArrayList<TblTAG> contacts = new ArrayList<TblTAG>();
+                temTagList = new ArrayList<TblTAG>();
 
                 tagList.clear();
 
                 contacts = data.getParcelableArrayListExtra("tag");
+                temTagList = ( data.getParcelableArrayListExtra("tag"));
                 int itemCountOld = tagList.size();
 
                 for (TblTAG c : contacts) {
-                    tagModel = new TblTAG();
-                    tagModel.setPkid(c.getPkid());
-                    tagModel.setName(c.getName());
-                    tagList.add(tagModel);
+                    tagList.add(c.getName());
                 }
-                initTagHashmap();
+                //initTagHashmap();
 //                changeHashmapValueFromUpdatedTagList();
-                contacts.clear();
+//                contacts.clear();
 
-                createRecyclerViewForTAG();
+
+                createRecyclerViewForTAG(contacts);
 
             }
         }
@@ -1338,7 +1427,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 //
 
 
-
     private void showPlaceCross() {
         imgPlaceCross.setVisibility(View.VISIBLE);
     }
@@ -1416,7 +1504,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String strName = arrayAdapter.getItem(which);
+                strName = arrayAdapter.getItem(which);
                 txtPri.setText(strName);
                 meeting.setPriority(Helper.getTypeFromPriorityText(strName));
 
@@ -1525,16 +1613,22 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         if (perms.contains(Manifest.permission.READ_EXTERNAL_STORAGE)
                 || perms.contains(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             canStorage = isGranted;
+            if (canStorage) showFileManager();
         }
         if (perms.contains(Manifest.permission.ACCESS_COARSE_LOCATION) || perms.contains(Manifest.permission.ACCESS_FINE_LOCATION)) {
             canAccessLocation = isGranted;
+            if (canAccessLocation) togglePlaceView(SHOW_PLACE);
+
+
         }
         if (perms.contains(Manifest.permission.CAMERA)) {
             canAccessCamera = isGranted;
+            if (canAccessCamera) showCamera();
 
         }
         if (perms.contains(Manifest.permission.READ_CONTACTS)) {
             canPhoneState = isGranted;
+            if (canPhoneState) openPhoneBook2();
         }
 
     }
@@ -1582,7 +1676,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
 
 
-
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
@@ -1591,27 +1684,26 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = image.getAbsolutePath();
-        Log.d(TAG, "createImageFile: ImageFIe:"+mCurrentPhotoPath);
+        Log.d(TAG, "createImageFile: ImageFIe:" + mCurrentPhotoPath);
 
         return image;
     }
 
-     private File createDocumentTempFile(String fileName) throws IOException {
+    private File createDocumentTempFile(String fileName) throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = fileName.split("\\.(?=[^\\.]+$)")[0];
-        String ext = "."+fileName.split("\\.(?=[^\\.]+$)")[1];
+        String ext = "." + fileName.split("\\.(?=[^\\.]+$)")[1];
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ext,         /* suffix */
                 storageDir      /* directory */
         );
-         Log.d(TAG, "createDocumentTempFile: DocumentFile:"+image.getAbsolutePath());
+        Log.d(TAG, "createDocumentTempFile: DocumentFile:" + image.getAbsolutePath());
         // Save a file: path for use with ACTION_VIEW intents
         return image;
     }
-
 
 
     private void showCamera() {
