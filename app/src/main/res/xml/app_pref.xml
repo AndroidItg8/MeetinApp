@@ -36,6 +36,7 @@
         <android.support.v7.preference.SwitchPreferenceCompat
             android:key="@string/pref_notification_toggle"
             android:summary="@string/pref_notification_toggle_switch_summ"
+            android:defaultValue="@string/pref_notification_toggle_defult"
             android:title="@string/notification_toggle"/>
         <CheckBoxPreference
             android:key="@string/pref_notification_vibrate"

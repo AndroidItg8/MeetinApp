@@ -2,7 +2,7 @@ package com.github.tibolte.agendacalendarview.models;
 
 import java.util.Calendar;
 
-public interface CalendarEvent {
+public interface CalendarEvent    {
 
 
     void setPlaceholder(boolean placeholder);

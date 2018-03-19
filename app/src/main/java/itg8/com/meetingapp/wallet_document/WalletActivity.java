@@ -6,9 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.FileProvider;
@@ -56,6 +57,9 @@ import itg8.com.meetingapp.showcase.shape.ShapeType;
 public class WalletActivity extends AppCompatActivity implements WalletAdapter.cardOnLongPressListerner, MaterialIntroListener {
 
     private static final String INTRO_CARD = "INTRO_CARD";
+    private static final String DOCUMENT_LIST = "DOCUMENT_LIST";
+    private static final String TAG = "WalletActivity";
+    private static final String CHECK_INSTANCE = "CHECK_INSTANCE";
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.recyclerView)
@@ -72,7 +76,8 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
     FloatingActionButton fab;
     private WalletAdapter adapter;
     private DaoMeetingInteractor daoDocument;
-    private static final String TAG = "WalletActivity";
+    private List<TblMeeting> listDoc;
+    private boolean isWallet=false;
 
 //    public void shareItem(Context context, File fileWithinMyDir) {
 //        Intent intentShareFile =new Intent(Intent.ACTION_SEND);
@@ -89,9 +94,22 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
 //
 //    }
 
+    private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
+                                              CharSequence doc_name) {
+        return Html.fromHtml(res.getString(R.string.no_meeting, title, sub_title, doc_name));
+
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        outState.putParcelableArrayList(DOCUMENT_LIST, (ArrayList<? extends Parcelable>) listDoc);
+
+    }
 
     public void shareItem(Context context, String title, String ext, File file, ShareActionProvider provider) {
-        Intent sharingIntent = new Intent(Intent.ACTION_SEND);;
+        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+
         sharingIntent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(context, "itg8.com.meetingapp.fileprovider", file));
         Log.d(TAG, "shareItem: File Extension:" + ext);
         Log.d(TAG, "shareItem: File Name:" + title);
@@ -99,6 +117,7 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
         sharingIntent.putExtra(Intent.EXTRA_TEXT, title);
         sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         provider.setShareIntent(sharingIntent);
+
         //context.startActivity(Intent.createChooser(sharingIntent, "Share"));
 
 
@@ -113,44 +132,49 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("Meeting Wallet");
-        daoDocument=new DaoMeetingInteractor(WalletActivity.this);
+        daoDocument = new DaoMeetingInteractor(WalletActivity.this);
         init();
+        if (savedInstanceState != null) {
+            listDoc = savedInstanceState.getParcelableArrayList(DOCUMENT_LIST);
+            adapter.notifyDataSetChanged();
 
+        }
 
     }
 
+
     private void init() {
-        List<TblMeeting> listDoc = getTblDocuments();
+        listDoc = getTblDocuments();
         if (listDoc.size() > 0) {
             showRecyclerView();
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
             adapter = new WalletAdapter(getApplicationContext(), listDoc, this);
             recyclerView.setAdapter(adapter);
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    showMaterialIntro();
-                }
-            }, 2000);
+            if(!Prefs.getBoolean(CommonMethod.FIRST_TIME_WALLET,false))
+                showMaterialInfo();
+
 
         } else {
 
-                hideRecyclerView();
-                txtTitle.setText(formatPlaceDetails(getResources(), "Yet Not Schedule Any", "Meeting", "Quickly join your meeting!!!!"));
+            hideRecyclerView();
+            txtTitle.setText(formatPlaceDetails(getResources(), "Today you do not have", "Meetings related documents", "Here you can quickly get document of all today's meeting."));
 
+        }
+
+    }
+
+    private void showMaterialInfo() {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showMaterialIntro();
             }
-
+        }, 2000);
     }
 
     private void hideRecyclerView() {
         recyclerView.setVisibility(View.GONE);
         rlNoMeetingItem.setVisibility(View.VISIBLE);
-    }
-
-    private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
-                                              CharSequence doc_name) {
-        return Html.fromHtml(res.getString(R.string.no_meeting, title, sub_title, doc_name));
-
     }
 
     private void showRecyclerView() {
@@ -175,7 +199,6 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
                 .setListener(this)
                 .performClick(true)
                 .setIdempotent(true)
-
                 .setInfoText("Click this to see full agenda detail.")
                 .setUsageId(INTRO_CARD) //THIS SHOULD BE UNIQUE ID
                 .show();
@@ -202,7 +225,6 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
         MenuItem item = popup.getMenu().findItem(R.id.action_share);
         ShareActionProvider provider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
         shareItem(WalletActivity.this, " File Share of " + document.getMeeting().getTitle() + " Meeting...", document.getFileExt(), new File(document.getFileActPath()), provider);
-
 
 
         //registering popup with OnMenuItemClickListener
@@ -238,60 +260,17 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
         try {
 
             listMeetingTemp = daoDocument.getMeetingsByDate(Calendar.getInstance().getTime());
-            listMeeting=new ArrayList<>();
+            listMeeting = new ArrayList<>();
             for (TblMeeting meet :
                     listMeetingTemp) {
                 List<TblDocument> documents = meet.getDocuments();
-                if(documents.size()>0){
+                if (documents.size() > 0) {
                     listMeeting.add(meet);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-//
-//        TblDocument document = new TblDocument();
-//        TblMeeting meeting1 = new TblMeeting();
-//        List<TblMeeting> listMeeting = new ArrayList<>();
-//        List<TblDocument> list = new ArrayList<>();
-//
-//        document.setFileName("DOC FILE");
-//        document.setFileExt(CommonMethod.EXT_DOC);
-//
-//        list.add(document);
-//
-//        TblDocument document1 = new TblDocument();
-//        document1.setFileName("EXCEL FILE");
-//        document1.setFileExt(CommonMethod.EXT_EXL);
-//        list.add(document1);
-//        TblDocument document2 = new TblDocument();
-//
-//        document2.setFileName("PDF FILE");
-//        document2.setFileExt(CommonMethod.EXT_PDF);
-//        list.add(document2);
-//        TblDocument document3 = new TblDocument();
-//
-//        document3.setFileName("JPG FILE");
-//        document3.setFileExt(CommonMethod.EXT_JPG);
-//        list.add(document3);
-//        TblDocument document4 = new TblDocument();
-//
-//        document4.setFileName("TXT FILE");
-//        document4.setFileExt(CommonMethod.EXT_TXT);
-//        list.add(document4);
-//        TblDocument document5 = new TblDocument();
-//
-//        document5.setFileName("ZIP FILE");
-//        document5.setFileExt(CommonMethod.EXT_ZIP);
-//        list.add(document5);
-//        TblDocument document6 = new TblDocument();
-//
-//        document6.setFileName("PPT FILE");
-//        document6.setFileExt(CommonMethod.EXT_PPT);
-//        list.add(document6);
-//      //  meeting1.setDocuments(list);
-//        listMeeting.add(meeting1);
-
         return listMeeting;
     }
 
@@ -338,7 +317,6 @@ public class WalletActivity extends AppCompatActivity implements WalletAdapter.c
     @Override
     public void onUserClicked(String materialIntroViewId) {
         if (materialIntroViewId.equals(INTRO_CARD)) {
-            Toast.makeText(WalletActivity.this, "User Clicked", Toast.LENGTH_SHORT).show();
             Prefs.putBoolean(CommonMethod.FIRST_TIME_WALLET, true);
             new MaterialIntroView.Builder(WalletActivity.this).dismissOnTouch(true);
         }

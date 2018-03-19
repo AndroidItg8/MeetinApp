@@ -22,7 +22,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.support.v7.widget.ShareActionProvider;
@@ -69,9 +68,10 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-    private MeetingDocumentAdapter adapter;
+
     private List<TblDocument> documents = new ArrayList<>();
     private ArrayList<TblDocument> mPreDocuments;
+    private PreDocAdpater adapter;
 
 
     public PreDocmentFragment() {
@@ -129,6 +129,7 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_pre_docment, container, false);
         unbinder = ButterKnife.bind(this, view);
+        adapter = new PreDocAdpater(getActivity(), mPreDocuments, this, CommonMethod.FROM_PRE);
         init();
         return view;
     }
@@ -139,7 +140,7 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
             recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
             DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
             recyclerView.addItemDecoration(itemDecoration);
-            recyclerView.setAdapter(new PreDocAdpater(getActivity(), mPreDocuments, this));
+            recyclerView.setAdapter(adapter);
         } else {
             hideRecyclerView();
             txtTitle.setText(formatPlaceDetails(getResources(), "Till Now Not Add Document To meeting", "Quickly add document to", "DocWallet", "to get access fast!!!!"));
@@ -236,13 +237,21 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
     }
 
     @Override
-    public void onItemClcikedListener(int position, final TblDocument items, ImageView img) {
+    public void onItemClcikedListener(final int position, final TblDocument items, ImageView img) {
         PopupMenu popup = new PopupMenu(getActivity(), img);
         //Inflating the Popup using xml file
         popup.getMenuInflater()
-                .inflate(R.menu.popup_menu, popup.getMenu());
+                .inflate(R.menu.popup_post_menu, popup.getMenu());
 
         MenuItem item = popup.getMenu().findItem(R.id.action_share);
+        MenuItem delete = popup.getMenu().findItem(R.id.action_delete);
+        delete.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                deleteItem(items,position);
+                return false;
+            }
+        });
         ShareActionProvider provider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
         shareItem(getActivity(), " File Share of "+items.getMeeting().getTitle()+" Meeting...", items.getFileExt(), new File(items.getFileActPath()), provider);
 
@@ -254,6 +263,19 @@ public class PreDocmentFragment extends Fragment implements PreDocAdpater.ItemCl
 //        });
 
         popup.show(); //showing popup menu
+    }
+
+    private void deleteItem(TblDocument items, int position) {
+        DaoDocumentInteractor interactor = new DaoDocumentInteractor(getActivity());
+        try {
+            interactor.delete(items);
+            mPreDocuments.remove(items);
+            adapter.notifyItemRemoved(position);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     private Uri generateUriFromFile(String fileActPath) {

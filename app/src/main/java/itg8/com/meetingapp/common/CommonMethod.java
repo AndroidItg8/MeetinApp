@@ -3,6 +3,10 @@ package itg8.com.meetingapp.common;
 import android.content.Context;
 import android.content.ContentResolver;
 import android.net.Uri;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 
@@ -66,6 +70,8 @@ public class CommonMethod {
     public static final String FROM_HOME = "FROM_HOME";
     public static final String EXTRA_PROGRESS = "EXTRA_PROGRESS";
     public static final String FROM_SEARCH = "FROM_SEARCH";
+    public static final int FROM_POST = 1;
+    public static final int FROM_PRE = 2;
 
     public static long getDifferenceFromPriority(int priority, long timeDifference) {
         int priorityDiff=getPriorityDifferenceFromSetting(priority);
@@ -153,6 +159,19 @@ public class CommonMethod {
             return MIME_TYPE_TEXT_PLAIN;
         }
         return null;
+    }
+
+    public static int getScreenResolution(Context context)
+    {
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        DisplayMetrics metrics = new DisplayMetrics();
+        display.getMetrics(metrics);
+        int width = metrics.widthPixels;
+        int height = metrics.heightPixels;
+        Log.d("CommonMethod", "getScreenResolution: "+ "{" + width + "," + height + "}");
+        return height;
+
     }
 
 }

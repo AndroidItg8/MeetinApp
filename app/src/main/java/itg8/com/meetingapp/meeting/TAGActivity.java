@@ -10,36 +10,27 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.ActionMode;
 import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.SearchEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.view.accessibility.AccessibilityEvent;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -66,8 +57,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     @BindView(R.id.input_layout_name)
     TextInputLayout inputLayoutName;
 
-    //    @BindView(R.id.recyclerView)
-//    RecyclerView recyclerView;
     @BindView(R.id.btn_add)
     Button btnAdd;
     @BindView(R.id.rl_bottom)
@@ -81,8 +70,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     TextView txtLbl;
     @BindView(R.id.rl_no_tag)
     RelativeLayout rlNoTag;
-    @BindView(R.id.anchor_dropdown)
-    View anchorDropdown;
+
     @BindView(R.id.tag_container_layout)
     TagContainerLayout tagContainerLayout;
     @BindView(R.id.edt_document_title)
@@ -90,39 +78,29 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 
     @BindView(R.id.rl_top)
     RelativeLayout rlTop;
-    private boolean isFromCancel = false;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
     private TblTAG tag;
-    //    private TAGAddAdapter tagAddAdapter;
+
     private DaoTagInteractor tagInteractor;
-    private MenuItem mSerachItem;
-    private Menu menuItem;
-    private ActionMode mActionMode;
+
     private List<TblTAG> tempFilterList;
     private SearchView searchView;
-    private MenuItem myActionMenuItem;
 
-    private ActionMode.Callback mActionModeCallback;
-    private boolean searchViewClosed = true;
     private ArrayList<String> tagHashMap = new ArrayList<>();
     /**
      * isFromHome is For Home Enable
      */
     private boolean isFromHome = false;
-    private boolean hasTagClear = false;
-    private boolean fromSearch;
+
     private DaoMeetingTagInteractor tblTagMeetingInteractor;
-    private WindowCallbackDelegate mWindowCallbackDelegate;
+    private boolean searchViewClosed = false;
+    private boolean fromSearch = false;
+    private boolean hasTagClear = false;
 
     private static Spanned formatPlaceDetails(Resources res, CharSequence title, String sub_title,
                                               CharSequence doc_name) {
         return Html.fromHtml(res.getString(R.string.no_tag, title, sub_title, doc_name));
-
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(TAG_LIST, (ArrayList<? extends Parcelable>) tagList);
 
     }
 
@@ -134,155 +112,10 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         return result;
     }
 
-    private boolean dispachKeyEvent(KeyEvent keyEvent) {
-        if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_UP) {
-            Log.d(TAG, "dispachKeyEvent: ");
-
-        }
-        return false;
-    }
-
-    void createActionMenuCallback() {
-
-        mActionModeCallback = new ActionMode.Callback() {
-
-            // Called when the action mode is created; startActionMode() was called
-            @Override
-            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                // Inflate a menu resource providing context menu items
-                MenuInflater inflater = mode.getMenuInflater();
-                Log.d(TAG, "onCreateActionMode:" + mode);
-                inflater.inflate(R.menu.menu_tag, menu);
-                menu.findItem(R.id.m_search).setVisible(true);
-                Window window = TAGActivity.this.getWindow();
-                mWindowCallbackDelegate = new WindowCallbackDelegate(window.getCallback());
-                window.setCallback(TAGActivity.this);
-
-                if (isFromHome) {
-                    menu.findItem(R.id.menu_delete).setVisible(true).getActionView();
-                    menu.findItem(R.id.menu_ok).setVisible(false).getActionView();
-
-
-                } else {
-                    menu.findItem(R.id.menu_ok).setVisible(true).getActionView();
-                    menu.findItem(R.id.menu_delete).setVisible(false).getActionView();
-                }
-
-                MenuItem menuDelete = menu.findItem(R.id.menu_delete);
-
-                searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.m_search));
-                searchView.setIconifiedByDefault(true);
-                searchView.setIconified(true);
-
-
-                menuDelete.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        showDialoge();
-                        return true;
-                    }
-                });
-
-                searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
-                    @Override
-                    public void onFocusChange(View v, boolean hasFocus) {
-                        Log.d(TAG, "onFocusChange: " + hasFocus);
-                        searchViewClosed = !hasFocus;
-
-                    }
-                });
-
-                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-                    @Override
-                    public boolean onQueryTextSubmit(String s) {
-                        Log.d(TAG, "onQueryTextSubmit: onCreateActionMode" + s);
-                        searchViewClosed = false;
-                        if (!searchView.isIconified()) {
-                            searchView.setIconified(true);
-                            Toast.makeText(TAGActivity.this, "SearchOnQueryTextSubmit: " + s, Toast.LENGTH_SHORT).show();
-
-                        }
-                        myActionMenuItem.collapseActionView();
-                        return false;
-                    }
-
-                    @Override
-                    public boolean onQueryTextChange(final String s) {
-                        Log.d(TAG, "onQueryTextChange: onCreateActionMode" + s);
-                        searchViewClosed = false;
-                        Toast.makeText(TAGActivity.this, "onQueryTextChange: " + s, Toast.LENGTH_SHORT).show();
-                        new Handler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (!TextUtils.isEmpty(s))
-                                    searchFilterTag(s);
-                                else
-                                    createRecyclerViewForTAG();
-                            }
-                        });
-
-                        return false;
-                    }
-                });
-
-                searchView.setOnCloseListener(new SearchView.OnCloseListener() {
-                    @Override
-                    public boolean onClose() {
-                        Log.d(TAG, "SearchView onClose: ");
-                        searchViewClosed = true;
-                        return false;
-                    }
-                });
-
-
-                return true;
-
-            }
-
-            // Called each time the action mode is shown. Always called after onCreateActionMode, but
-            // may be called multiple times if the mode is invalidated.
-            @Override
-            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                return false; // Return false if nothing is done
-            }
-
-            // Called when the user selects a contextual menu item
-            @Override
-            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                int id = item.getItemId();
-                Log.d(TAG, "onActionItemClicked:" + item.getItemId());
-
-                if (id == R.id.menu_ok) {
-
-                    return true;
-                }
-                if (id == R.id.m_search) {
-                    Log.d(TAG, "onActionItemClicked m_search :" + item);
-                    //searchQueryChange(item,FROM_SEARCH);
-
-                } else {
-                    return false;
-                }
-                return false;
-            }
-
-            @Override
-            public void onDestroyActionMode(ActionMode mode) {
-                Log.d(TAG, "onDestroyActionMode:mode " + mode.getTitle());
-
-//                Window.Callback originalWindowCallback = mWindowCallbackDelegate.mOriginalWindowCallback;
-//                if(originalWindowCallback != null)
-//                {
-//                    TAGActivity.this.getWindow().setCallback(originalWindowCallback);
-//                }
-                if (!hasTagClear) {
-                    if (!searchViewClosed)
-                        onCancelButtonClicked();
-                    else
-                        simonGoBack();
-                }
-            }
-        };
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(TAG_LIST, (ArrayList<? extends Parcelable>) tagList);
 
     }
 
@@ -294,20 +127,19 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         clearAllTag();
+                        invalidateOptionsMenu();
 
                     }
                 }).setNegativeButton("NO", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
 
                     }
                 }).create();
         alertDialog.show();
     }
 
-    private void simonGoBack() {
-        onBackPressed();
-    }
 
     private void onCancelButtonClicked() {
         new Handler().post(new Runnable() {
@@ -335,6 +167,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tag);
         ButterKnife.bind(this);
+        setSupportActionBar(toolbar);
 //        createActionMenuCallback();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 //        tagAddAdapter = new TAGAddAdapter(this, tagList, this);
@@ -348,8 +181,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     }
 
     private void checkSaveInstanceSate(Bundle savedInstanceState) {
-        if(savedInstanceState!=null)
-        {
+        if (savedInstanceState != null) {
             tagList = savedInstanceState.getParcelableArrayList(TAG_LIST);
 //            setSelectedTAG();
             createRecyclerViewForTAG();
@@ -381,8 +213,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
      * This Method is for set All TAG Management .
      */
     private void setSelectedTAG() {
-        for (TblTAG tbl :
-                tagList) {
+        for (TblTAG tbl : tagList) {
             tbl.setSelected(true);
 
         }
@@ -427,8 +258,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         for (String tagString :
                 tagHashMap) {
             boolean passtest = false;
-            for (TblTAG tag :
-                    tagList) {
+            for (TblTAG tag : tagList) {
 
                 if (tagString.equalsIgnoreCase(tag.getName())) {
                     passtest = true;
@@ -511,7 +341,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         }
     }
 
-    private void createRecyclerViewForTAG() {
+    private void    createRecyclerViewForTAG() {
         if (tagList.size() > 0) {
             int size = tagList.size();
 
@@ -543,6 +373,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         }
 
 
+
     }
 
     private void tagOnClickListener(final int from) {
@@ -552,6 +383,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
                 try {
                     if (isFromHome)
                         return;
+                    Log.d(TAG, "onTagClick: isFromHome");
 
                     TblTAG text = (TblTAG) object;
                     text.setSelected(!text.isSelected());
@@ -576,7 +408,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
                 invalidateOptionsMenu();
 
 
-
 //                setTagCount();
             }
 
@@ -596,11 +427,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 //                    tagList.remove(position);
                     if (!isFromHome) {
                         test.setSelected(false);
-
                         tagContainerLayout.changeSelectColor(position, test);
-
-
-
                     } else {
                         try {
                             removeTagFromHome(position, test);
@@ -622,6 +449,11 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         tagList.remove(position);
         test.setSelected(false);
         tagInteractor.delete(test);
+        tagList.clear();
+        tagList.addAll(tagInteractor.getTags());
+        if (isFromHome)
+            setSelectedTAG();
+        invalidateOptionsMenu();
 
     }
 
@@ -630,7 +462,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_tag, menu);
         searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.m_search));
-
 
         searchView.setOnQueryTextListener(this);
 
@@ -647,13 +478,23 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
             getSupportActionBar().setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this, R.color.colorPrimary)));
 
         } else {
-            menu.findItem(R.id.menu_ok).setVisible(true);
+            if (isFromHome) {
+                menu.findItem(R.id.menu_delete).setVisible(true);
+                menu.findItem(R.id.menu_ok).setVisible(false);
+            } else {
+                menu.findItem(R.id.menu_ok).setVisible(true);
+                menu.findItem(R.id.menu_delete).setVisible(false);
+            }
+
             if (checkBoxCount == 1) {
                 getSupportActionBar().setTitle(getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + getString(R.string.tag));
             } else {
                 getSupportActionBar().setTitle(getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + getString(R.string.tags));
             }
             getSupportActionBar().setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this, R.color.colorBlack)));
+            if(isFromHome)
+                getSupportActionBar().setTitle( String.valueOf(checkBoxCount) + " " + getString(R.string.tag)+" Selected");
+
 
 
         }
@@ -663,12 +504,14 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
             public boolean onClose() {
                 searchViewClosed = true;
                 initTagList();
-              init();
+                init();
 
 
                 return false;
             }
         });
+
+
 
 
         return true;
@@ -701,7 +544,15 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
             colors.add(col1);
         }
 
-        tagContainerLayout.setTags(tempFilterList, colors, false);
+        if (isFromHome) {
+            tagContainerLayout.setEnableCross(true);
+            tagContainerLayout.setTags(tempFilterList, colors, true);
+        } else {
+            tagContainerLayout.setEnableCross(false);
+            tagContainerLayout.setTags(tempFilterList, colors, false);
+
+        }
+
 
         tagOnClickListener(FROM_SEARCH);
 
@@ -720,9 +571,29 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
             finish();
             return true;
         }
+        if (item.getItemId() == R.id.menu_delete) {
+            showDialoge();
+
+            return true;
+        }
 
 
         return false;
+    }
+
+    private boolean deleteAllTag() {
+        try {
+                tagInteractor.deleteAll(tagList);
+                tagList.clear();
+                showHideView(rlNoTag,rlTop);
+//
+//                tagAddAdapter.notifyItemRemoved(position);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+
+        return true;
     }
 
     private void updateActionBar(int from, boolean isFromCancel) {
@@ -737,7 +608,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         setTagCount(checkBoxCount);
 
 
-
 //        } else {
 //            checkBoxCount = 0;
 //            for (int i = 0; i < tempFilterList.size(); i++) {
@@ -746,7 +616,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 //
 //            }
 
-        }
+    }
 
 
 //        if (checkBoxCount == 0) {
@@ -762,7 +632,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
 //        if (mActionMode != null) {
 //            setTagCount();
 //        }
-
 
 
     private void setTagCount(int checkBoxCount) {
@@ -809,10 +678,8 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     }
 
     private void closeSearchViewAddBtn() {
-        if(searchView!= null)
-        {
-            if(!searchView.isIconified())
-            {
+        if (searchView != null) {
+            if (!searchView.isIconified()) {
                 searchView.setIconified(true);
             }
         }
@@ -857,7 +724,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         if (!searchView.isIconified()) {
             searchView.setIconified(true);
 //            Toast.makeText(TAGActivity.this, "SearchOnQueryTextSubmit: " + query, Toast.LENGTH_SHORT).show();
-
+            return true;
         }
         return false;
     }
@@ -870,6 +737,7 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
         new Handler().post(new Runnable() {
             @Override
             public void run() {
+                Log.d(TAG, "run: onQueryTextChange isFromHome:"+isFromHome);
                 searchFilterTag(newText);
             }
         });
@@ -966,132 +834,6 @@ public class TAGActivity extends AppCompatActivity implements View.OnClickListen
     protected void onDestroy() {
         super.onDestroy();
         isFromHome = false;
-    }
-
-    public class WindowCallbackDelegate implements Window.Callback {
-        private Window.Callback mOriginalWindowCallback;
-
-        public WindowCallbackDelegate(Window.Callback mOriginalWindowCallback) {
-            this.mOriginalWindowCallback = mOriginalWindowCallback;
-        }
-
-        @Override
-        public boolean dispatchKeyEvent(KeyEvent keyEvent) {
-            return TAGActivity.this.dispachKeyEvent(keyEvent) || mOriginalWindowCallback.dispatchKeyEvent(keyEvent);
-        }
-
-        @Override
-        public boolean dispatchKeyShortcutEvent(KeyEvent keyEvent) {
-            return false;
-        }
-
-        @Override
-        public boolean dispatchTouchEvent(MotionEvent motionEvent) {
-            return false;
-        }
-
-        @Override
-        public boolean dispatchTrackballEvent(MotionEvent motionEvent) {
-            return false;
-        }
-
-        @Override
-        public boolean dispatchGenericMotionEvent(MotionEvent motionEvent) {
-            return false;
-        }
-
-        @Override
-        public boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent accessibilityEvent) {
-            return false;
-        }
-
-        @Nullable
-        @Override
-        public View onCreatePanelView(int i) {
-            return null;
-        }
-
-        @Override
-        public boolean onCreatePanelMenu(int i, Menu menu) {
-            return false;
-        }
-
-        @Override
-        public boolean onPreparePanel(int i, View view, Menu menu) {
-            return false;
-        }
-
-        @Override
-        public boolean onMenuOpened(int i, Menu menu) {
-            return false;
-        }
-
-        @Override
-        public boolean onMenuItemSelected(int i, MenuItem menuItem) {
-            return false;
-        }
-
-        @Override
-        public void onWindowAttributesChanged(WindowManager.LayoutParams layoutParams) {
-
-        }
-
-        @Override
-        public void onContentChanged() {
-
-        }
-
-        @Override
-        public void onWindowFocusChanged(boolean b) {
-
-        }
-
-        @Override
-        public void onAttachedToWindow() {
-
-        }
-
-        @Override
-        public void onDetachedFromWindow() {
-
-        }
-
-        @Override
-        public void onPanelClosed(int i, Menu menu) {
-
-        }
-
-        @Override
-        public boolean onSearchRequested() {
-            return false;
-        }
-
-        @Override
-        public boolean onSearchRequested(SearchEvent searchEvent) {
-            return false;
-        }
-
-        @Nullable
-        @Override
-        public android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback callback) {
-            return null;
-        }
-
-        @Nullable
-        @Override
-        public android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback callback, int i) {
-            return null;
-        }
-
-        @Override
-        public void onActionModeStarted(android.view.ActionMode actionMode) {
-
-        }
-
-        @Override
-        public void onActionModeFinished(android.view.ActionMode actionMode) {
-
-        }
     }
 
 

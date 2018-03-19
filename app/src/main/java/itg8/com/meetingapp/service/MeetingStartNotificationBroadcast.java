@@ -24,6 +24,7 @@ import itg8.com.meetingapp.db.DaoMeetingInteractor;
 import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.import_meeting.MeetingDetailActivity;
 
+import static itg8.com.meetingapp.service.NotificationBroadcast.MY_STATIC_CHANNEL_ID;
 import static itg8.com.meetingapp.service.NotificationBroadcast.NOTIFICATION_CHANNEL_NAME;
 
 public class MeetingStartNotificationBroadcast extends BroadcastReceiver {
@@ -70,13 +71,20 @@ public class MeetingStartNotificationBroadcast extends BroadcastReceiver {
 
         NotificationCompat.Builder builder = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            builder = new NotificationCompat.Builder(context, MY_STATIC_CHANNEL_ID)
-                    .setSmallIcon(R.drawable.bg_item_cross)
-                    .setOngoing(false)
-                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                    .setCustomContentView(meetingCustomview)
-                    .setContentIntent(pIntent);
+
+            builder = new NotificationCompat.Builder(context, MY_STATIC_CHANNEL_ID);
+        } else {
+            builder = new NotificationCompat.Builder(context);
         }
+
+        builder.setSmallIcon(R.drawable.bg_item_cross);
+        builder .setOngoing(false);
+        builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+        builder  .setCustomContentView(meetingCustomview);
+        builder.setContentIntent(pIntent);
+
+
+
         NotificationManager managerCompat = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (managerCompat != null && builder != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

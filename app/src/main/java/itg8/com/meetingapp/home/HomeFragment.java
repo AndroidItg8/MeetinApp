@@ -4,7 +4,7 @@ package itg8.com.meetingapp.home;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.os.PersistableBundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
@@ -21,6 +21,7 @@ import com.github.tibolte.agendacalendarview.models.DayItem;
 import com.github.tibolte.agendacalendarview.models.IDayItem;
 import com.github.tibolte.agendacalendarview.models.IWeekItem;
 import com.github.tibolte.agendacalendarview.models.WeekItem;
+import com.github.tibolte.agendacalendarview.widgets.CalenderSaveInstance;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -51,6 +52,8 @@ import itg8.com.meetingapp.db.DaoMeetingInteractor;
 import itg8.com.meetingapp.db.TblMeeting;
 import itg8.com.meetingapp.import_meeting.MeetingDetailActivity;
 
+
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link HomeFragment#newInstance} factory method to
@@ -63,6 +66,12 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
     private static final String ARG_PARAM2 = "param2";
     private static final String TAG = "HomeFragment";
     private static final String LOG_TAG = HomeFragment.class.getSimpleName();
+    private static final int RC_CHANGE_MEETING = 12;
+    private static final String MEETING_LIST = "MEETING_LIST";
+    private static final String EVENTS_ID = "EVENTS_ID";
+    private static final String BASE_EVENT = "BASE_EVENT";
+
+
     @BindView(R.id.agenda_calendar_view)
     AgendaCalendarView agendaCalendarView;
     Unbinder unbinder;
@@ -74,8 +83,10 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
     private CalendarManager calendarManager;
     private boolean checkedOnces=false;
     private boolean hasView;
-
-
+    private List<TblMeeting> listMeeting;
+    private CalendarEvent singleEvent;
+    private long eventId;
+    private CalenderSaveInstance listener;
 
 
     public HomeFragment() {
@@ -111,13 +122,8 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-//        outState.putParcelableArrayList("cityList", (ArrayList<? extends Parcelable>) cityList);
-//        prepareData();
-//        outState.putParcelable("listProfile", profileModel);
-
-
-
-    }
+        outState.putParcelableArrayList(MEETING_LIST, (ArrayList<? extends Parcelable>) listMeeting);
+}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -126,9 +132,9 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         unbinder = ButterKnife.bind(this, view);
         hasView=true;
-                daoMeeting= new DaoMeetingInteractor(getActivity());
-        getEntriesFromDb();
-
+        checkedOnces=false;
+        daoMeeting= new DaoMeetingInteractor(getActivity());
+            getEntriesFromDb();
         return view;
     }
 
@@ -137,7 +143,8 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
         Observable.fromCallable(new Callable<List<TblMeeting>>() {
             @Override
             public List<TblMeeting> call() throws Exception {
-                    return daoMeeting.getMeetingSortByWithPriority(TblMeeting.START_TIME,priority);
+        listMeeting = daoMeeting.getMeetingSortByWithPriority(TblMeeting.START_TIME,priority);
+                    return listMeeting;
             }
         }).flatMap(new Function<List<TblMeeting>, ObservableSource<List<TblMeeting>>>() {
             @Override
@@ -181,7 +188,6 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
                     minDate.setTime(tblMeetings.get(0).getStartTime());
                     maxDate.setTime(tblMeetings.get(tblMeetings.size() - 1).getStartTime());
                 }
-//        maxDate.add(Calendar.YEAR,1);
                 calendarManager = CalendarManager.getInstance(getActivity());
                 calendarManager.buildCal(minDate,maxDate, Locale.getDefault(),new DayItem(), new WeekItem());
                 e.onNext(tblMeetings);
@@ -200,34 +206,9 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
 
     private void calenderStuff(List<TblMeeting> tblMeetings)
     {
-
-
         agendaCalendarView.enableCalenderView(true);
         agendaCalendarView.enableFloatingIndicator(true);
-
-
-
-//                Log.d(TAG,"MaxDATE"+ maxDate.getTime());
-//                Log.d(TAG,"minDate"+ minDate.getTime());
-
-//        List<CalendarEvent> eventList = new ArrayList<>();
-
-//        mockList(eventList);
-        // Sync way
-        /*
-        mAgendaCalendarView.init(eventList, minDate, maxDate, Locale.getDefault(), this);
-        mAgendaCalendarView.addEventRenderer(new DrawableEventRenderer());
-        */
-        //Async way
-
-
-        //////// This can be done once in another thread
-
         initEvent(tblMeetings);
-//        calendarManager.loadEvents(eventList,new BaseCalendarEvent());
-
-        ////////
-
 
 
     }
@@ -286,6 +267,7 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
         List<CalendarEvent> readyEvents = calendarManager.getEvents();
         List<IDayItem> readyDays = calendarManager.getDays();
         List<IWeekItem> readyWeeks = calendarManager.getWeeks();
+        Log.d(TAG, "initOtherRenderer:Locale.getDefault() "+Locale.getDefault()+"readyWeeks:"+readyWeeks.toString()+"readyDays:"+readyDays.toString()+"readyEvents");
         agendaCalendarView.init(Locale.getDefault(),readyWeeks,readyDays,readyEvents,this);
         agendaCalendarView.addEventRenderer(new DrawableEventRenderer());
     }
@@ -297,15 +279,19 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
     @Override
     public void onDaySelected(IDayItem dayItem) {
         Log.d(LOG_TAG, String.format("Selected day: %s", dayItem));
+
     }
 
     @Override
     public void onEventSelected(CalendarEvent event) {
         Log.d(LOG_TAG, String.format("Selected event: %s", event.getId()));
+       eventId = event.getId();
+
         if(event.getId()==0)
             return;
         try {
             TblMeeting meeting=daoMeeting.getMeetingById(event.getId());
+
             Intent intent=new Intent(getActivity(), MeetingDetailActivity.class);
             intent.putExtra(CommonMethod.EXTRA_MEETING,meeting);
             startActivity(intent);
@@ -319,46 +305,53 @@ public class HomeFragment extends Fragment implements CalendarPickerController {
         if (((HomeActivity)getActivity()).getSupportActionBar() != null) {
             getActivity().setTitle(calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()));
 
-//             (((HomeActivity)getActivity()).setTitle(calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())));
         }
     }
-
-    // endregion
-
-    // region Private Methods
-
-//    private void mockList(List<CalendarEvent> eventList) {
-//        Calendar startTime1 = Calendar.getInstance();
-//        Calendar endTime1 = Calendar.getInstance();
-//        endTime1.add(Calendar.MONTH, 2);
-//        BaseCalendarEvent event1 = new BaseCalendarEvent("Thibault travels in Iceland", "A wonderful journey!", "Iceland",
-//                ContextCompat.getColor(getActivity(), R.color.colorFire), startTime1, endTime1, true);
-//        eventList.add(event1);
-//
-//        Calendar startTime2 = Calendar.getInstance();
-//        startTime2.add(Calendar.DAY_OF_YEAR, 3);
-//        Calendar endTime2 = Calendar.getInstance();
-//        endTime2.add(Calendar.DAY_OF_YEAR, 3);
-//        BaseCalendarEvent event2 = new BaseCalendarEvent("Visit to Dalvík", "A beautiful small town", "Dalvík",
-//                ContextCompat.getColor(getActivity(), R.color.colorAmbulance), startTime2, endTime2, true);
-//        eventList.add(event2);
-//
-//        Calendar startTime3 = Calendar.getInstance();
-//        Calendar endTime3 = Calendar.getInstance();
-//        startTime3.set(Calendar.HOUR_OF_DAY, 14);
-//        startTime3.set(Calendar.MINUTE, 4);
-//        endTime3.set(Calendar.HOUR_OF_DAY, 15);
-//        endTime3.set(Calendar.MINUTE, 0);
-//        DrawableCalendarEvent event3 = new DrawableCalendarEvent("Visit of Harpa", "", "Dalvík",
-//                ContextCompat.getColor(getActivity(), R.color.theme_primary), startTime3, endTime3, false, android.R.drawable.ic_dialog_info);
-//        eventList.add(event3);
-//    }
 
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         hasView=false;
+        listMeeting=null;
+       agendaCalendarView.onViewDestoyed();
         unbinder.unbind();
     }
+
+
+
+
+//    @Override
+//    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+//        super.onActivityCreated(savedInstanceState);
+//        if(listMeeting == null)
+//        {
+//            daoMeeting= new DaoMeetingInteractor(getActivity());
+//            getEntriesFromDb();
+//
+//        }else
+//        {
+//            listMeeting= savedInstanceState.getParcelableArrayList(MEETING_LIST);
+//            eventId = savedInstanceState.getLong(EVENTS_ID);
+//            if(hasView)
+//                calenderStuff(listMeeting);
+//            if(listener!=null)
+//                listener.onSaveInstanceState(true,this);
+//        }
+//
+//    }
+//
+//    @Override
+//    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+//        super.onViewStateRestored(savedInstanceState);
+//        if (savedInstanceState != null) {
+//            if (savedInstanceState.getParcelableArrayList(MEETING_LIST) != null) {
+//                listMeeting = savedInstanceState.getParcelableArrayList(MEETING_LIST);
+//                eventId = savedInstanceState.getLong(EVENTS_ID);
+//            }
+//        }
+//    }
+
+
+
 }

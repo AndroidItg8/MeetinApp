@@ -108,8 +108,7 @@ public class CalendarView extends LinearLayout {
                             getViewTreeObserver().removeGlobalOnLayoutListener(this);
                         }
                     }
-                }
-        );
+                });
     }
 
     @Override
@@ -241,7 +240,6 @@ public class CalendarView extends LinearLayout {
      */
     private int updateSelectedDay(Calendar calendar, IDayItem dayItem) {
         Integer currentWeekIndex = null;
-
         // update highlighted/selected day
         if (!dayItem.equals(getSelectedDay())) {
             dayItem.setSelected(true);

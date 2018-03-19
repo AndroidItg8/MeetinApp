@@ -3,7 +3,7 @@ package com.github.tibolte.agendacalendarview.models;
 import java.util.Calendar;
 import java.util.Date;
 
-public interface IDayItem {
+public interface IDayItem  {
 
     // region Getters/Setters
 

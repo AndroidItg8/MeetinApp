@@ -47,8 +47,8 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
     private static final String MESSAGE_IMPORT = "MESSAGE_IMPORT";
     private static final String MESSAGE_FINISHED = "MESSAGE_FINISHED";
     private static final String PROGRESS_STATE = "PROGRESS_STATE";
-    private static final String BTN_IMPORT = "BTN_IMPORT";
-    private static final String BTN_CHECK_OUT = "BTN_CHECK_OUT";
+
+    private static final String BTN_STATE = "BTN_STATE";
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -86,6 +86,7 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
     @BindView(R.id.btn_import)
     Button btnImport;
     private TblMeeting meeting;
+    private State currentState;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -93,9 +94,9 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
         outState.putString(MESSAGE, txtMessages.getText().toString());
         outState.putString(MESSAGE_IMPORT, txtMessageImport.getText().toString());
         outState.putString(MESSAGE_FINISHED, txtMessageFinished.getText().toString());
-        outState.putInt(PROGRESS_STATE, progress.getProgress());
-        outState.putBoolean(BTN_IMPORT, true);
-        outState.putBoolean(BTN_CHECK_OUT, true);
+        outState.putSerializable(BTN_STATE, currentState);
+
+//        outState.putBoolean(BTN_CHECK_OUT, btnDetail.isActivated());
 
 
     }
@@ -120,26 +121,36 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
         if (savedInstanceState != null) {
             if (savedInstanceState.getString(MESSAGE) != null) {
                 txtMessages.setText(savedInstanceState.getString(MESSAGE));
-                showClearButton();
-                txtMessageImport.setText(savedInstanceState.getString(MESSAGE_IMPORT));
             }
 
             if (savedInstanceState.getString(MESSAGE_IMPORT) != null) {
                 txtMessageImport.setText(savedInstanceState.getString(MESSAGE_IMPORT));
-                btnDetail.setVisibility(View.VISIBLE);
-
             }
             if (savedInstanceState.getString(MESSAGE_FINISHED) != null) {
                 txtMessageFinished.setText(savedInstanceState.getString(MESSAGE_FINISHED));
+            }
 
+            if (savedInstanceState.getSerializable(BTN_STATE) != null) {
+
+                switch ((State) savedInstanceState.getSerializable(BTN_STATE)) {
+                    case PASTE:
+                        clearPasteData();
+                        break;
+                    case CLEAR:
+                        break;
+                    case IMPORT:
+                        ClipboardPaste();
+                        break;
+                    case CHECKOUT:
+                        importMessage();
+                        rlEmpty.setVisibility(View.GONE);
+                        break;
+
+
+                }
 
             }
-            if (savedInstanceState.getInt(PROGRESS_STATE) > 0) {
-                progress.setProgress(savedInstanceState.getInt(PROGRESS_STATE));
 
-            }
-            if (savedInstanceState.getBoolean(BTN_IMPORT))
-                btnDetail.setVisibility(View.VISIBLE);
 
         }
 
@@ -159,18 +170,24 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_paste:
+                currentState = null;
+                currentState = State.IMPORT;
                 ClipboardPaste();
-                showClearButton();
                 break;
 
             case R.id.btn_import:
+                currentState = null;
+                currentState = State.CHECKOUT;
                 importMessage();
                 break;
 
             case R.id.btn_clear:
+                currentState = null;
+                currentState = State.PASTE;
                 clearPasteData();
                 break;
             case R.id.btn_detail:
+
                 Intent intent = new Intent(this, MeetingDetailActivity.class);
                 intent.putExtra(CommonMethod.EXTRA_MEETING, meeting);
                 startActivity(intent);
@@ -338,6 +355,7 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
         hideFinishedLayout();
         hideImportLayout();
         showEmptyPage();
+
     }
 
     private void hideImportLayout() {
@@ -354,6 +372,7 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
     }
 
     private void showClearButton() {
+
         btnClear.setVisibility(View.VISIBLE);
         btnPaste.setVisibility(View.GONE);
         hideEmptyPage();
@@ -382,6 +401,8 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
             android.text.ClipboardManager clipboard = (android.text.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             pasteText = clipboard.getText().toString();
             txtMessages.setText(pasteText);
+            showClearButton();
+
 
         } else {
 
@@ -390,6 +411,7 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
                 ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
                 pasteText = item.getText().toString();
                 txtMessages.setText(pasteText);
+                showClearButton();
 
             } else {
 
@@ -411,5 +433,12 @@ public class ImportMeetingActivity extends AppCompatActivity implements View.OnC
 
     public void setMeeting(TblMeeting meeting) {
         this.meeting = meeting;
+    }
+
+    private enum State {
+        PASTE,
+        CLEAR,
+        IMPORT,
+        CHECKOUT
     }
 }

@@ -11,4 +11,5 @@ public interface CalendarPickerController {
     void onEventSelected(CalendarEvent event);
 
     void onScrollToDate(Calendar calendar);
+
 }

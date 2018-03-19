@@ -1,21 +1,25 @@
 package itg8.com.meetingapp.import_meeting;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -45,6 +49,7 @@ import itg8.com.meetingapp.db.TblMeetingTag;
 import itg8.com.meetingapp.db.TblTAG;
 import itg8.com.meetingapp.document_meeting.DocumentMeetingActivity;
 import itg8.com.meetingapp.meeting.MeetingActivity;
+import itg8.com.meetingapp.meeting.TAGActivity;
 import itg8.com.meetingapp.service.NotificationService;
 
 public class MeetingDetailActivity extends AppCompatActivity implements View.OnClickListener {
@@ -52,6 +57,7 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
     private static final String TAG = "MeetingDetailActivity";
     private static final int RC_REQUEST_CODE = 987;
     private static final int RC_MEETING_EDIT = 986;
+    private static final int RC_DOCUMENT = 988;
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.lbl_date)
@@ -152,8 +158,13 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
         lblDateValue.setText(Helper.getDateFromDate(meeting.getStartTime()));
         lblTitle.setText(meeting.getTitle());
         lblPlaceValue.setText(checkNull(meeting.getAddress()));
-        if (meeting.getLongitude() == 0 || meeting.getLatitude() == 0)
+        Log.d(TAG, "setMeetingRelatedDetail: meeting End Time:"+meeting.getEndTime().getTime());
+
+        if (meeting.getLongitude() == 0 || meeting.getLatitude() == 0 || TextUtils.isEmpty(meeting.getAddress()))
             imgNavigate.setVisibility(View.GONE);
+        else
+            imgNavigate.setVisibility(View.VISIBLE);
+
         lblPriorityValue.setText(Helper.getPriorityFromType(meeting.getPriority()));
         lblTimeValue.setText(new StringBuilder().append(Helper.getStringTimeFromDate(meeting.getStartTime())).append(" - ").append(Helper.getStringTimeFromDate(meeting.getEndTime())).toString());
         if (Calendar.getInstance().getTimeInMillis() < meeting.getEndTime().getTime() && Calendar.getInstance().getTimeInMillis() > meeting.getStartTime().getTime()) {
@@ -193,7 +204,7 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
                     intent.putExtra(CommonMethod.EXTRA_PROGRESS, isInProgress);
                     intent.putParcelableArrayListExtra(CommonMethod.EXTRA_PRE_DOCUMENTS, (ArrayList<? extends Parcelable>) preDocuments);
                     intent.putParcelableArrayListExtra(CommonMethod.EXTRA_POST_DOCUMENTS, (ArrayList<? extends Parcelable>) postDocuments);
-                    startActivity(intent);
+                    startActivityForResult(intent, RC_DOCUMENT);
                 }
             });
 
@@ -282,7 +293,8 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
                 // openBottomSheetAddDocument();
                 Intent intent = new Intent(getApplicationContext(), DocumentMeetingActivity.class);
 //                intent.putExtra(CommonMethod.EXTRA_MEETING,meeting.getPkid());
-                startActivity(intent);
+//                intent.putExtra(CommonMethod.EXTRA_MEETING,meeting.getPkid());
+                startActivityForResult(intent, RC_DOCUMENT);
                 break;
             case R.id.img_edit:
                 callMeetingActivityForEdit();
@@ -291,7 +303,7 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
                 completeMeeting();
                 break;
             case R.id.btn_delete:
-                deleteMeeting();
+                showDialoge();
                 break;
             case R.id.img_navigate:
                 navigateToMap();
@@ -299,8 +311,30 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
         }
     }
 
+    private void showDialoge() {
+        final AlertDialog alertDialog = new AlertDialog.Builder(MeetingDetailActivity.this)
+                .setTitle("Delete Meeting")
+                .setMessage("Would you like to delete meeting?")
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        deleteMeeting();
+
+
+                    }
+                }).setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+
+                    }
+                }).create();
+        alertDialog.show();
+    }
+
     private void navigateToMap() {
-        final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://maps.google.com/maps?" + "saddr=" + meeting.getLatitude() + "," + meeting.getLongitude() + "&daddr=" + meeting.getLatitude() + "," + meeting.getLongitude()));
+        Log.d(TAG, "navigateToMap: " +"latitude"+meeting.getLatitude()+"longitude:"+meeting.getLongitude());
+        final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://maps.google.com/maps?q=loc:" + meeting.getLatitude() + "," + meeting.getLongitude() + " (" + meeting.getTitle() + ")"));
         intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
         startActivity(intent);
     }
@@ -328,14 +362,26 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
     }
 
     private void completeMeeting() {
-        meeting.setEndTime(Calendar.getInstance().getTime());
-        try {
-            daoMeeting.update(meeting);
-            setMeetingRelatedDetail();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Fail to update meeting", Toast.LENGTH_SHORT).show();
-        }
+         if(Calendar.getInstance().getTimeInMillis() > meeting.getEndTime().getTime())
+         {
+             meeting.setEndTime(Calendar.getInstance().getTime());
+             try {
+
+                 daoMeeting.update(meeting);
+                 setMeetingRelatedDetail();
+                 btnComplete.setText("COMPLETED");
+             } catch (SQLException e) {
+                 e.printStackTrace();
+                 Toast.makeText(this, "Fail to update meeting", Toast.LENGTH_SHORT).show();
+             }
+
+         }else
+         {
+             setMeetingRelatedDetail();
+             btnComplete.setText("COMPLETE");
+
+         }
+
     }
 
     private void callMeetingActivityForEdit() {
@@ -355,14 +401,24 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == RC_MEETING_EDIT) {
-            setAllTextView();
+        if (requestCode == RC_MEETING_EDIT || requestCode== RC_DOCUMENT) {
+            if(resultCode == RESULT_OK)
+                setAllTextView(data);
         }
 
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void setAllTextView() {
+    private void setAllTextView(Intent data) {
+//        final long meetingId = data.getLongExtra(CommonMethod.EXTRA_MEETING, 0);
+        try {
+            meeting =daoMeeting.getMeetingById(meeting.getPkid());
+            setMeetingRelatedDetail();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
 
     }
 
@@ -383,6 +439,7 @@ public class MeetingDetailActivity extends AppCompatActivity implements View.OnC
                 .append("\n\n").append("download link : -").append("---");
         return sb.toString();
     }
+
 
 
 }

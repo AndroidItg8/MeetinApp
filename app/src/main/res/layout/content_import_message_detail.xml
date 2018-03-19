@@ -76,7 +76,6 @@
         android:layout_marginRight="10dp"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
-
         app:srcCompat="@drawable/ic_mode_edit_black_24dp" />
 
     <View
@@ -90,8 +89,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/ll_button"
-        android:layout_marginBottom="20dp"
+        android:layout_above="@+id/view_button"
         android:layout_below="@+id/view">
 
         <RelativeLayout
@@ -131,13 +129,14 @@
                     android:layout_alignLeft="@+id/title"
                     android:visibility="visible"
                     app:container_border_color="#ffffffff"
+                    app:container_background_color="#ffffffff"
                     app:container_border_radius="0dp"
                     app:container_enable_drag="false"
                     app:container_gravity="left"
                     app:horizontal_interval="10dp"
                     android:layout_marginEnd="10dp"
                     android:layout_marginRight="10dp"
-                    app:tag_background_color="#ffffffff"
+                    app:tag_background_color="#afedecec"
                     app:tag_clickable="true"
                     app:tag_corner_radius="15dp"
                     app:tag_enable_cross="true"
@@ -300,7 +299,6 @@
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
                 android:layout_marginTop="3dp"
-                android:layout_marginBottom="16dp"
                 android:layout_marginStart="10dp"
                 android:background="@drawable/bg_button_document"
                 android:paddingTop="04dp"
@@ -320,7 +318,6 @@
         android:id="@+id/view_button"
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:layout_marginTop="16dp"
         android:layout_above="@+id/txtMeetingStatus"
         android:background="@color/colorGrayLight" />
 

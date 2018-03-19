@@ -3,6 +3,7 @@ package itg8.com.meetingapp.meeting;
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ContentProviderOperation;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -65,10 +66,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Array;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -137,49 +138,50 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private static final String DATE_VALUE = "DATE_VALUE";
     private static final String PRIPROTY = "PRIPROTY";
     private static final String TAG_LIST = "TAG_LIST";
+    private static final int FROM_SAVE_INSTANCE = 2;
+    private static final int FROM_ON_CREATE = 1;
     @BindView(R.id.toolbar)
     Toolbar toolbar;
-    @BindView(R.id.scrollView)
-    MaxHeightScrollView scrollView;
-    //    @BindView(R.id.app_bar)
-//    RelativeLayout appBar;
+    @BindView(R.id.edt_agenda)
+    EditText edtAgenda;
+    @BindView(R.id.tag_container_layout)
+    TagContainerLayout tagContainerLayout;
 
+
+    @BindView(R.id.rl_tag_container)
+    RelativeLayout rlTagContainer;
+    @BindView(R.id.lbl_due_date)
+    TextView lblDueDate;
     @BindView(R.id.lbl_lab)
     TextView lblLab;
-    @BindView(R.id.img_due_cross)
-    ImageView imgDueCross;
     @BindView(R.id.img_time)
     ImageView imgTime;
     @BindView(R.id.edt_date)
     EditText edtDate;
     @BindView(R.id.img_end_time)
     ImageView imgEndTime;
-    @BindView(R.id.edt_end_time)
-    EditText edtEndTime;
     @BindView(R.id.edt_start_time)
     EditText edtStartTime;
+    @BindView(R.id.edt_end_time)
+    EditText edtEndTime;
     @BindView(R.id.rl_due)
     RelativeLayout rlDue;
+    @BindView(R.id.img_due_cross)
+    ImageView imgDueCross;
     @BindView(R.id.ll_due)
     LinearLayout llDue;
     @BindView(R.id.lbl_reminder)
     TextView lblReminder;
     @BindView(R.id.lbl_reminder_lbl)
     TextView lblReminderLbl;
-    @BindView(R.id.img_reminder_cross)
-    ImageView imgReminderCross;
-    @BindView(R.id.img_times)
-    ImageView imgTimes;
     @BindView(R.id.txt_pri)
     TextView txtPri;
-    @BindView(R.id.rl_reminder)
-    RelativeLayout rlReminder;
+    @BindView(R.id.img_reminder_cross)
+    ImageView imgReminderCross;
     @BindView(R.id.ll_reminder)
     LinearLayout llReminder;
     @BindView(R.id.lbl_place)
     TextView lblPlace;
-    @BindView(R.id.lbl_add_place)
-    TextView lblAddPlace;
     @BindView(R.id.img_place_cross)
     ImageView imgPlaceCross;
     @BindView(R.id.lbl_add_name)
@@ -190,48 +192,29 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     TextView lblImage;
     @BindView(R.id.lbl_add_image)
     TextView lblAddImage;
-    @BindView(R.id.ll_doc)
-    LinearLayout llDoc;
-    @BindView(R.id.lbl_participeint)
-    TextView lblParticipeint;
-    @BindView(R.id.img_phone_book)
-    ImageView imgPhoneBook;
-    @BindView(R.id.lbl_add_person)
-    TextView lblAddPerson;
-    //    @BindView(R.id.recyclerView)
-//    RecyclerView recyclerView;
-    ;
-    @BindView(R.id.fab)
-    FloatingActionButton fab;
-    @BindView(R.id.rl_address)
-    RelativeLayout rlAddress;
     @BindView(R.id.img_doc_close)
     ImageView imgDocClose;
     @BindView(R.id.rvDocuments)
     RecyclerView rvDocuments;
+    @BindView(R.id.ll_doc)
+    LinearLayout llDoc;
+    @BindView(R.id.lbl_participeint)
+    TextView lblParticipeint;
+    @BindView(R.id.lbl_add_person)
+    TextView lblAddPerson;
+    @BindView(R.id.img_phone_book)
+    ImageView imgPhoneBook;
     @BindView(R.id.rl_participant)
     RelativeLayout rlParticipant;
-
-    @BindView(R.id.edt_agenda)
-    EditText edtAgenda;
-    //    @BindView(R.id.recyclerViewTAG)
-//    RecyclerView recyclerViewTAG;
-    TblContact contact = new TblContact();
-    DaoContactInteractor contactInteractor;
-    EditText lblDocumentNote = null;
-    EditText edtNumber = null;
-    TextInputLayout inputLayout = null;
-    TextInputLayout inputLayoutNumber = null;
-    @BindView(R.id.tag_container_layout)
-    TagContainerLayout tagContainerLayout;
-    @BindView(R.id.rl_tag_container)
-    RelativeLayout rlTagContainer;
-    @BindView(R.id.lbl_due_date)
-    TextView lblDueDate;
     @BindView(R.id.tag_container_layout_participant)
     TagContainerLayout tagContainerLayoutParticipant;
+    @BindView(R.id.scrollView)
+    MaxHeightScrollView scrollView;
     @BindView(R.id.ll_add_person)
     LinearLayout llAddPerson;
+    @BindView(R.id.fab)
+    FloatingActionButton fab;
+    List<TblTAG> contacts = new ArrayList<TblTAG>();
     private String[] permissions;
     private boolean canAccessCamera;
     private boolean canAccessLocation;
@@ -263,7 +246,6 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private DaoMeetingInteractor daoMeeting;
     private DaoTagInteractor daoTag;
     private DaoMeetingTagInteractor daoMeetingTag;
-
     private boolean isFromEdit = false;
     //    private HashMap<String, TblTAG> tagHashMap = new HashMap<>();
     private TblMeetingTag meetingTag;
@@ -271,6 +253,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private AlertDialog dialog;
     private String strName;
     private ArrayList<TblTAG> temTagList;
+    private DaoContactInteractor contactInteractor;
+    private EditText edtNumber;
+    private EditText lblDocumentNote;
+    private TblContact contact;
+    private TextInputLayout inputLayout;
+    private TextInputLayout inputLayoutNumber;
 
 
     /**
@@ -288,21 +276,21 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (rvDocuments != null) {
+        if (documents != null) {
             outState.putParcelableArrayList(DOCUMENT_LIST, (ArrayList<? extends Parcelable>) documents);
         }
         if (tagContainerLayoutParticipant != null) {
             outState.putParcelableArrayList(PARTICIPANT_LIST, (ArrayList<? extends Parcelable>) contactList);
         }
 
+        outState.putParcelableArrayList(TAG_LIST, (ArrayList<? extends Parcelable>) contacts);
         outState.putString(AGENDA, edtAgenda.getText().toString());
         outState.putString(DATE_VALUE, Helper.getStringDateFromCalander(selectedDate));
         outState.putString(STARTED_TIME, Helper.getStringDateFromCalander(selectedStartTime));
         outState.putString(ENDED_TIME, Helper.getStringDateFromCalander(selectedEndTime));
         outState.putString(PLACE, lblAddName.getText().toString());
         outState.putString(PRIPROTY, txtPri.getText().toString());
-        if (tagContainerLayout != null)
-            outState.putParcelableArrayList(TAG_LIST, (ArrayList<? extends Parcelable>) temTagList);
+
     }
 
     @Override
@@ -323,12 +311,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         presenter = new MeetingPresenterImp(this);
         mClient = new GoogleApiClient.Builder(this).addApi(Places.GEO_DATA_API).addApi(Places.PLACE_DETECTION_API).build();
         contactInteractor = new DaoContactInteractor(MeetingActivity.this);
-        checkSaveInstanceState(savedInstanceState);
+        createRecyclerviewForDocuments();
         initDaoInteractors();
         init();
         checkEveryPermissions();
-        createRecyclerviewForDocuments();
         checkIfFromEdit();
+        checkSaveInstanceState(savedInstanceState);
 
     }
 
@@ -336,40 +324,42 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         if (outState != null) {
             Log.d(TAG, "onCreate: OnSAVE INSTANCE STATE");
 
-            if(outState.getString(AGENDA)!= null)
+            if (outState.getString(AGENDA) != null)
                 edtAgenda.setText(outState.getString(AGENDA));
-            if(outState.getString(PLACE)!= null)
+            if (outState.getString(PLACE) != null)
                 lblAddName.setText(outState.getString(PLACE));
-            if(outState.getString(PRIPROTY)!=null)
-            {
+            if (outState.getString(PRIPROTY) != null) {
                 txtPri.setText(outState.getString(PRIPROTY));
-                hideShowView(lblReminderLbl, rlReminder);
+                hideShowView(lblReminderLbl, txtPri);
+                imgPlaceCross.setVisibility(View.VISIBLE);
             }
-            if(outState.getString(ENDED_TIME)!= null && outState.getString(STARTED_TIME)!= null) {
-                edtEndTime.setText((outState.getString(ENDED_TIME)));
-                edtStartTime.setText(outState.getString(STARTED_TIME));
-                hideShowView(lblLab, rlDue);
-                Log.d(TAG, "checkSaveInstanceState: PRI:" + outState.getString(PRIPROTY));
-                Log.d(TAG, "checkSaveInstanceState: END TIME:" + outState.getString(ENDED_TIME));
-                Log.d(TAG, "checkSaveInstanceState: STARTED TIME:" + outState.getString(STARTED_TIME));
+            if (outState.getString(ENDED_TIME) != null && outState.getString(STARTED_TIME) != null) {
+                if (!TextUtils.isEmpty(edtEndTime.getText().toString()) && !TextUtils.isEmpty(edtStartTime.getText().toString())) {
+                    edtEndTime.setText((outState.getString(ENDED_TIME)));
+                    edtStartTime.setText(outState.getString(STARTED_TIME));
+                    hideShowView(lblLab, rlDue);
+                }
+
+
             }
 //            edtDate.setText(Helper.getDateFromDate(String.valueOf(outState.getString(DATE_VALUE))));
             if (rvDocuments != null) {
-                documents = outState.getParcelableArrayList(DOCUMENT_LIST);
-                if(documents!= null && documents.size()>0)
-                    createRecyclerviewForDocuments();
-
+                documents.clear();
+                if (outState.<TblDocument>getParcelableArrayList(DOCUMENT_LIST) != null) {
+                    documents.addAll(outState.<TblDocument>getParcelableArrayList(DOCUMENT_LIST));
+                    adapter.notifyDataSetChanged();
+                }
 
             }
             if (tagContainerLayoutParticipant != null) {
-                contactList = outState.getParcelableArrayList(PARTICIPANT_LIST);
-                Log.d(TAG, "checkSaveInstanceState: contactTemp:" + contactList);
+                contactList.clear();
+                contactList.addAll(outState.<TblContact>getParcelableArrayList(PARTICIPANT_LIST));
+                Log.d(TAG, "checkSaveInstanceState: contactTemp:" + contactList.size());
                 setParticipantTAG();
             }
-            if(tagContainerLayout!= null)
-            {
-                temTagList = outState.getParcelableArrayList(TAG_LIST);
-                createRecyclerViewForTAG(temTagList);
+            if (tagContainerLayout != null) {
+                contacts = outState.getParcelableArrayList(TAG_LIST);
+                createRecyclerViewForTAG(contacts);
             }
 
 
@@ -425,13 +415,15 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         edtStartTime.setText(Helper.getStringTimeFromDate(selectedStartTime.getTime()));
         expandDue();
 
-        lblReminder.setText(Helper.getPriorityFromType(meeting.getPriority()));
-        hideShowView(lblReminderLbl, rlReminder);
+        hideShowView(lblReminderLbl, txtPri);
+        imgReminderCross.setVisibility(View.VISIBLE);
+        txtPri.setText(Helper.getPriorityFromType(meeting.getPriority()));
 
 
         if (!TextUtils.isEmpty(meeting.getAddress())) {
             lblAddName.setText(meeting.getAddress());
-            hideShowView(lblAddPlace, rlAddress);
+//            hideShowView(lblAddPlace, rlAddress);
+            imgPlaceCross.setVisibility(View.VISIBLE);
         }
         try {
             documents.addAll(daoDocument.getDocumentsByMeetingId(meeting.getPkid()));
@@ -439,7 +431,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             if (documents.size() > 0) {
                 toggleDocumentView(SHOW_DOCUMENT);
             }
+            contactList.clear();
+            setSelectedContactTag();
             contactList.addAll(daoContact.getContactsByMeetingId(meeting.getPkid()));
+            Log.d(TAG, "setMeetingContent: contactTemp:" + contactList.size());
+
 //            adapterContact.notifyDataSetChanged();
             setParticipantTAG();
             List<TblMeetingTag> tags = meeting.getTags();
@@ -464,6 +460,20 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
     }
 
+    private void setSelectedContactTag() {
+        try {
+            for (TblContact contact : daoContact.getContactsByMeetingId(meeting.getPkid())) {
+                contact.setSelected(true);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        {
+
+        }
+
+    }
+
     private void changeHashmapValueFromUpdatedTagList() {
 //        for (TblTAG tag :
 //                tagList) {
@@ -478,9 +488,9 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
 
-    private void createRecyclerViewForTAG(ArrayList<TblTAG> contacts) {
-        if (tagList.size() > 0) {
-            int size = tagList.size();
+    private void createRecyclerViewForTAG(List<TblTAG> contacts) {
+        if (contacts.size() > 0) {
+            int size = contacts.size();
 
             List<int[]> colors = new ArrayList<int[]>();
             for (int i = 0; i < size; i++) {
@@ -600,11 +610,17 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         if (!validateMeetingDetails()) {
             return;
         }
-        boolean isInserted = getCompleteDetailForMeeting();
+        boolean isInserted =
+                getCompleteDetailForMeeting();
         if (isInserted) {
             presenter.saveMeeting(meeting);
             Toast.makeText(this, "Meeting stored successfully", Toast.LENGTH_SHORT).show();
-            onBackPressed();
+            if (isFromEdit) {
+                setResult(RESULT_OK);
+                onBackPressed();
+            } else
+                onBackPressed();
+
         } else {
             Toast.makeText(this, "Fail to store meeting.", Toast.LENGTH_SHORT).show();
         }
@@ -635,7 +651,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void showSnackbar(String text) {
-        Snackbar snackbar = Snackbar.make(rlReminder, text, Snackbar.LENGTH_LONG);
+        Snackbar snackbar = Snackbar.make(rlParticipant, text, Snackbar.LENGTH_LONG);
         snackbar.show();
     }
 
@@ -646,6 +662,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         meeting.setStartTime(selectedStartTime.getTime());
         meeting.setEndTime(selectedEndTime.getTime());
         meeting.setNotified(CommonMethod.NOT_NOTIFIED);
+        if (lblAddName.getText().toString().equalsIgnoreCase("Select place of meeting"))
+            meeting.setAddress(null);
+        else
+            meeting.setAddress(lblAddName.getText().toString());
+
         try {
             if (isFromEdit) {
                 daoMeeting.update(meeting);
@@ -655,8 +676,11 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
             e.printStackTrace();
             return false;
         }
-        for (TblContact contact :
-                contactList) {
+        if (isFromEdit) {
+            daoContact.deleteAll(meeting.getContacts());
+        }
+        for (TblContact contact : contactList) {
+            contact.setSelected(true);
             contact.setMeeting(meeting);
             try {
                 daoContact.insert(contact);
@@ -686,6 +710,15 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 e.printStackTrace();
                 return false;
             }
+        }
+        if (isFromEdit) {
+            try {
+                daoMeetingTag.deleteAll(meeting.getTags());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+
         }
 
         for (String tag :
@@ -744,6 +777,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 break;
             case R.id.img_place_cross:
                 lblAddName.setText("Select place of meeting");
+                imgPlaceCross.setVisibility(View.GONE);
                 break;
             case R.id.rl_participant:
                 if (canPhoneState)
@@ -1075,25 +1109,30 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void toggleDocumentView(boolean showDocument) {
-        if (showDocument) {
-            hideShowView(lblAddPlace, rlAddress);
-
-
-        } else {
-            hideShowView(lblAddPlace, rlAddress);
-
-        }
+//        if (showDocument) {
+//            hideShowView(lblAddPlace, rlAddress);
+//
+//
+//        } else {
+//            hideShowView(lblAddPlace, rlAddress);
+//
+//        }
     }
 
     private void togglePlaceView(boolean showPlace) {
 //        startActivity(new Intent(getApplicationContext(), NearByLocationActivity.class));
         OpenGooglePlaces();
         if (showPlace) {
-            hideShowView(lblAddPlace, rlAddress);
+//            hideShowView(lblAddPlace, rlAddress);
+//            imgPlaceCross.setVisibility(View.VISIBLE);
+            lblAddName.setVisibility(View.VISIBLE);
 
 
         } else {
-            hideShowView(rlAddress, lblAddPlace);
+//            hideShowView(rlAddress, lblAddPlace);
+            imgPlaceCross.setVisibility(View.GONE);
+            lblAddName.setVisibility(View.VISIBLE);
+            lblAddName.setText("Select place of meeting");
 
         }
     }
@@ -1144,6 +1183,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 meeting.setLongitude(place.getLatLng().longitude);
                 meeting.setAddress(String.valueOf(place.getAddress()));
                 lblAddName.setText(place.getAddress());
+                imgPlaceCross.setVisibility(View.VISIBLE);
+
 
                 // Display attributions if required.
 //                CharSequence attributions = place.getAttributions();
@@ -1257,7 +1298,8 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
 
                 ArrayList<Contact> contacts = new ArrayList<Contact>();
                 contacts = data.getParcelableArrayListExtra("contacts");
-                int itemCountOld = contactList.size();
+
+
                 for (Contact c : contacts) {
                     Log.d("Selected contact = ", c.getEmail());
                     contact = new TblContact();
@@ -1265,6 +1307,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                     contact.setNumber(c.getNumber());
                     contact.setSelected(true);
                     insertContactNotExits(contact);
+
 
 //                    adapterContact.notifyItemInserted(contactList.size()-1);
                 }
@@ -1275,13 +1318,13 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         } else if (requestCode == RC_TAG) {
 //            getContactDetail(resultCode, data);
             if (resultCode == RESULT_OK) {
-                ArrayList<TblTAG> contacts = new ArrayList<TblTAG>();
-                temTagList = new ArrayList<TblTAG>();
+
 
                 tagList.clear();
 
                 contacts = data.getParcelableArrayListExtra("tag");
-                temTagList = ( data.getParcelableArrayListExtra("tag"));
+                Log.d(TAG, "onActivityResult: TAGSLIST SIZE" + contacts.size());
+
                 int itemCountOld = tagList.size();
 
                 for (TblTAG c : contacts) {
@@ -1290,8 +1333,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 //initTagHashmap();
 //                changeHashmapValueFromUpdatedTagList();
 //                contacts.clear();
-
-
+                Log.d(TAG, "onActivityResult: TAGSLIST SIZE" + tagList.size());
                 createRecyclerViewForTAG(contacts);
 
             }
@@ -1346,7 +1388,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 int[] col1 = {Color.parseColor("#ffffff"), Color.parseColor("#C1562E"), Color.parseColor("#C1562E")};
                 colors.add(col1);
             }
-            tagContainerLayoutParticipant.setEnableCross(true);
+//            tagContainerLayoutParticipant.setEnableCross(true);
             tagContainerLayoutParticipant.setCrossColor(Color.parseColor("#C1562E"));
             tagContainerLayoutParticipant.setParticipantTags(contactList, colors);
             tagContainerLayoutParticipant.setOnTagClickListener(new TagView.OnTagClickListener() {
@@ -1438,10 +1480,13 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private void toggleReminderView(boolean showReminder) {
         if (showReminder) {
             OpenCustomDialogueFragment();
-            hideShowView(lblReminderLbl, rlReminder);
+            hideShowView(lblReminderLbl, txtPri);
+            imgReminderCross.setVisibility(View.VISIBLE);
 
         } else {
-            hideShowView(rlReminder, lblReminderLbl);
+            hideShowView(txtPri, lblReminderLbl);
+            imgReminderCross.setVisibility(View.GONE);
+
 
         }
     }
@@ -1461,9 +1506,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     private void toggleDueView(boolean showDue) {
         if (showDue) {
             hideShowView(lblLab, rlDue);
+            imgDueCross.setVisibility(View.VISIBLE);
+
 
         } else {
             hideShowView(rlDue, lblLab);
+            imgDueCross.setVisibility(View.GONE);
 
         }
 
@@ -1480,7 +1528,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
      * check if priority set or not
      */
     private boolean isPrioritySet() {
-        return rlReminder.getVisibility() == View.VISIBLE;
+        return txtPri.getVisibility() == View.VISIBLE;
     }
 
 
@@ -1613,7 +1661,7 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         if (perms.contains(Manifest.permission.READ_EXTERNAL_STORAGE)
                 || perms.contains(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             canStorage = isGranted;
-            if (canStorage) showFileManager();
+            if (isGranted && Arrays.equals(permissions, getStoragePermission())) showFileManager();
         }
         if (perms.contains(Manifest.permission.ACCESS_COARSE_LOCATION) || perms.contains(Manifest.permission.ACCESS_FINE_LOCATION)) {
             canAccessLocation = isGranted;
@@ -1623,7 +1671,12 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
         }
         if (perms.contains(Manifest.permission.CAMERA)) {
             canAccessCamera = isGranted;
-            if (canAccessCamera) showCamera();
+
+            if (isGranted && Arrays.equals(permissions, getCameraPermission())) {
+                Log.d(TAG, "checkPrems: ShowCamera");
+                showCamera();
+            }
+
 
         }
         if (perms.contains(Manifest.permission.READ_CONTACTS)) {
@@ -1652,8 +1705,10 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
                 if (which == 0) {
                     if (canAccessCamera)
                         showCamera();
-                    else
+                    else {
                         checkCameraPerm();
+
+                    }
                 } else {
                     if (canStorage)
                         showFileManager();
@@ -1759,14 +1814,25 @@ public class MeetingActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void showPreviewOfDocument(TblDocument document) {
-        DocType type = Helper.getDocumentExtention(document.getFileName());
-        openDocumentWithType(type);
+//        DocType type = Helper.getDocumentExtention(document.getFileName());
+        openDocumentWithType(document );
     }
 
-    private void openDocumentWithType(DocType type) {
-        switch (type) {
-            //TODO Create preview
+    private void openDocumentWithType(TblDocument type) {
 
+        viewDocumentFromEdit( type);
+
+    }
+
+    private void viewDocumentFromEdit(TblDocument document) {
+        Intent newIntent = new Intent(Intent.ACTION_VIEW);
+        newIntent.setDataAndType(FileProvider.getUriForFile(MeetingActivity.this, "itg8.com.meetingapp.fileprovider", new File(document.getFileActPath())), CommonMethod.getMimetypeFromFilename("." + document.getFileExt()));
+        newIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        try {
+            MeetingActivity.this.startActivity(newIntent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(MeetingActivity.this, "No handler for this type of file.", Toast.LENGTH_LONG).show();
         }
     }
 

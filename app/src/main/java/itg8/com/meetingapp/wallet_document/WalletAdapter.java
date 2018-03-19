@@ -1,7 +1,10 @@
 package itg8.com.meetingapp.wallet_document;
 
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,13 +17,16 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import itg8.com.meetingapp.R;
+import itg8.com.meetingapp.common.CommonMethod;
 import itg8.com.meetingapp.common.Helper;
 import itg8.com.meetingapp.db.DaoDocumentInteractor;
 import itg8.com.meetingapp.db.TblDocument;
@@ -59,7 +65,7 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
         itemRowHolder.recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         DividerItemDecoration itemDecoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
         itemRowHolder.recyclerView.addItemDecoration(itemDecoration);
-        itemRowHolder.recyclerView.setAdapter(new PreDocAdpater(context, getDocumentsByMeetingId(list.get(position).getPkid()),this));
+        itemRowHolder.recyclerView.setAdapter(new PreDocAdpater(context, getDocumentsByMeetingId(list.get(position).getPkid()),this, CommonMethod.FROM_POST));
         itemRowHolder.lblTitleFull.setVisibility(View.GONE);
         itemRowHolder.lblTitle.setVisibility(View.VISIBLE);
         itemRowHolder.lblTitleFull.setText(list.get(position).getTitle());
@@ -91,6 +97,16 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
 
     @Override
     public void onItemClickedShowListener(int position, TblDocument item) {
+        Intent newIntent = new Intent(Intent.ACTION_VIEW);
+//        String mimeType = myMime.getMimeTypeFromExtension(item.getFileExt());
+        newIntent.setDataAndType(FileProvider.getUriForFile(context, "itg8.com.meetingapp.fileprovider", new File(item.getFileActPath())), CommonMethod.getMimetypeFromFilename("." + item.getFileExt()));
+        newIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        try {
+            context.startActivity(newIntent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(context, "No handler for this type of file.", Toast.LENGTH_LONG).show();
+        }
 
     }
 
@@ -128,7 +144,10 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
                     return true;
                 }
             });
-        }}
+
+        }
+
+    }
 
     public interface cardOnLongPressListerner {
 

@@ -44,4 +44,12 @@ public class DaoContactInteractor {
     public List<TblContact> getContactsByMeetingId(long pkid) throws SQLException {
        return helper.getContactDao().queryBuilder().where().eq(TblContact.FIELD_MEETING_ID,pkid).query();
     }
+
+    public void deleteAll(List<TblContact> contacts) {
+        try {
+            helper.getContactDao().delete(contacts);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

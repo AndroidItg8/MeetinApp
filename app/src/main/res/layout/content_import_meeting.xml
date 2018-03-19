@@ -39,8 +39,7 @@
                 android:layout_centerHorizontal="true"
                 android:fontFamily="sans-serif"
                 android:gravity="center"
-                android:text="Click PASTE button to import meeting details...
-"
+                android:text="Click PASTE button to import meeting details..."
                 android:textColor="@color/colorGray"
                 android:textSize="@dimen/import_meeting_text"
                 android:textStyle="normal" />

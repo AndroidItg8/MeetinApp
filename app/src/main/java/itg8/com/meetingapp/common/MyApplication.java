@@ -1,6 +1,5 @@
 package itg8.com.meetingapp.common;
 
-import android.app.AlarmManager;
 import android.app.Application;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -10,15 +9,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import org.acra.ACRA;
 import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
-
-import java.util.Calendar;
 
 import itg8.com.meetingapp.R;
 import itg8.com.meetingapp.meeting.MeetingActivity;
@@ -42,14 +38,15 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         mInstance = this;
-        ACRA.init(this);
+        //  ACRA.init(this);
         mInstance.initPreference();
-        Prefs.putBoolean(CommonMethod.SETTING_PREF_NOTIFICATION_TOGGLE,true);
-        Prefs.putInt(CommonMethod.PRIORITY_LOW,1);
-        Prefs.putInt(CommonMethod.PRIORITY_MEDIUM,2);
-        Prefs.putInt(CommonMethod.PRIORITY_HIGH,3);
-
+        PreferenceManager.setDefaultValues(this,getString(R.string.pref_notification_toggle),MODE_PRIVATE,R.xml.app_pref,true);
+        Prefs.putBoolean(CommonMethod.SETTING_PREF_NOTIFICATION_TOGGLE, true);
+        Prefs.putInt(CommonMethod.PRIORITY_LOW, 1);
+        Prefs.putInt(CommonMethod.PRIORITY_MEDIUM, 2);
+        Prefs.putInt(CommonMethod.PRIORITY_HIGH, 3);
         sendBroadcastForUpdation();
+
     }
 
     private void initPreference() {
@@ -67,7 +64,7 @@ public class MyApplication extends Application {
             intent.setClass(getApplicationContext(), NotificationBroadcast.class);
             Log.d(TAG, "sendBroadcastForUpdation: Sending Broadcast");
             sendBroadcast(intent);
-        }else {
+        } else {
 //            Intent intent = new Intent(getApplicationContext(), NotificationBroadcast.class);
 //            intent.setAction(CommonMethod.ACTION_START_STATIC_NOTIFICATION);
 //            PendingIntent pendingIntent=PendingIntent.getBroadcast(this,0,intent,0);
@@ -86,41 +83,39 @@ public class MyApplication extends Application {
 //            }
 
 
-
             sendNotificationDirectly();
         }
     }
 
     private void sendNotificationDirectly() {
-        Context context=this;
-        RemoteViews staticNotificationView =new RemoteViews(context.getPackageName(), R.layout.notification_static_menu);
-        staticNotificationView.setImageViewResource(R.id.img_add,R.drawable.ic_add_circle_black_24dp);
-        staticNotificationView.setImageViewResource(R.id.img_import,R.drawable.ic_import);
-        boolean isInMeeting=Prefs.getBoolean(CommonMethod.PREF_MEETING_MODE,false);
-        staticNotificationView.setImageViewResource(R.id.img_meeting, isInMeeting ?R.drawable.ic_in_meeting:R.drawable.ic_no_in_meeting);
-        staticNotificationView.setImageViewResource(R.id.img_wallet,Prefs.getBoolean(CommonMethod.PREF_HAS_DOCUMENT,false)?R.drawable.ic_folder_fullfill:R.drawable.ic_folder_empty);
-        staticNotificationView.setImageViewResource(R.id.img_more_menu,R.drawable.ic_keyboard_arrow_right_black_24dp);
+        Context context = this;
+        RemoteViews staticNotificationView = new RemoteViews(context.getPackageName(), R.layout.notification_static_menu);
+        staticNotificationView.setImageViewResource(R.id.img_add, R.drawable.ic_add_circle_black_24dp);
+        staticNotificationView.setImageViewResource(R.id.img_import, R.drawable.ic_import);
+        boolean isInMeeting = Prefs.getBoolean(CommonMethod.PREF_MEETING_MODE, false);
+        staticNotificationView.setImageViewResource(R.id.img_meeting, isInMeeting ? R.drawable.ic_in_meeting : R.drawable.ic_no_in_meeting);
+        staticNotificationView.setImageViewResource(R.id.img_wallet, Prefs.getBoolean(CommonMethod.PREF_HAS_DOCUMENT, false) ? R.drawable.ic_folder_fullfill : R.drawable.ic_folder_empty);
+        staticNotificationView.setImageViewResource(R.id.img_more_menu, R.drawable.ic_keyboard_arrow_right_black_24dp);
 
-        Intent notificationMeetingIntent= new Intent(CommonMethod.ACTION_START_STATIC_NOTIFICATION);
-        Log.d(TAG,"IsInMeeting: "+isInMeeting);
-        notificationMeetingIntent.putExtra(CommonMethod.NOTIFICATION_CHANGE_MEETING,isInMeeting);
-        PendingIntent notificationMeetingPendingIntent=PendingIntent.getBroadcast(context,0,notificationMeetingIntent,0);
-        staticNotificationView.setOnClickPendingIntent(R.id.img_meeting,notificationMeetingPendingIntent);
+        Intent notificationMeetingIntent = new Intent(CommonMethod.ACTION_START_STATIC_NOTIFICATION);
+        Log.d(TAG, "IsInMeeting: " + isInMeeting);
+        notificationMeetingIntent.putExtra(CommonMethod.NOTIFICATION_CHANGE_MEETING, isInMeeting);
+        PendingIntent notificationMeetingPendingIntent = PendingIntent.getBroadcast(context, 0, notificationMeetingIntent, 0);
+        staticNotificationView.setOnClickPendingIntent(R.id.img_meeting, notificationMeetingPendingIntent);
 
 
-        Intent notificationWalletIntent= new Intent(context, WalletActivity.class);
-        Log.d(TAG,"IsInMeeting: "+isInMeeting);
+        Intent notificationWalletIntent = new Intent(context, WalletActivity.class);
+        Log.d(TAG, "IsInMeeting: " + isInMeeting);
 //        notificationMeetingIntent.putExtra(CommonMethod.NOTIFICATION_CHANGE_MEETING,isInMeeting);
-        PendingIntent notificationWalletPendingIntent=PendingIntent.getActivity(context,0,notificationWalletIntent,0);
-        staticNotificationView.setOnClickPendingIntent(R.id.img_wallet,notificationWalletPendingIntent);
+        PendingIntent notificationWalletPendingIntent = PendingIntent.getActivity(context, 0, notificationWalletIntent, 0);
+        staticNotificationView.setOnClickPendingIntent(R.id.img_wallet, notificationWalletPendingIntent);
 
 
-        Intent notificationAddMeetingIntent= new Intent(context, MeetingActivity.class);
-        Log.d(TAG,"IsInMeeting: "+isInMeeting);
+        Intent notificationAddMeetingIntent = new Intent(context, MeetingActivity.class);
+        Log.d(TAG, "IsInMeeting: " + isInMeeting);
 //        notificationMeetingIntent.putExtra(CommonMethod.NOTIFICATION_CHANGE_MEETING,isInMeeting);
-        PendingIntent notificationAddMeetingPendingIntent=PendingIntent.getActivity(context,0,notificationAddMeetingIntent,0);
-        staticNotificationView.setOnClickPendingIntent(R.id.img_add,notificationAddMeetingPendingIntent);
-
+        PendingIntent notificationAddMeetingPendingIntent = PendingIntent.getActivity(context, 0, notificationAddMeetingIntent, 0);
+        staticNotificationView.setOnClickPendingIntent(R.id.img_add, notificationAddMeetingPendingIntent);
 
 
         //notification for orio
@@ -152,22 +147,28 @@ public class MyApplication extends Application {
         }
 
 
-        NotificationCompat.Builder builder= null;
+        NotificationCompat.Builder builder = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            builder = new NotificationCompat.Builder(context,MY_STATIC_CHANNEL_ID)
-                    .setSmallIcon(R.drawable.ic_access_time_black_24dp)
-                    .setOngoing(true)
-                    .setPriority(NotificationCompat.PRIORITY_MAX)
-//                    .setCustomHeadsUpContentView(staticNotificationView)
-                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                    .setCustomContentView(staticNotificationView);
+            builder = new NotificationCompat.Builder(context, MY_STATIC_CHANNEL_ID);
+            builder.setPriority(NotificationCompat.PRIORITY_MAX);
+        } else {
+            builder = new NotificationCompat.Builder(getApplicationContext());
         }
-        if(getManager(context)!=null && builder!=null)
-            getManager(context).notify(CommonMethod.STATIC_NOTIFICATION_ID,builder.build());
-        else
-            throw new NullPointerException("NotificationService not available.");
+        builder.setSmallIcon(R.drawable.ic_access_time_black_24dp);
+        builder.setOngoing(true);
+//                    .setCustomHeadsUpContentView(staticNotificationView)
+        builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+        builder.setCustomContentView(staticNotificationView);
+
+            if (getManager(context) != null)
+                getManager(context).notify(CommonMethod.STATIC_NOTIFICATION_ID, builder.build());
+            else
+                throw new NullPointerException("NotificationService not available. Manager Null");
+
+            
 
     }
+
     private NotificationManager getManager(Context context) {
         if (mManager == null) {
             mManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);

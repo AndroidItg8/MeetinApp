@@ -23,6 +23,7 @@ public class TblContact implements Parcelable {
     public static final String CONTACT_NUMBER="number";
     public static final String FIELD_MEETING_ID="meeting_id";
 
+
     @DatabaseField(columnName = FIELD_ID,generatedId = true)
     private long pkid;
 

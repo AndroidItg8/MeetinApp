@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.os.Handler;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -30,6 +32,7 @@ import com.github.tibolte.agendacalendarview.render.EventRenderer;
 import com.github.tibolte.agendacalendarview.utils.BusProvider;
 import com.github.tibolte.agendacalendarview.utils.Events;
 import com.github.tibolte.agendacalendarview.utils.ListViewScrollTracker;
+import com.github.tibolte.agendacalendarview.widgets.CalenderSaveInstance;
 import com.github.tibolte.agendacalendarview.widgets.FloatingActionButton;
 
 import java.util.Calendar;
@@ -46,6 +49,7 @@ public class AgendaCalendarView extends FrameLayout implements StickyListHeaders
     private static final String LOG_TAG = AgendaCalendarView.class.getSimpleName();
 
     private CalendarView mCalendarView;
+    private static final String TAG = "AgendaCalendarView";
     private AgendaView mAgendaView;
     private FloatingActionButton mFloatingActionButton;
 
@@ -61,6 +65,7 @@ public class AgendaCalendarView extends FrameLayout implements StickyListHeaders
         public void onScrollStateChanged(AbsListView view, int scrollState) {
 
         }
+
 
         @Override
         public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
@@ -129,8 +134,17 @@ public class AgendaCalendarView extends FrameLayout implements StickyListHeaders
 
         BusProvider.getInstance().toObserverable()
                 .subscribe(event -> {
+                    Log.d(TAG, "send:Object onFinishInflate: "+ event.getClass().getSimpleName());
                     if (event instanceof Events.DayClickedEvent) {
-                        mCalendarPickerController.onDaySelected(((Events.DayClickedEvent) event).getDay());
+
+                        if(mCalendarPickerController==null)
+                            return;
+                        try {
+                            Log.d(TAG, "onFinishInflate: mCalendarPickerController : "+mCalendarPickerController);
+                            mCalendarPickerController.onDaySelected(((Events.DayClickedEvent) event).getDay());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     } else if (event instanceof Events.EventsFetched) {
                         ObjectAnimator alphaAnimation = new ObjectAnimator().ofFloat(this, "alpha", getAlpha(), 1f).setDuration(500);
                         alphaAnimation.addListener(new Animator.AnimatorListener() {
@@ -214,7 +228,9 @@ public class AgendaCalendarView extends FrameLayout implements StickyListHeaders
     }
 
     public void init(Locale locale, List<IWeekItem> lWeeks, List<IDayItem> lDays, List<CalendarEvent> lEvents, CalendarPickerController calendarPickerController) {
+        Log.d(TAG, "init: calendarPickerController"+calendarPickerController);
         mCalendarPickerController = calendarPickerController;
+
 
         CalendarManager.getInstance(getContext()).loadCal(locale, lWeeks, lDays, lEvents);
 
@@ -249,8 +265,18 @@ public class AgendaCalendarView extends FrameLayout implements StickyListHeaders
         mFloatingActionButton.setVisibility(enable ? VISIBLE : GONE);
     }
 
+    public void onViewDestoyed()
+    {
+        BusProvider.getInstance().destoryBusProvider();
+    }
+
+
 
 
 
     // endregion
+
+
+
+
 }

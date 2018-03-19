@@ -19,7 +19,6 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:windowSoftInputMode="adjustPan"
-        android:resizeableActivity="false"
         android:configChanges="orientation|screenSize|keyboardHidden"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
@@ -107,10 +106,8 @@
             android:name=".import_meeting.MeetingDetailActivity"
             android:label="@string/title_activity_import_message_detail"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".test.ScrollingActivity"
-            android:label="@string/title_activity_scrolling"
-            android:theme="@style/AppTheme.NoActionBar" />
+
+
         <activity
             android:name=".import_meeting.AddMeetingNoteActivity"
             android:label="@string/title_activity_add_meeting_note"
@@ -127,7 +124,10 @@
         <activity android:name=".meeting.MultipleContactPickerActivity" />
         <activity
             android:name=".meeting.TAGActivity"
-            android:label="@string/title_activity_tag"/>
+            android:theme="@style/AppTheme.NoActionBar"
+            android:label="@string/title_activity_tag">
+
+        </activity>
 
         <activity android:name=".home.SearchActivity"
             android:theme="@style/AppTheme.NoActionBar"

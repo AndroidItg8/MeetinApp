@@ -1,11 +1,14 @@
 package com.github.tibolte.agendacalendarview.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.Calendar;
 
 /**
  * Event model class containing the information to be displayed on the agenda view.
  */
-public class BaseCalendarEvent implements CalendarEvent {
+public class BaseCalendarEvent implements CalendarEvent ,Parcelable {
 
     public boolean isMeeting() {
         return isMeeting;
@@ -309,4 +312,62 @@ public class BaseCalendarEvent implements CalendarEvent {
                 + mInstanceDay.getTime()
                 + "}";
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeByte(this.isMeeting ? (byte) 1 : (byte) 0);
+        dest.writeLong(this.mId);
+        dest.writeInt(this.mColor);
+        dest.writeString(this.mTitle);
+        dest.writeString(this.mDescription);
+        dest.writeString(this.mLocation);
+        dest.writeSerializable(this.mInstanceDay);
+        dest.writeSerializable(this.mStartTime);
+        dest.writeSerializable(this.mEndTime);
+        dest.writeByte(this.mAllDay ? (byte) 1 : (byte) 0);
+        dest.writeByte(this.mPlaceHolder ? (byte) 1 : (byte) 0);
+        dest.writeByte(this.mWeather ? (byte) 1 : (byte) 0);
+        dest.writeString(this.mDuration);
+        dest.writeParcelable((Parcelable) this.mDayReference, flags);
+        dest.writeParcelable((Parcelable) this.mWeekReference, flags);
+        dest.writeString(this.mWeatherIcon);
+        dest.writeDouble(this.mTemperature);
+    }
+
+    protected BaseCalendarEvent(Parcel in) {
+        this.isMeeting = in.readByte() != 0;
+        this.mId = in.readLong();
+        this.mColor = in.readInt();
+        this.mTitle = in.readString();
+        this.mDescription = in.readString();
+        this.mLocation = in.readString();
+        this.mInstanceDay = (Calendar) in.readSerializable();
+        this.mStartTime = (Calendar) in.readSerializable();
+        this.mEndTime = (Calendar) in.readSerializable();
+        this.mAllDay = in.readByte() != 0;
+        this.mPlaceHolder = in.readByte() != 0;
+        this.mWeather = in.readByte() != 0;
+        this.mDuration = in.readString();
+        this.mDayReference = in.readParcelable(IDayItem.class.getClassLoader());
+        this.mWeekReference = in.readParcelable(IWeekItem.class.getClassLoader());
+        this.mWeatherIcon = in.readString();
+        this.mTemperature = in.readDouble();
+    }
+
+    public static final Parcelable.Creator<BaseCalendarEvent> CREATOR = new Parcelable.Creator<BaseCalendarEvent>() {
+        @Override
+        public BaseCalendarEvent createFromParcel(Parcel source) {
+            return new BaseCalendarEvent(source);
+        }
+
+        @Override
+        public BaseCalendarEvent[] newArray(int size) {
+            return new BaseCalendarEvent[size];
+        }
+    };
 }

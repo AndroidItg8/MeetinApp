@@ -1,6 +1,8 @@
 package com.github.tibolte.agendacalendarview;
 
 import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.github.tibolte.agendacalendarview.models.CalendarEvent;
@@ -75,10 +77,12 @@ public class CalendarManager {
     }
 
     private void setLocale(Locale locale) {
-        this.mLocale = locale;
-        setToday(Calendar.getInstance(mLocale));
-        mWeekdayFormatter = new SimpleDateFormat(getContext().getString(R.string.day_name_format), mLocale);
-        mMonthHalfNameFormat = new SimpleDateFormat(getContext().getString(R.string.month_half_name_format), locale);
+        if (locale != null) {
+            this.mLocale = locale;
+            setToday(Calendar.getInstance(mLocale));
+            mWeekdayFormatter = new SimpleDateFormat(getContext().getString(R.string.day_name_format), mLocale);
+            mMonthHalfNameFormat = new SimpleDateFormat(getContext().getString(R.string.month_half_name_format), locale);
+        }
     }
 
     public Context getContext() {
@@ -264,4 +268,9 @@ public class CalendarManager {
     }
 
     // endregion
+
+
+
+
+
 }

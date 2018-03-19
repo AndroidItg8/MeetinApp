@@ -110,20 +110,21 @@ public class NotificationBroadcast extends BroadcastReceiver {
 
         NotificationCompat.Builder builder = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            builder = new NotificationCompat.Builder(context, MY_STATIC_CHANNEL_ID)
-                    .setSmallIcon(R.drawable.ic_add_black_24dp)
-                    .setOngoing(true)
-                    .setPriority(NotificationCompat.PRIORITY_LOW)
-                    .setOnlyAlertOnce(true)
-                    .setSound(null)
-//                    .setCustomHeadsUpContentView(staticNotificationView)
-                    .setWhen(System.currentTimeMillis())
-                    .setVibrate(new long[]{0, 0, 0, 0, 0, 0, 0, 0, 0})
-
-                    .setCustomContentView(staticNotificationView);
-
-
+            builder = new NotificationCompat.Builder(context, MY_STATIC_CHANNEL_ID);
+        } else {
+            builder = new NotificationCompat.Builder(context);
         }
+
+        builder.setSmallIcon(R.drawable.ic_add_black_24dp);
+        builder.setOngoing(true);
+        builder.setPriority(NotificationCompat.PRIORITY_LOW);
+        builder .setOnlyAlertOnce(true);
+        builder .setSound(null);
+//                    .setCustomHeadsUpContentView(staticNotificationView)
+        builder .setWhen(System.currentTimeMillis());
+        builder.setVibrate(new long[]{0, 0, 0, 0, 0, 0, 0, 0, 0});
+
+        builder .setCustomContentView(staticNotificationView);
         if (getManager(context) != null && builder != null)
             getManager(context).notify(CommonMethod.STATIC_NOTIFICATION_ID, builder.build());
         else

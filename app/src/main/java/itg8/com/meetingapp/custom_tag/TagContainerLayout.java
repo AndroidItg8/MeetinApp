@@ -567,7 +567,10 @@ public class TagContainerLayout extends ViewGroup {
 
             size = mTags.size();
         } else if (object instanceof TblContact) {
+            ((TblContact) object).setSelected(true);
             isSelected = ((TblContact) object).isSelected();
+            Log.d(TAG, "initTagView isSelected: "+isSelected);
+
             isFromContact = true;
             size = mParticipant.size();
         }
@@ -586,22 +589,18 @@ public class TagContainerLayout extends ViewGroup {
         }
 
         if (isSelected ) {
-            if(isFromHome)
+            if(isFromHome || isFromContact)
                 tagView.setEnableCross(true);
             else
                 tagView.setEnableCross(false);
-
-
-
             if (isFromContact) {
                 tagView.setTagBackgroundColor(colors[0]);
             } else
                 tagView.setTagBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorGreen));
 
-
         } else {
             tagView.setTagBackgroundColor(colors[0]);
-            tagView.setEnableCross(false);
+
         }
 
         tagView.setTagBorderColor(colors[1]);
@@ -620,7 +619,6 @@ public class TagContainerLayout extends ViewGroup {
         tagView.setRippleAlpha(mRippleAlpha);
         tagView.setRippleColor(mRippleColor);
         tagView.setRippleDuration(mRippleDuration);
-//        tagView.setEnableCross(mEnableCross);
         tagView.setCrossAreaWidth(mCrossAreaWidth);
         tagView.setCrossAreaPadding(mCrossAreaPadding);
         tagView.setCrossColor(mCrossColor);

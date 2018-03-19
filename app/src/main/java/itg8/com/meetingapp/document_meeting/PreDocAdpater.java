@@ -29,12 +29,15 @@ public class PreDocAdpater extends RecyclerView.Adapter<PreDocAdpater.PreDocView
     private Context activity;
     private List<TblDocument> list;
     private ItemClickListner listner;
+    private int from;
     private File file;
 
-    public PreDocAdpater(Context activity, List<TblDocument> list, ItemClickListner listner) {
+    public PreDocAdpater(Context activity, List<TblDocument> list, ItemClickListner listner, int from) {
         this.activity = activity;
         this.list = list;
         this.listner = listner;
+
+
     }
 
     @Override
@@ -130,12 +133,14 @@ public class PreDocAdpater extends RecyclerView.Adapter<PreDocAdpater.PreDocView
             imgMore.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+
+
                     listner.onItemClcikedListener(getAdapterPosition(), list.get(getAdapterPosition()), imgMore);
 
 
                 }
             });
-            itemView.setOnClickListener(new View.OnClickListener() {
+            lblDocumentTitle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 

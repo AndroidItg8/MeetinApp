@@ -3,6 +3,10 @@ package com.github.tibolte.agendacalendarview.agenda;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
+
+
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -16,7 +20,8 @@ import com.github.tibolte.agendacalendarview.R;
 import com.github.tibolte.agendacalendarview.utils.BusProvider;
 import com.github.tibolte.agendacalendarview.utils.Events;
 
-public class AgendaView extends FrameLayout {
+public class AgendaView extends FrameLayout
+{
 
     private AgendaListView mAgendaListView;
     private View mShadowView;
@@ -35,6 +40,8 @@ public class AgendaView extends FrameLayout {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater.inflate(R.layout.view_agenda, this, true);
     }
+
+
 
     // endregion
 
@@ -149,4 +156,13 @@ public class AgendaView extends FrameLayout {
     }
 
     // endregion
+
+
+
+
+
+
+
+
+
 }

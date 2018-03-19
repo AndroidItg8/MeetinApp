@@ -43,8 +43,10 @@ public class MeetingDocumentAdapter extends RecyclerView.Adapter<MeetingDocument
     public void onBindViewHolder(ViewHolder holder, int position) {
         if(documents.get(position)==null){
             holder.txtDoc1.setVisibility(View.GONE);
+            holder.imgCross.setVisibility(View.GONE);
         }else {
             holder.txtDoc1.setVisibility(View.VISIBLE);
+            holder.imgCross.setVisibility(View.VISIBLE);
             holder.txtDoc1.setText(documents.get(position).getFileName());
             Picasso
                     .with(holder.itemView.getContext())

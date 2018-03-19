@@ -33,7 +33,7 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-    private Preference pref;
+
     private Preference mediumPrioritiesPref;
     private Preference highPrioritiesPref;
     private Preference lowPrioritiesPref;
@@ -138,8 +138,12 @@ public class PrefsSettingFragment extends PreferenceFragmentCompat {
     private void setNotificationTogglePref(Preference notificationTogglePref) {
         if (Prefs.getBoolean(CommonMethod.SETTING_PREF_NOTIFICATION_TOGGLE, false)) {
             notificationTogglePref.setSummary("Hide quick menu on notification bar");
+
+
         } else {
             notificationTogglePref.setSummary("Show quick menu on notification bar ");
+
+
         }
     }
 

@@ -14,6 +14,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PersistableBundle;
 import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -33,7 +34,9 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import butterknife.BindView;
@@ -68,7 +71,11 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
             + ", "
             + ContactsContract.CommonDataKinds.Email.DATA
             + " COLLATE NOCASE";
-    public ArrayList<Contact> contacts = new ArrayList<>();
+    private static final String CONTACT_LIST = "CONTACT_LIST";
+    private static final String RECYCLER_VIEW = "RECYCLER_VIEW";
+    private static final String POSITION_RECYCLERVIEW = "";
+    public
+    ArrayList<Contact> contacts = new ArrayList<>();
     @BindView(R.id.contacts_recycler_view)
     RecyclerView contactsRecyclerView;
     @BindView(R.id.progressBar)
@@ -86,154 +93,20 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
     private boolean isSearchClose = false;
     private ActionMode.Callback mActionModeCallback;
     private boolean needUpdate = false;
-
-    public void createActionMenuCallback() {
-        mActionModeCallback = new ActionMode.Callback() {
-
-            // Called when the action mode is created; startActionMode() was called
-            @Override
-            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                // Inflate a menu resource providing context menu items
-                MenuInflater inflater = mode.getMenuInflater();
-                inflater.inflate(R.menu.context_menu, menu);
-                menu.findItem(R.id.m_search).setVisible(true);
-
-                setUpSearchView(menu);
+    private boolean hasInstanceState=false;
+    private MenuItem menuOK;
 
 
-                // searchButton.setVisibility(View.GONE);
-                return true;
-            }
-
-            // Called each time the action mode is shown. Always called after onCreateActionMode, but
-            // may be called multiple times if the mode is invalidated.
-            @Override
-            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                MenuItem item = menu.findItem(android.R.id.home);
-                if (item == null)
-                    Log.d(TAG, "onPrepareActionMode: MenuItem Null");
-                else
-                    Log.d(TAG, "onPrepareActionMode: MenuItem NotNull HUrraYY!!!");
-                return false; // Return false if nothing is done
-            }
-
-
-            // Called when the user selects a contextual menu item
-            @Override
-            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-
-                int id = item.getItemId();
-                if (id == R.id.menu_ok) {
-                    finishWithResult();
-                    return true;
-                } else if (id == android.R.id.home) {
-                    Log.d(TAG, "onActionItemClicked: " + "home");
-                    return true;
-                }
-
-                return false;
-            }
-
-
-
-            // Called when the user exits the action mode
-            @Override
-            public void onDestroyActionMode(ActionMode mode) {
-
-                boolean isAnySelected = false;
-//                for (int i = 0; i < contacts.size(); i++) {
-//                    if (contacts.get(i).isSelected()) {
-//                        contacts.get(i).setSelected(false);
-//                        isAnySelected = true;
-//                    }
-//                }
-//
-//                if (isAnySelected) {
-//                    //contactIconLazyLoad.Reset();
-//                    contactsAdapter.notifyDataSetChanged();
-//
-//                }
-                //searchButton.setVisibility(View.VISIBLE);
-
-
-                if (!isSearchClose) {
-                    if (!searchView.isIconified()) {
-                        searchView.setIconified(true);
-                        isSearchClose = true;
-                        myActionMenuItem.collapseActionView();
-
-//
-
-//                    setOriginalContactList();
-                        needUpdate = true;
-                        if (mActionMode != null) {
-                            mActionMode.finish();
-                            createActionMenuCallback();
-                            mActionMode = startSupportActionMode(mActionModeCallback);
-
-                        }
-
-                    }
-                } else {
-//                    if (needUpdate) {
-//                        needUpdate=false;
-                        updateActionBars();
-//                        return;
-//                    }
-                    needUpdate = true;
-                    Log.d(TAG, "onDestroyActionMode: OnBackPressed:");
-//                    onBackPressed();
-
-                }
-
-
-            }
-
-
-            private void setUpSearchView(Menu menu) {
-                searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.m_search));
-                searchView.setIconifiedByDefault(true);
-                searchView.setIconified(true);
-                searchView.setOnSearchClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        isSearchClose = searchView.isIconified();
-                    }
-                });
-                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-                    @Override
-                    public boolean onQueryTextSubmit(String s) {
-                        Log.d(TAG, "onQueryTextSubmit: onCreateActionMode" + s);
-                        if (!searchView.isIconified()) {
-                            searchView.setIconified(true);
-
-                        }
-                        myActionMenuItem.collapseActionView();
-                        return false;
-                    }
-
-
-                    @Override
-                    public boolean onQueryTextChange(final String s) {
-                        Log.d(TAG, "onQueryTextChange: onCreateActionMode" + s);
-                        new Handler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (!TextUtils.isEmpty(s))
-                                    searchFilterTag(s);
-                                else
-                                    setOriginalContactList();
-                            }
-                        });
-                        return false;
-                    }
-                });
-
-
-            }
-
-        };
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.d(TAG, "onSaveInstanceState: :"+contacts.size());
+        outState.putParcelableArrayList(CONTACT_LIST, originalContact);
     }
+//        outState.putInt(POSITION_RECYCLERVIEW);
+
+
+
 
 
     private boolean setOriginalContactList() {
@@ -270,39 +143,12 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
         if (photo != null) {
             bitmapPhoto = BitmapFactory.decodeByteArray(photo, 0, photo.length);
 //                    Log.d("!!!!!!!!!!!!!!!PICTURE!!!!!!!!!!", "!!!!!!!!!!!!!!!!");
-        }
-
+ }
         return bitmapPhoto;
     }
 
 
-//    public void updateActionBars() {
-//        int checkBoxCount = 0;
-//
-//        for (int i = 0; i < originalContact.size(); i++) {
-//            if (originalContact.get(i).isSelected()) checkBoxCount++;
-//            Log.d(TAG, "updateActionBars: checkBoxCount" + checkBoxCount);
-//        }
-//
-//        if (checkBoxCount == 0) {
-//            if (mActionMode != null) {
-//                mActionMode.finish();
-//                mActionMode = null;
-//            }
-//
-//        } else {
-//            if (mActionMode == null)
-//                mActionMode = startSupportActionMode(mActionModeCallback);
-//        }
-//        if (mActionMode != null) {
-//            if (checkBoxCount == 1) {
-//                mActionMode.setTitle(getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + getString(R.string.friend));
-//            } else {
-//                mActionMode.setTitle(getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + getString(R.string.friends));
-//            }
-//        }
-//
-//    }
+
     public void updateActionBars() {
         int checkBoxCount = 0;
 
@@ -349,8 +195,8 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
 
                 if (email != null) {
                     c.add(new Contact(name, email, getPhotoById(id), number, pkid));
-                    Log.d("Name: ", name);
-                    Log.d("number: ", number);
+//                    Log.d("Name: ", name);
+//                    Log.d("number: ", number);
 
                 }
 
@@ -413,18 +259,17 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
     }
 
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate: ");
 
         setContentView(R.layout.activity_multiple_contact_picker);
         ButterKnife.bind(this);
-        createActionMenuCallback();
-
-
         checkPermissions();
-
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.button_ab_close);
         getSupportActionBar().setTitle(getString(R.string.add_friends));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -434,26 +279,43 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         createRecyclerView();
+        checkSaveInstance(savedInstanceState);
+
 
     }
 
-    private void createRecyclerView() {
-        contactsView.setHasFixedSize(true);
+    private void checkSaveInstance(Bundle savedInstanceState) {
+        Log.d(TAG, "checkSaveInstance: ");
+        if(savedInstanceState!=null && savedInstanceState.getParcelableArrayList(CONTACT_LIST) != null ) {
+            contacts= (savedInstanceState.getParcelableArrayList(CONTACT_LIST));
+            if(contacts!=null && contacts.size()>0) {
+                hasInstanceState = true;
+                originalContact.addAll(contacts);
+                createTempHashMap();
+//                contactsAdapter.notifyDataSetChanged();
+                createRecyclerView();
+            }
+        }
 
+
+
+    }
+
+    private void  createRecyclerView() {
+        contactsView.setHasFixedSize(true);
         // use a linear layout manager
         contactsLayoutManager = new LinearLayoutManager(this);
         contactsView.setLayoutManager(contactsLayoutManager);
         // specify an adapter (see also next example)
         contactsAdapter = new ContactsAdapter(this, contacts, this);
         contactsView.setAdapter(contactsAdapter);
-
-
     }
 
     @Override
     public void updateActionBar() {
 //        updateActionBars();
-        invalidateOptionsMenu();
+        setCountToTitle();
+//        invalidateOptionsMenu();
     }
 
     @Override
@@ -510,6 +372,7 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
          */
         //  mSelectionArgs[0] = "%" + mSearchString + "%";
         // Starts the query
+        Log.d(TAG, "onCreateLoader: ");
         return new CursorLoader(
                 this,
                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
@@ -519,10 +382,18 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
 //                SORT_ORDER
                 null
         );
+
+
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, final Cursor cursor) {
+
+        if(hasInstanceState)
+            return;
+        Log.d(TAG, "onLoadFinished: ");
+
+
         showProgress();
         Observable.fromCallable(new Callable<ArrayList<Contact>>() {
             @Override
@@ -539,12 +410,13 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
 
                     @Override
                     public void onNext(ArrayList<Contact> contactList) {
-                        if (!isDestroyed) {
-                            contacts.addAll(contactList);
+                        contacts.addAll(contactList);
                             originalContact.addAll(contactList);
                             createTempHashMap();
                             contactsAdapter.notifyDataSetChanged();
-                        }
+                   
+                            
+                        
                     }
 
                     @Override
@@ -593,24 +465,39 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-
         getMenuInflater().inflate(R.menu.context_menu, menu);
+        myActionMenuItem = menu.findItem(R.id.m_search).setVisible(true);
+        menuOK = menu.findItem(R.id.menu_ok);
+        setCountToTitle();
+        searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.m_search));
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                if (setOriginalContactList()) return false;
+                return false;
+            }
+        });
+
+
+        searchQueryChange(myActionMenuItem);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    private void setCountToTitle() {
         int checkBoxCount = 0;
 
         for (int i = 0; i < originalContact.size(); i++) {
             if (originalContact.get(i).isSelected()) checkBoxCount++;
-            Log.d(TAG, "updateActionBars: checkBoxCount" + checkBoxCount);
         }
+        Log.d(TAG, "updateActionBars: checkBoxCount" + checkBoxCount);
         if (checkBoxCount == 0) {
-            myActionMenuItem = menu.findItem(R.id.m_search).setVisible(true);
-            menu.findItem(R.id.menu_ok).setVisible(false);
+
+           menuOK.setVisible(false);
             getSupportActionBar().setTitle(getString(R.string.add_friends));
             getSupportActionBar().setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this, R.color.colorPrimary)));
 
         } else {
-
-            menu.findItem(R.id.menu_ok).setVisible(true);
-            myActionMenuItem = menu.findItem(R.id.m_search).setVisible(true);
+           menuOK.setVisible(true);
 
             if (checkBoxCount == 1) {
                 getSupportActionBar().setTitle(getString(R.string.add) + " " + String.valueOf(checkBoxCount) + " " + getString(R.string.friend));
@@ -620,22 +507,6 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
             getSupportActionBar().setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this, R.color.colorBlack)));
 
         }
-
-        searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.m_search));
-        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
-            @Override
-            public boolean onClose() {
-
-
-                if (setOriginalContactList()) return false;
-                return false;
-            }
-        });
-
-
-        searchQueryChange(myActionMenuItem);
-
-        return true;
     }
 
     private void searchQueryChange(final MenuItem myActionMenuItem) {
@@ -664,7 +535,6 @@ public class MultipleContactPickerActivity extends AppCompatActivity implements
                 searchFilterTag(newText);
             }
         });
-
         return false;
     }
 

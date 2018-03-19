@@ -2,10 +2,8 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_margin="08dp">
-
-
-
     <android.support.design.widget.TextInputLayout
         android:id="@+id/input_layout_name"
         android:layout_width="match_parent"
@@ -15,6 +13,7 @@
         android:layout_marginRight="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="08dp"
+        app:errorEnabled="true"
         android:layout_marginBottom="08dp">
 
         <EditText
@@ -27,7 +26,6 @@
             android:gravity="top|start"
             android:hint="Add Note"
             android:maxLines="5"
-
             android:textColor="@color/colorBlack"
             android:textSize="@dimen/normal_text_size" />
     </android.support.design.widget.TextInputLayout>

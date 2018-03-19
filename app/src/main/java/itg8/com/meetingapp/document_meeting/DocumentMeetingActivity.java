@@ -1,18 +1,17 @@
 package itg8.com.meetingapp.document_meeting;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
@@ -23,7 +22,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.widget.EditText;
 
 import java.io.ByteArrayOutputStream;
@@ -47,13 +45,10 @@ import itg8.com.meetingapp.db.DaoDocumentInteractor;
 import itg8.com.meetingapp.db.DaoMeetingInteractor;
 import itg8.com.meetingapp.db.TblDocument;
 import itg8.com.meetingapp.db.TblMeeting;
-import itg8.com.meetingapp.meeting.MeetingActivity;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
 import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_IMAGE;
-import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_IMAGE_JPG;
-import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_IMAGE_PNG;
 import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_PDF;
 import static itg8.com.meetingapp.meeting.MeetingActivity.MIME_TYPE_TEXT_PLAIN;
 import static itg8.com.meetingapp.meeting.MeetingActivity.RC_CAMERAWITHSTORAGE;
@@ -61,10 +56,13 @@ import static itg8.com.meetingapp.meeting.MeetingActivity.RC_STORAGE;
 import static itg8.com.meetingapp.meeting.MeetingActivity.READ_REQUEST_CODE;
 import static itg8.com.meetingapp.meeting.MeetingActivity.REQUEST_TAKE_PHOTO;
 
-public class DocumentMeetingActivity extends AppCompatActivity implements View.OnClickListener,EasyPermissions.PermissionCallbacks {
+public class DocumentMeetingActivity extends AppCompatActivity implements View.OnClickListener, EasyPermissions.PermissionCallbacks {
 
     private static final String TAG = "DocumentMeetingActivity";
-
+    public String[] value = {
+            "Camera",
+            "File"
+    };
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.tab_layout)
@@ -75,7 +73,6 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
     ViewPager viewPager;
     @BindView(R.id.fab)
     FloatingActionButton fab;
-
     NoteItemListener listener;
     private ArrayList<TblDocument> documentPreList;
     private ArrayList<TblDocument> documentPostList;
@@ -99,8 +96,8 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
         getSupportActionBar().setTitle("Meeting Documents");
         fab.setVisibility(View.GONE);
         fab.setOnClickListener(this);
-        daoMeeting=new DaoMeetingInteractor(this);
-        daoDocument=new DaoDocumentInteractor(this);
+        daoMeeting = new DaoMeetingInteractor(this);
+        daoDocument = new DaoDocumentInteractor(this);
         init();
         setupViewPager(viewPager);
         checkPermissions();
@@ -109,7 +106,7 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                Log.d(TAG, "onPageScrolled: position:"+position+" positionOffset:"+positionOffset);
+                Log.d(TAG, "onPageScrolled: position:" + position + " positionOffset:" + positionOffset);
 //                if(position==0){
 //                    onPredocumentClick();
 //                }else {
@@ -120,9 +117,9 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
             @Override
             public void onPageSelected(int position) {
                 Log.d(TAG, "onPageSelected: ");
-                if(position==0){
+                if (position == 0) {
                     onPredocumentClick();
-                }else {
+                } else {
                     onPostdocumentClick();
                 }
             }
@@ -144,6 +141,7 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
             canAccessCamera = true;
         return canAccessCamera;
     }
+
     @AfterPermissionGranted(RC_CAMERAWITHSTORAGE)
     private void checkCameraPerm() {
         permissions = getCameraPermission();
@@ -183,16 +181,15 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
     }
 
-
     private void init() {
-        if(getIntent().hasExtra(CommonMethod.EXTRA_PRE_DOCUMENTS)){
+        if (getIntent().hasExtra(CommonMethod.EXTRA_PRE_DOCUMENTS)) {
             long meetingId = getIntent().getLongExtra(CommonMethod.EXTRA_MEETING, 0);
             isInProgress = getIntent().getBooleanExtra(CommonMethod.EXTRA_PROGRESS, false);
-            if(meetingId>0){
+            if (meetingId > 0) {
                 try {
-                    meeting=daoMeeting.getMeetingById(meetingId);
-                    documentPreList= (ArrayList<TblDocument>) daoDocument.getPreDocumentsByMeetingId(meetingId);
-                    documentPostList= (ArrayList<TblDocument>) daoDocument.getPostDocumentsByMeetingId(meetingId);
+                    meeting = daoMeeting.getMeetingById(meetingId);
+                    documentPreList = (ArrayList<TblDocument>) daoDocument.getPreDocumentsByMeetingId(meetingId);
+                    documentPostList = (ArrayList<TblDocument>) daoDocument.getPostDocumentsByMeetingId(meetingId);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -205,70 +202,84 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(PreDocmentFragment.newInstance(documentPreList), "Pre Meeting");
-        adapter.addFragment(PostDocumnetFragment.newInstance(documentPostList  , isInProgress), "Post Meeting");
+        adapter.addFragment(PostDocumnetFragment.newInstance(documentPostList, isInProgress), "Post Meeting");
         viewPager.setAdapter(adapter);
     }
 
-
     @Override
     public void onClick(View view) {
-        switch (view.getId())
-        {
+        switch (view.getId()) {
             case R.id.fab:
 //                showDialogBox();
                 showDialogToAddDocument();
         }
     }
 
-    public void showDialogBox( final NoteItemListener listener) {
-        AlertDialog.Builder builderSingle = new AlertDialog.Builder(DocumentMeetingActivity.this);
+    public void showDialogBox(final NoteItemListener listener) {
+        final AlertDialog.Builder builderSingle = new AlertDialog.Builder(DocumentMeetingActivity.this);
         builderSingle.setIcon(R.drawable.ic_mode_edit);
-      //  AlertDialog dialog = new AlertDialog(DocumentMeetingActivity.this);
+
         builderSingle.setTitle("Add Note:-");
-//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-//        dialog.requestWindowFeature(Window.FEATURE_LEFT_ICON);
-//        dialog.setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.ic_mode_edit_black_24dp);
-
+//
         LayoutInflater layoutInflaterAndroid = LayoutInflater.from(DocumentMeetingActivity.this);
         View mView = layoutInflaterAndroid.inflate(R.layout.add_note_meeting, null);
         builderSingle.setView(mView);
         builderSingle.setCancelable(false);
         final EditText edtDocumentNote = (EditText) mView.findViewById(R.id.edt_document_title);
-        if(!TextUtils.isEmpty(meeting.getNote()))
-        {
+        final TextInputLayout inputLayout = (TextInputLayout) mView.findViewById(R.id.input_layout_name);
+
+        if (!TextUtils.isEmpty(meeting.getNote())) {
             edtDocumentNote.setText(meeting.getNote());
+        } else {
+            edtDocumentNote.setText("");
         }
 //
+
+
         builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
+            public void onClick(DialogInterface dialog1, int which) {
+
+            }
+        });
+        builderSingle.setPositiveButton("save", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog1, int which) {
+
+
+
+            }
+        });
+        final AlertDialog dialog = builderSingle.create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
                 dialog.dismiss();
             }
         });
 
-        builderSingle.setPositiveButton("save", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if(!TextUtils.isEmpty(edtDocumentNote.getText()))
-                {
-                    String lblNote = edtDocumentNote.getText().toString().trim();
-                    meeting.setNote(lblNote);
-                    updateMeetingTable();
-                    Log.d("TAG","lblNote:"+lblNote);
-                    if(listener != null)
-                        listener.sendItemToFragment(lblNote);
+
+dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View view) {
+        if (!TextUtils.isEmpty(edtDocumentNote.getText())) {
+            String lblNote = edtDocumentNote.getText().toString().trim();
+            meeting.setNote(lblNote);
+            updateMeetingTable();
+            Log.d("TAG", "lblNote:" + lblNote);
+            if (listener != null)
+                listener.sendItemToFragment(lblNote, meeting.getPkid());
+            dialog.dismiss();
+        } else {
+
+            inputLayout.setError("Enter note regarding meeting");
 
 
-                }else
-                {
-                    return;
-                }
-            }
-        });
-//        dialog = builderSingle.create();
+        }
+    }
+});
 
-        builderSingle.show();
     }
 
     private void updateMeetingTable() {
@@ -281,9 +292,9 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId()==android.R.id.home){
+        if (item.getItemId() == android.R.id.home) {
             onBackPressed();
-    }
+        }
         return super.onOptionsItemSelected(item);
 
     }
@@ -293,17 +304,11 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
     }
 
     public void onPostdocumentClick() {
-        if(isInProgress)
+        if (isInProgress)
             fab.setVisibility(View.GONE);
         else
             fab.setVisibility(View.VISIBLE);
     }
-
-
-    public String[] value = {
-            "Camera",
-            "File"
-    };
 
     private void showDialogToAddDocument() {
         AlertDialog.Builder alertdialogbuilder = new AlertDialog.Builder(DocumentMeetingActivity.this);
@@ -455,7 +460,7 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
                          *  the filename. That's out of the scope of this post. */
 
 
-                        Log.d(TAG, "onActivityResult: FileName:"+newFileName);
+                        Log.d(TAG, "onActivityResult: FileName:" + newFileName);
                         String output_path = createDocumentTempFile(newFileName).getAbsolutePath();
 
                         // Create the file in the location that we just defined.
@@ -505,23 +510,21 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
     }
 
 
-
     private File createDocumentTempFile(String fileName) throws IOException {
         // Create an image file name
 
         String imageFileName = fileName.split("\\.(?=[^\\.]+$)")[0];
-        String ext = "."+fileName.split("\\.(?=[^\\.]+$)")[1];
+        String ext = "." + fileName.split("\\.(?=[^\\.]+$)")[1];
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ext,         /* suffix */
                 storageDir      /* directory */
         );
-        Log.d(TAG, "createDocumentTempFile: DocumentFile:"+image.getAbsolutePath());
+        Log.d(TAG, "createDocumentTempFile: DocumentFile:" + image.getAbsolutePath());
         // Save a file: path for use with ACTION_VIEW intents
         return image;
     }
-
 
 
     public void writeFile(byte[] data, String fileName) throws IOException {
@@ -547,7 +550,7 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
     }
 
     private void createDocumentFile(String mCurrentPhotoPath) {
-        if(meeting==null) {
+        if (meeting == null) {
             throw new NullPointerException("Meeting is null. cannot create document");
         }
         TblDocument document = new TblDocument();
@@ -561,7 +564,8 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        listener.addNewPostDocument(document);
+        if (listener != null)
+            listener.addNewPostDocument(document);
 //        documents.add(document);
 //        adapter.notifyDataSetChanged();
 
@@ -578,9 +582,15 @@ public class DocumentMeetingActivity extends AppCompatActivity implements View.O
         checkPrems(perms, false);
     }
 
+    @Override
+    public void onBackPressed() {
+        setResult(RESULT_OK);
+        super.onBackPressed();
+    }
 
-    public   interface NoteItemListener{
-        void sendItemToFragment(String note);
+    public interface NoteItemListener {
+        void sendItemToFragment(String note, long pkid);
+
         void addNewPostDocument(TblDocument document);
     }
 }

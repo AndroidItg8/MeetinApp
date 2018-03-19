@@ -60,6 +60,7 @@
     <string name="pref_low_priories">Low Priority</string>
     <string name="pref_notification_toggle_switch_summ">Switching For Notification Toggle</string>
     <string name="pref_notification_toggle">SETTING_PREF_NOTIFICATION_TOGGLE</string>
+    <string name="pref_notification_toggle_defult">true</string>
     <string name="high_priorities">High Priority</string>
     <string name="medium_priorities">Medium Priority</string>
     <string name="low_priorities">Low Priority</string>
@@ -130,8 +131,8 @@
     <string name="ok">Ok</string>
     <string name="friend">Person</string>
     <string name="friends">People</string>
-    <string name="tag">TAG</string>
-    <string name="tags">TAGS</string>
+    <string name="tag">Tag</string>
+    <string name="tags">Tags</string>
     <string name="add">Add</string>
     <string name="title_activity_tag">TAG</string>
 
@@ -176,6 +177,9 @@
     <string name="search_title">search</string>
     <string name="filter">filter</string>
     <string name="delete">delete</string>
+    <string name="action_delete">delete</string>
+    <string name="short_note_msg">Click here to add short note about meeting.</string>
+    <!--<string name="short_note_msg">Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting. Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.Click here to add short note about meeting.655465416546546546546546546546546546546546541</string>-->
 
 
     <!--<![CDATA[-->

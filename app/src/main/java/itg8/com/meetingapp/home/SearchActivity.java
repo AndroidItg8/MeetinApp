@@ -7,15 +7,12 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.os.PersistableBundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -76,12 +73,15 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     private float oldHeight;
     private ArrayList<TblTAG> tagList;
     private List<TblMeeting> list;
-//    private List<String> list;
+    //    private List<String> list;
     private List<TblMeeting> searchList;
-    private int preHeight=0;
-    private boolean notFirstTime=false;
-    private String Search_LIST="Search_LIST";
-
+    private int fullHeight = 0;
+    private boolean notFirstTime = false;
+    private String Search_LIST = "Search_LIST";
+    private int heightScreen = 0;
+    private int keyBoardHeight = 0;
+    private boolean isFirstTime = false;
+    private boolean isSearchFirst = false;
 
 
     @Override
@@ -92,16 +92,14 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
             outState.putParcelableArrayList(Search_LIST, (ArrayList<? extends Parcelable>) list);
             //    outState.putParcelableArrayList(FILTER_LIST, (ArrayList<? extends Parcelable>) tourismList);
         }
-        if(tagContainerLayout!= null)
-        {
+        if (tagContainerLayout != null) {
             Log.d(TAG, "onSaveInstanceState: ");
-            outState.putParcelableArrayList(TAG_LIST,  tagList);
+            outState.putParcelableArrayList(TAG_LIST, tagList);
 
         }
         rootLayoutObserver();
 
     }
-
 
 
     @Override
@@ -114,6 +112,8 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 //        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         init();
+        heightScreen = CommonMethod.getScreenResolution(SearchActivity.this);
+        Log.d(TAG, "onCreate: height:" + heightScreen);
         if (savedInstanceState != null) {
             tagList = savedInstanceState.getParcelableArrayList(TAG_LIST);
             Log.d(TAG, "onCreate: OnSAVE INSTANCE STATE");
@@ -126,8 +126,6 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         }
 
     }
-
-
 
 
     private void init() {
@@ -196,7 +194,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
             @Override
             public void onFilterTagClicked() {
                 Intent intent = new Intent(SearchActivity.this, TAGActivity.class);
-                intent.putExtra(CommonMethod.FROM_SEARCH,true);
+                intent.putExtra(CommonMethod.FROM_SEARCH, true);
                 startActivityForResult(intent, RC_FILTER_TAG);
             }
 
@@ -304,7 +302,6 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     }
 
 
-
     private void rootLayoutObserver() {
 
         rlRoot.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -315,48 +312,33 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 
                 rlRoot.getWindowVisibleDisplayFrame(r);
                 int screenHeight = rlRoot.getRootView().getHeight();
+                Log.d(TAG, "onGlobalLayout screenHeight: " + screenHeight);
 
-//                int heightDiff = screenHeight - (r.bottom - r.top);
-                int heightDiff = screenHeight - r.bottom;
-                Log.d(TAG, "onGlobalLayout rlRoot: "+r.bottom);
-                Log.d(TAG, "onGlobalLayout heightDiff: "+heightDiff);
-                Log.d(TAG, "onGlobalLayout heightDiff: "+heightDiff);
-
-                if(preHeight==0)
-                {
-                    preHeight= heightDiff;
+                if (fullHeight == 0) {
+                    fullHeight = r.bottom;
+                    Log.d(TAG, "onGlobalLayout: fullHeight First" + fullHeight);
                     return;
                 }
-//               int diff = (screenHeight - r.top) - proposedHeight;
 
+                    if (r.bottom< fullHeight && keyBoardHeight == 0) {
 
-                if(Math.abs(heightDiff-preHeight)>400) {
-                    if (heightDiff > preHeight) { // if more than 100 pixels, its probably a keyboard...
+                        Log.d(TAG, "onGlobalLayout: r.bottom" + r.bottom);
+                        Log.d(TAG, "onGlobalLayout: fullHeight" + fullHeight);
+                        keyBoardHeight = r.bottom;
 
-                        Log.d(TAG, "onGlobalLayout: Keyboard Open heightDiff " + heightDiff);
-                        Log.d(TAG, "onGlobalLayout: Keyboard Open preHeight" + preHeight);
-                    } else {
-                        Log.d(TAG, "onGlobalLayout: Keyboard Close " + heightDiff);
-                        Log.d(TAG, "onGlobalLayout: Keyboard Close preHeight" + preHeight);
-                        Log.d(TAG, "onGlobalLayout: Keyboard not FirstTime" + notFirstTime);
-
-                        if (notFirstTime) {
-                            Log.d(TAG, "onGlobalLayout: Keyboard not FirstTime Inside It" + notFirstTime);
-                            if (searchbox != null)
-                                searchbox.removeSearchFocus();
-                        }
-                        notFirstTime = true;
+                        return;
                     }
-                }else
-                {
-                    notFirstTime = true;
 
-                    Log.d(TAG, "onGlobalLayout: onGlobalLayout: Keyboard Close No LArge Diffrence");
+                    if(r.bottom== fullHeight)
+                    {
+                        Log.d(TAG, "onGlobalLayout: Keyboard Open fullHeight " + fullHeight +"rBottom"+r.bottom);
+                        if (searchbox != null)
+                            searchbox.removeSearchFocus();
+
+                    }
+
                 }
-                preHeight= heightDiff;
-
-            }
-        });
+    });
     }
 
 
@@ -411,8 +393,6 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == RC_FILTER_TAG && resultCode == RESULT_OK) {
-
-
             hasFromActivityResult = true;
             Log.d(TAG, "onActivityResult: getMaxLines" + tagContainerLayout.getMaxLines());
             Log.d(TAG, "setContainerLayoutHeight: ContainerHeight:" + tagContainerLayout.getHeight());
@@ -434,6 +414,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         showItems(rlCollapsing, tagContainerLayout, txtClearTag, txtSelectedTag);
         showView(rlTag, recyclerView);
         fetchMeetingFromTAGS(tag);
+
     }
 
     private void showItems(View... view) {
@@ -542,7 +523,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 
     private void checkItemIsExist(List<TblMeeting> list) {
         for (TblMeeting tblMeeting : list) {
-            if(tblMeeting== null )
+            if (tblMeeting == null)
                 continue;
 
             if (!hashMap.containsKey(tblMeeting.getPkid())) {
@@ -569,9 +550,6 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     }
 
 
-
-
-
     //
     @Override
     public void onBackPressed() {
@@ -585,7 +563,6 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         tagContainerLayout.removeAllTags();
         hideItems(rlCollapsing, tagContainerLayout, txtClearTag);
         txtSelectedTag.setVisibility(View.VISIBLE);
-
         setTagTextWithImage();
         removeTagItemFromAdapter();
 
@@ -603,7 +580,6 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
                             getApplicationContext()
                                     .getResources()
                                     .getIdentifier(source, "drawable", getPackageName());
-
                     drawable =
                             getApplicationContext()
                                     .getResources()
@@ -619,12 +595,14 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
                 }
             }, null));
 
+        } else {
+            txtSelectedTag.setText(" Click this icon to filter result by Tags");
+            txtSelectedTag.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_tags, 0, 0, 0);
         }
     }
 
 
     private void setContainerLayoutHeight() {
-
         if (isCollapsed) {
             imgUp.setImageResource(R.drawable.ic_arrow_drop_down_black_24dp);
             Log.d(TAG, "setContainerLayoutHeight: ContainerHeight isCollapsed:" + tagContainerLayout.getHeight());

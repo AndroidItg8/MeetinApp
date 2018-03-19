@@ -30,10 +30,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="@color/theme_primary"
-
-
-                app:popupTheme="@style/AppTheme.PopupOverlay" >
-
+                app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+               >
+                <!--app:popupTheme="@style/AppTheme.PopupOverlay"-->
             </android.support.v7.widget.Toolbar>
             <RelativeLayout
                 android:id="@+id/rl_tag_container"
